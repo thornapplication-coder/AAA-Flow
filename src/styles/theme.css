@@ -1,0 +1,128 @@
+/* AAA Flow — Design-Tokens.
+   Visuell konsistent zu AAA Connect: dunkelblaue Farbtöne, Kachelstruktur.
+   Die endgültigen Hex-Codes und das Logo werden nachgeliefert (Spec 15, Punkt 3);
+   bis dahin gelten die Platzhalter unten. Alle Farben nur über Tokens verwenden. */
+:root {
+  --aaa-navy-900: #0b1f3a;
+  --aaa-navy-800: #12294d;
+  --aaa-navy-700: #1b3a6b;
+  --aaa-navy-100: #dfe6f3;
+  --aaa-accent: #5b8def;
+  --aaa-bg: #f4f6fa;
+  --aaa-surface: #ffffff;
+  --aaa-border: #d7dde8;
+  --aaa-text: #14213d;
+  --aaa-text-muted: #5b6b85;
+  --aaa-on-navy: #ffffff;
+
+  /* Statusmodell (Spec 13): dieselbe Farbe bedeutet überall dasselbe */
+  --state-open: #8a94a6;
+  --state-in-progress: #2f6fed;
+  --state-done: #1e9e5a;
+  --state-overdue: #d6362b;
+
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(11, 31, 58, 0.06), 0 4px 16px rgba(11, 31, 58, 0.06);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  font-family: var(--font);
+  font-size: 15px;
+  color: var(--aaa-text);
+  background: var(--aaa-bg);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--aaa-navy-700); }
+button {
+  font: inherit;
+  border-radius: 8px;
+  border: 1px solid var(--aaa-border);
+  background: var(--aaa-surface);
+  color: var(--aaa-text);
+  padding: 8px 14px;
+  cursor: pointer;
+}
+button.primary { background: var(--aaa-navy-800); border-color: var(--aaa-navy-800); color: var(--aaa-on-navy); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+input, select {
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--aaa-border);
+  border-radius: 8px;
+  background: var(--aaa-surface);
+  color: var(--aaa-text);
+  width: 100%;
+}
+
+/* App-Shell */
+.shell { min-height: 100%; display: flex; flex-direction: column; }
+.topbar {
+  background: var(--aaa-navy-900);
+  color: var(--aaa-on-navy);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 20px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.brand { font-weight: 700; letter-spacing: 0.02em; display: flex; align-items: center; gap: 10px; }
+.brand img { width: 28px; height: 28px; }
+.nav { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
+.nav a {
+  color: var(--aaa-on-navy);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+.nav a.active, .nav a:hover { background: var(--aaa-navy-700); opacity: 1; }
+.topbar .user { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.topbar .user button { background: transparent; color: var(--aaa-on-navy); border-color: rgba(255,255,255,0.35); padding: 6px 10px; }
+.content { padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; }
+
+.tile {
+  background: var(--aaa-surface);
+  border: 1px solid var(--aaa-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+.tile + .tile { margin-top: 16px; }
+.muted { color: var(--aaa-text-muted); }
+h1 { font-size: 22px; margin: 0 0 16px; }
+h2 { font-size: 17px; margin: 0 0 12px; }
+
+.state { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff; }
+.state.open { background: var(--state-open); }
+.state.in_progress { background: var(--state-in-progress); }
+.state.done { background: var(--state-done); }
+.state.overdue { background: var(--state-overdue); }
+.state.discarded { background: var(--aaa-text-muted); }
+
+table.list { width: 100%; border-collapse: collapse; }
+table.list th, table.list td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--aaa-border); }
+table.list th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--aaa-text-muted); }
+.table-wrap { overflow-x: auto; }
+
+.login { min-height: 100%; display: grid; place-items: center; background: var(--aaa-navy-900); padding: 24px; }
+.login .tile { width: 100%; max-width: 380px; }
+.login form { display: grid; gap: 12px; }
+.error { color: var(--state-overdue); font-size: 14px; }
+
+/* Tablet: Layoutdichte reduzieren */
+@media (max-width: 1024px) { .content { padding: 16px; } }
+/* iPhone: Tabellen weichen Kartenlisten */
+@media (max-width: 640px) {
+  .topbar { gap: 12px; padding: 0 12px; }
+  .topbar .user .name { display: none; }
+  table.list { display: none; }
+  .cards { display: grid; gap: 12px; }
+}
+@media (min-width: 641px) { .cards { display: none; } }

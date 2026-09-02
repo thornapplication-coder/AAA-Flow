@@ -1,0 +1,14 @@
+{
+  "app": { "name": "AAA Flow", "tagline": "Gate-Steuerung für Trainingsvorgänge" },
+  "nav": { "pool": "Pool", "my": "Meine Vorgänge", "all": "Alle Vorgänge", "dashboard": "Dashboard", "admin": "Admin" },
+  "auth": { "login": "Anmelden", "logout": "Abmelden", "email": "E-Mail", "password": "Passwort", "noSelfSignup": "Kein Zugang? Nutzer werden ausschließlich durch Admins angelegt.", "failed": "Anmeldung fehlgeschlagen.", "noProfile": "Für dieses Konto existiert kein aktives Nutzerprofil. Bitte an einen Admin wenden." },
+  "common": { "loading": "Lädt …", "language": "Sprache", "claim": "Übernehmen", "noEntries": "Keine Einträge.", "error": "Fehler", "comingSoon": "Dieser Bereich folgt im nächsten Ausbauschritt." },
+  "department": { "sales": "Sales", "training_admin": "Training Admin", "ato": "ATO" },
+  "role": { "superadmin": "Superadmin", "admin": "Admin", "teamleader": "Teamleader", "staff": "Mitarbeiter" },
+  "status": { "enquiry": "Anfrage", "booked": "Gebucht", "released": "Freigegeben", "in_progress": "In Durchführung", "completed": "Abgeschlossen", "discarded": "Verworfen" },
+  "state": { "open": "Offen", "in_progress": "In Arbeit", "done": "Erledigt", "overdue": "Überfällig", "discarded": "Verworfen" },
+  "gate": { "1": "Gate 1 — Booking Accepted", "2": "Gate 2 — Course Readiness", "3": "Gate 3 — Course Closure" },
+  "case": { "number": "Vorgang", "trainee": "Trainee", "company": "Firma", "aircraftType": "Muster", "courseType": "Kurstyp", "courseStart": "Kursbeginn", "nextTask": "Nächste offene Aufgabe", "inPoolSince": "Im Pool seit", "businessDays": "AT", "stale": "Liegenbleiber" },
+  "pool": { "title": "Pool", "intro": "Unzugewiesene Vorgänge der Abteilung {{department}}. Ein Klick übernimmt." },
+  "messages": { "notice": "Nachrichten in AAA Flow sind Teil der Vorgangsakte und können nicht gelöscht werden. Anders als in AAA Connect gibt es kein automatisches Löschen." }
+}

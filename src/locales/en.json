@@ -1,0 +1,14 @@
+{
+  "app": { "name": "AAA Flow", "tagline": "Gate control for training cases" },
+  "nav": { "pool": "Pool", "my": "My cases", "all": "All cases", "dashboard": "Dashboard", "admin": "Admin" },
+  "auth": { "login": "Sign in", "logout": "Sign out", "email": "Email", "password": "Password", "noSelfSignup": "No access? Accounts are created by admins only.", "failed": "Sign-in failed.", "noProfile": "There is no active user profile for this account. Please contact an admin." },
+  "common": { "loading": "Loading …", "language": "Language", "claim": "Take over", "noEntries": "No entries.", "error": "Error", "comingSoon": "This area follows in the next development stage." },
+  "department": { "sales": "Sales", "training_admin": "Training Admin", "ato": "ATO" },
+  "role": { "superadmin": "Superadmin", "admin": "Admin", "teamleader": "Team leader", "staff": "Staff" },
+  "status": { "enquiry": "Enquiry", "booked": "Booked", "released": "Released", "in_progress": "In progress", "completed": "Completed", "discarded": "Discarded" },
+  "state": { "open": "Open", "in_progress": "In progress", "done": "Done", "overdue": "Overdue", "discarded": "Discarded" },
+  "gate": { "1": "Gate 1 — Booking Accepted", "2": "Gate 2 — Course Readiness", "3": "Gate 3 — Course Closure" },
+  "case": { "number": "Case", "trainee": "Trainee", "company": "Company", "aircraftType": "Type", "courseType": "Course type", "courseStart": "Course start", "nextTask": "Next open task", "inPoolSince": "In pool since", "businessDays": "bd", "stale": "Stale" },
+  "pool": { "title": "Pool", "intro": "Unassigned cases of the {{department}} department. One click takes over." },
+  "messages": { "notice": "Messages in AAA Flow are part of the case file and cannot be deleted. Unlike AAA Connect, there is no automatic deletion." }
+}
