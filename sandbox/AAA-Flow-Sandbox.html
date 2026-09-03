@@ -180,7 +180,7 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .cp .box.half{background:var(--work);border-color:var(--work)}
 .cp .box.full{background:var(--done);border-color:var(--done)}
 .cp .box.exc{background:var(--exc);border-color:var(--exc);font-size:10px}
-.cp .txt{flex:1;font-size:13.5px;min-width:0}
+.cp .txt{flex:1;font-size:13.5px;min-width:0;overflow-wrap:anywhere}
 .cp.done .txt>.lbl{color:var(--ink-soft)}
 .cp.excepted .txt>.lbl{text-decoration:line-through;text-decoration-color:var(--exc);color:var(--ink-soft)}
 .cp .lbl{display:block}
@@ -246,7 +246,7 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 /* ---------- Dialog ---------- */
 .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(12,27,46,.5);z-index:20;padding:16px}
 .modal.on{display:flex}
-.modal .card{background:var(--surface);border-radius:9px;width:min(520px,100%);max-height:92vh;overflow-y:auto;padding:20px;box-shadow:0 20px 60px rgba(12,27,46,.3);cursor:default}
+.modal .card{background:var(--surface);border-radius:9px;width:min(560px,100%);max-height:92vh;overflow-y:auto;padding:20px;box-shadow:0 20px 60px rgba(12,27,46,.3);cursor:default}
 .modal h3{font-size:16px;font-weight:600;margin-bottom:6px}
 .modal .lead{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -392,17 +392,21 @@ tr.inactive td{opacity:.55}
 .setgrid .fld input,.setgrid .fld select{width:100%;border:1px solid var(--line-strong);border-radius:var(--r);padding:8px 10px;font-size:13.5px;background:#fff}
 .setgrid .fld label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:4px}
 .setgrid .fld .hint{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
-.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:7px 10px;
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px 10px;
   border:1px solid var(--line-strong);border-radius:var(--r);padding:10px 11px;background:#fff}
-.checks label{display:flex;align-items:flex-start;gap:7px;font-size:13px;font-weight:400;color:var(--ink);cursor:pointer;margin:0;line-height:1.3}
-.checks input{margin-top:1px;flex:0 0 auto;accent-color:var(--navy-600)}
+.checks label{display:flex;align-items:flex-start;gap:7px;font-size:13px;font-weight:400;color:var(--ink);
+  cursor:pointer;margin:0;line-height:1.3;min-width:0}
+.checks label>span{min-width:0;overflow-wrap:anywhere;hyphens:auto}
+/* Ohne feste Breite erbt das Kästchen width:100% aus .fld input und schiebt
+   die Beschriftung aus dem Feld. */
+.checks input[type=checkbox]{width:16px;height:16px;margin-top:1px;flex:0 0 auto;accent-color:var(--navy-600)}
 .checks input:disabled{opacity:.4}
 .checks input:disabled + *,.checks label:has(input:disabled){color:var(--ink-faint);cursor:not-allowed}
 .fld input:disabled,.fld select:disabled,.fld textarea:disabled{background:#F1F4F8;color:var(--ink-faint);cursor:not-allowed}
 .fld input:disabled::placeholder{color:var(--line-strong)}
-.tgl{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line-strong);border-radius:var(--r);padding:9px 11px;background:#fff;cursor:pointer}
+.tgl{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line-strong);border-radius:var(--r);padding:9px 11px;background:#fff;cursor:pointer;min-width:0}
 .tgl input{margin-top:2px;width:16px;height:16px;accent-color:var(--navy-600);flex:0 0 16px}
-.tgl span{font-size:12.5px;color:var(--ink-soft);font-weight:400}
+.tgl span{font-size:12.5px;color:var(--ink-soft);font-weight:400;min-width:0;overflow-wrap:anywhere}
 
 /* ---------- Tablet ---------- */
 @media(max-width:1100px){
@@ -1513,6 +1517,8 @@ function renderDialog(err) {
   const a = document.activeElement;
   const keep = a && a.dataset && a.dataset.f
     ? { name:a.dataset.f, pos:(a.selectionStart != null ? a.selectionStart : null) } : null;
+  const card = document.querySelector("#modal .card");
+  const cardTop = card ? card.scrollTop : 0;
   const { cfg, values } = dlg;
   const fields = cfg.build(values);
   document.getElementById("mTitle").textContent = cfg.title;
@@ -1529,7 +1535,7 @@ function renderDialog(err) {
              ${f.reactive ? 'data-reactive="1"' : ""}><span>${esc(f.text || "")}</span></label>`
       : f.type === "checks"
         ? `<div class="checks">${f.options.map(o => `<label><input type="checkbox" data-fm="${f.name}"
-             value="${esc(o.v)}" ${(v || []).includes(o.v) ? "checked" : ""} ${f.disabled ? "disabled" : ""}> ${esc(o.l)}</label>`).join("")}</div>`
+             value="${esc(o.v)}" ${(v || []).includes(o.v) ? "checked" : ""} ${f.disabled ? "disabled" : ""}><span>${esc(o.l)}</span></label>`).join("")}</div>`
       : f.type === "select"
         ? `<select data-f="${f.name}" ${f.disabled ? "disabled" : ""} ${f.reactive ? 'data-reactive="1"' : ""}>${
             f.options.map(o => `<option value="${esc(o.v)}" ${String(o.v) === String(v) ? "selected" : ""}>${esc(o.l)}</option>`).join("")}</select>`
@@ -1545,6 +1551,7 @@ function renderDialog(err) {
     </div>`;
   }).join("");
   document.getElementById("modal").classList.add("on");
+  if (card && cardTop) card.scrollTop = cardTop;
   document.querySelectorAll("#mBody [data-f]").forEach(el => {
     const handler = e => {
       dlg.values[el.dataset.f] = el.type === "checkbox" ? el.checked : e.target.value;
@@ -1963,6 +1970,8 @@ const closeNotes = () => { notesCtx = null; renderNotes(); };
 
 function renderNotes() {
   const el = document.getElementById("notes");
+  const prevBody = el.querySelector(".body");
+  const keepTop = prevBody ? prevBody.scrollTop : 0;
   if (!notesCtx) { el.classList.remove("on"); el.innerHTML = ""; return; }
   const h = noteHost(notesCtx.scope, notesCtx.id);
   const list = h.notes || [];
@@ -1992,6 +2001,8 @@ function renderNotes() {
       </div>
     </div></div>`;
   el.classList.add("on");
+  const nb = el.querySelector(".body");
+  if (nb && keepTop) nb.scrollTop = keepTop;
   document.getElementById("nClose").onclick = closeNotes;
   el.onclick = e => { if (e.target === el) closeNotes(); };
   document.getElementById("nAdd").onclick = () => {
@@ -2289,6 +2300,12 @@ function listHTML(rows, mode) {
 /* ---------- Render: Views ---------- */
 function renderMain() {
   const m = document.getElementById("main");
+  /* Beim Neuzeichnen derselben Ansicht die Scrollposition halten — sonst
+     springt die Liste nach jeder Aktion an den Anfang. */
+  const ws = document.querySelector(".workspace");
+  const keepTop = (ws && ws.dataset.view === view + "|" + adminTab) ? ws.scrollTop : 0;
+  const restore = () => { if (ws) { ws.dataset.view = view + "|" + adminTab; ws.scrollTop = keepTop; } };
+  setTimeout(restore, 0); restore();
   const vis = visibleCases();
   const newBtn = canCreateCase(M()) ? `<button class="btn-primary" id="newCase">+ ${t("new_case")}</button>` : "";
   const head = (title, sub, extra) => `<div class="hd"><div><h1>${t(title)}</h1><p>${t(sub)}</p></div>${extra ? `<div class="hdacts">${extra}</div>` : ""}</div>`;
@@ -2780,6 +2797,12 @@ const logHTML = c => `<div class="log">${c.log.map(e => `<div class="e">
 
 function renderDrawer() {
   const d = document.getElementById("drawer");
+  /* Dieselbe Akte, derselbe Reiter: Scrollposition halten, damit das Abhaken
+     eines Prüfpunkts nicht an den Anfang zurückspringt. */
+  const key = (drawerCase ? drawerCase.id : "") + "|" + dtab;
+  const prev = d.querySelector(".dbody");
+  const keepTop = (prev && d.dataset.key === key) ? prev.scrollTop : 0;
+  d.dataset.key = key;
   if (!drawerCase) {
     d.classList.remove("on"); d.setAttribute("aria-hidden","true");
     document.getElementById("scrim").classList.remove("on"); return;
@@ -2825,6 +2848,8 @@ function renderDrawer() {
         : `<div class="hdacts" style="margin-bottom:12px">${expBtns("audit")}</div>` + logHTML(c)}</div>`;
   d.classList.add("on"); d.setAttribute("aria-hidden","false");
   document.getElementById("scrim").classList.add("on");
+  const body = d.querySelector(".dbody");
+  if (body && keepTop) body.scrollTop = keepTop;
   wireDrawer();
 }
 

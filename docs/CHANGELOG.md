@@ -3,6 +3,21 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 1.7.1 — 2026-09-03
+
+Zwei gemeldete Anzeigefehler behoben:
+
+- **Beschriftungen liefen aus dem Feld.** Die Kontrollkästchen in Dialogen
+  erbten `width:100%` aus der allgemeinen Feldregel und wurden so breit wie die
+  ganze Spalte, was die Beschriftung daneben aus dem Kasten schob und am Rand
+  abschnitt — sichtbar bei Musterzuordnung und Kurstypen. Die Kästchen haben
+  jetzt eine feste Größe, Beschriftungen brechen um statt zu überlaufen.
+- **Die Ansicht sprang beim Abhaken nach oben.** Jede Aktion zeichnet die
+  Oberfläche neu; dabei ging die Scrollposition verloren, sodass die
+  Vorgangsakte nach dem Abhaken eines Prüfpunkts wieder am Anfang stand. Akte,
+  Liste, Dialog und Notizen behalten ihre Position jetzt über das Neuzeichnen
+  hinweg — nur ein Reiterwechsel beginnt bewusst wieder oben.
+
 ## 1.7.0 — 2026-09-03
 
 - **Audit-Auswertung über alle Vorgänge.** Neue Ansicht mit Filtern nach
