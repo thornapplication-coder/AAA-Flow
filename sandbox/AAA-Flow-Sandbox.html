@@ -499,7 +499,12 @@ de:{
   sb_day:"Tag", sb_reset:"Zurücksetzen",
   t_travel:"Die Uhr steht jetzt auf {d}. Fristen, Überfälligkeit und Liegedauer sind neu berechnet.",
   nav_dash:"Dashboard", nav_pool:"Pool", nav_mine:"Meine Vorgänge", nav_all:"Alle Vorgänge",
-  nav_exc:"Ausnahmen", nav_data:"Stammdaten", nav_admin:"Admin",
+  nav_exc:"Ausnahmen", nav_audit:"Audit-Trail", nav_data:"Stammdaten", nav_admin:"Admin",
+  aud_t:"Audit-Trail", aud_s:"Alle Ereignisse über die Vorgänge Ihrer Sichtbarkeit, auswertbar nach Zeitraum, Person und Abteilung.",
+  aud_h:"Jede Erledigung, Kontrolle, Rücksetzung, Gate-Freigabe und Ausnahme steht hier mit Zeitpunkt, Person und Begründung. Einträge sind weder änderbar noch löschbar. Ein Klick auf eine Zeile öffnet den Vorgang.",
+  aud_from:"von", aud_to:"bis", aud_q:"Ereignis, Begründung, Vorgang, Trainee …",
+  aud_allwho:"Alle Personen", aud_entries:"Einträge", aud_period:"Zeitraum",
+  aud_none_t:"Keine Einträge im Zeitraum", aud_none_s:"Passen Sie Zeitraum oder Filter an.",
   grp_work:"Arbeit", grp_org:"Organisation",
   dash_t:"Dashboard", dash_s:"Bestand, Engpässe und Fristen über alle Abteilungen.",
   pool_t:"Pool", pool_s:"Nicht zugewiesene Vorgänge Ihrer Abteilung. Übernehmen per Klick.",
@@ -611,7 +616,7 @@ de:{
   exp_pdf:"PDF", exp_xls:"Excel", exp_print:"Drucken", exp_close:"Schließen", exp_record:"Akte als PDF",
   exp_printed:"Ausgedruckt am {d} von {n}", exp_sandbox:"AAA Flow Sandbox — Demodaten, kein Echtsystem",
   exp_filter:"Filter", exp_nofilter:"keine Einschränkung", exp_count:"Datensätze", exp_state:"Zustand",
-  exp_none:"Keine Einträge.", exp_all:"alle", exp_when:"Zeitpunkt", exp_who:"Person", exp_what:"Vorgang",
+  exp_none:"Keine Einträge.", exp_all:"alle", exp_when:"Zeitpunkt", exp_who:"Person", exp_what:"Ereignis",
   exp_case:"Vorgangsakte", exp_sign1:"Datum, Unterschrift Training Admin",
   exp_sign2:"Datum, Unterschrift Head of Training",
   exp_xls_t:"Nach Excel exportieren",
@@ -692,7 +697,12 @@ en:{
   sb_day:"day", sb_reset:"Reset",
   t_travel:"The clock is now at {d}. Deadlines, overdue state and pool age have been recalculated.",
   nav_dash:"Dashboard", nav_pool:"Pool", nav_mine:"My cases", nav_all:"All cases",
-  nav_exc:"Exceptions", nav_data:"Master data", nav_admin:"Admin",
+  nav_exc:"Exceptions", nav_audit:"Audit trail", nav_data:"Master data", nav_admin:"Admin",
+  aud_t:"Audit trail", aud_s:"All events across the cases within your visibility, filterable by period, person and department.",
+  aud_h:"Every completion, check, reset, gate release and exception is recorded here with time, person and reason. Entries can neither be changed nor deleted. Clicking a row opens the case.",
+  aud_from:"from", aud_to:"to", aud_q:"Event, reason, case, trainee …",
+  aud_allwho:"All people", aud_entries:"entries", aud_period:"Period",
+  aud_none_t:"No entries in this period", aud_none_s:"Adjust the period or the filters.",
   grp_work:"Work", grp_org:"Organisation",
   dash_t:"Dashboard", dash_s:"Volume, bottlenecks and deadlines across all departments.",
   pool_t:"Pool", pool_s:"Unassigned cases in your department. Click to take one.",
@@ -1232,16 +1242,28 @@ msg("case",CASES[6].id,"u5","Kurs ist seit zwölf Tagen beendet, das Zertifikat 
 }
 
 /* ---------- Audit-Trail ---------- */
-function lg(c, who, txt, reason, when) { c.log.unshift({ when:when || "—", who, txt, reason:reason || null }); }
+/* Jeder Audit-Eintrag trägt einen Zeitstempel, damit sich der Trail nach
+   Zeitraum auswerten lässt. Live-Einträge hängen an der simulierten Uhr. */
+const nowTs = () => today() + "T" + new Date().toTimeString().slice(0,5);
+const logWhen = e => e.ts.slice(0,10) === today()
+  ? (e.ts.length > 10 ? e.ts.slice(11,16) : t("today"))
+  : fmtDate(e.ts.slice(0,10));
+function lg(c, who, txt, reason, ts) {
+  c.log.unshift({ ts:ts || nowTs(), who, txt, reason:reason || null });
+}
 CASES.forEach(c => {
-  lg(c, "system", "Vorgang angelegt (Trigger: Kundenanfrage)");
-  ["sales","training_admin"].forEach(d => { if (c.owner[d]) lg(c, c.owner[d], "Vorgang aus dem Pool übernommen — " + DEPTS[d]); });
-  if (c.owner.ato) lg(c, c.owner.ato, "Zuständigkeit ATO automatisch über das Muster");
-  [1,2,3].forEach(g => { if (c.gate[g].released) lg(c, c.gate[g].by, "Gate " + g + " freigegeben", null, fmtDate(c.gate[g].at)); });
-  c.exc.forEach(e => {
-    lg(c, e.by, "Ausnahme beantragt — " + cat(e.cp).de, e.reason);
-    if (e.decBy) lg(c, e.decBy, "Ausnahme freigegeben — " + cat(e.cp).de);
+  const t0 = c.enquiry_date;
+  lg(c, "system", "Vorgang angelegt (Trigger: Kundenanfrage)", null, t0);
+  ["sales","training_admin"].forEach(d => {
+    if (c.owner[d]) lg(c, c.owner[d], "Vorgang aus dem Pool übernommen — " + DEPTS[d], null, addBusinessDays(t0, 1));
   });
+  if (c.owner.ato) lg(c, c.owner.ato, "Zuständigkeit ATO automatisch über das Muster", null, t0);
+  [1,2,3].forEach(g => { if (c.gate[g].released) lg(c, c.gate[g].by, "Gate " + g + " freigegeben", null, c.gate[g].at); });
+  c.exc.forEach(e => {
+    lg(c, e.by, "Ausnahme beantragt — " + cat(e.cp).de, e.reason, addBusinessDays(t0, 3));
+    if (e.decBy) lg(c, e.decBy, "Ausnahme freigegeben — " + cat(e.cp).de, null, addBusinessDays(t0, 4));
+  });
+  c.log.sort((a, b) => a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0);
 });
 
 /* ---------- State ---------- */
@@ -1249,6 +1271,9 @@ let me = null, view = "dash", drawerCase = null, chatScope = "case", dtab = "gat
 let F = { q:"", type:"", status:"", dept:"", owner:"", late:false, pool:false };
 let filtersOpen = false;
 let adminTab = "cat";
+/* Audit-Auswertung über alle sichtbaren Vorgänge (Spec Abschnitt 13:
+   exportierbar je Vorgang, Zeitraum, Person oder Abteilung). */
+let AF = { from:"", to:"", who:"", dept:"", q:"" };
 const expanded = new Set();       // aufgeklappte, bereits freigegebene Gates
 const M = () => user(me);
 
@@ -1381,19 +1406,19 @@ function doComplete(c, x, note) {
   s.by = me;
   if (note) s.note = note;
   if (x.f) { s.state = "completed"; toast(t("t_wait")); } else { s.state = "verified"; toast(t("t_done")); }
-  lg(c, me, (L === "de" ? "Prüfpunkt erledigt: " : "Checkpoint completed: ") + x[L], null, now());
+  lg(c, me, (L === "de" ? "Prüfpunkt erledigt: " : "Checkpoint completed: ") + x[L], null);
   render();
 }
 function doVerify(c, x) {
   const r = canVerify(c, x);
   if (!r.ok) return toast(r.why || "", true);
   c.cp[x.id].state = "verified"; c.cp[x.id].vby = me;
-  lg(c, me, (L === "de" ? "Prüfpunkt kontrolliert: " : "Checkpoint checked: ") + x[L], null, now());
+  lg(c, me, (L === "de" ? "Prüfpunkt kontrolliert: " : "Checkpoint checked: ") + x[L], null);
   toast(t("t_verified")); render();
 }
 function doReset(c, x, reason) {
   Object.assign(c.cp[x.id], { state:"open", by:null, vby:null });
-  lg(c, me, (L === "de" ? "Prüfpunkt zurückgesetzt: " : "Checkpoint reset: ") + x[L], reason, now());
+  lg(c, me, (L === "de" ? "Prüfpunkt zurückgesetzt: " : "Checkpoint reset: ") + x[L], reason);
   toast(t("t_reset")); render();
 }
 function doRelease(c, g) {
@@ -1401,18 +1426,18 @@ function doRelease(c, g) {
   if (!r.ok) return toast(r.why || "", true);
   c.gate[g] = { released:true, by:me, at:today() };
   syncStatus(c);
-  lg(c, me, "Gate " + g + (L === "de" ? " freigegeben" : " released"), null, now());
+  lg(c, me, "Gate " + g + (L === "de" ? " freigegeben" : " released"), null);
   toast(t("t_released", { n:g })); render();
 }
 function doTake(c) {
   const d = M().dept;
   c.owner[d] = me; delete c.poolSince[d];
-  lg(c, me, (L === "de" ? "Vorgang aus dem Pool übernommen — " : "Case taken from pool — ") + DEPTS[d], null, now());
+  lg(c, me, (L === "de" ? "Vorgang aus dem Pool übernommen — " : "Case taken from pool — ") + DEPTS[d], null);
   toast(t("t_taken")); render();
 }
 function doRequestException(c, x, reason) {
   addExc(c, x.id, reason, me, "requested", null, now());
-  lg(c, me, (L === "de" ? "Ausnahme beantragt — " : "Exception requested — ") + x[L], reason, now());
+  lg(c, me, (L === "de" ? "Ausnahme beantragt — " : "Exception requested — ") + x[L], reason);
   toast(t("t_exc")); render();
 }
 function doDecideException(c, e, approve) {
@@ -1445,9 +1470,9 @@ function createCase(v) {
   });
   ["sales","training_admin","ato"].forEach(d => { if (!c.owner[d]) c.poolSince[d] = today(); });
   CASES.push(c);
-  lg(c, me, L === "de" ? "Vorgang angelegt" : "Case created", null, now());
-  if (c.owner.sales) lg(c, me, (L === "de" ? "Zuständigkeit übernommen — " : "Responsibility taken — ") + DEPTS.sales, null, now());
-  if (c.owner.ato) lg(c, c.owner.ato, L === "de" ? "Zuständigkeit ATO automatisch über das Muster" : "ATO responsibility assigned automatically by aircraft type", null, now());
+  lg(c, me, L === "de" ? "Vorgang angelegt" : "Case created", null);
+  if (c.owner.sales) lg(c, me, (L === "de" ? "Zuständigkeit übernommen — " : "Responsibility taken — ") + DEPTS.sales, null);
+  if (c.owner.ato) lg(c, c.owner.ato, L === "de" ? "Zuständigkeit ATO automatisch über das Muster" : "ATO responsibility assigned automatically by aircraft type", null);
   toast(t("t_case", { n:c.no }));
   drawerCase = c; dtab = "gates"; chatScope = "case";
   render();
@@ -1671,7 +1696,7 @@ function dialogEditCase(c) {
       if (b.enquiry !== c.enquiry_date) ch.push(`${t("f_enquiry")}: ${fmtDate(c.enquiry_date)}`);
       if (b.start !== c.course_start) ch.push(`${t("f_cstart")}: ${fmtDate(c.course_start)}`);
       if (b.end !== c.course_end) ch.push(`${t("f_cend")}: ${fmtDate(c.course_end)}`);
-      if (ch.length) lg(c, me, t("ec_log") + " — " + ch.join(" · "), null, now());
+      if (ch.length) lg(c, me, t("ec_log") + " — " + ch.join(" · "), null);
       toast(ch.length ? t("t_caseedit") : t("t_nochange"));
       render();
     }
@@ -1706,7 +1731,7 @@ function dialogNewTrainee(companyId) {
    ausgeblendet und ein sauberes Dokument gedruckt. Excel gibt es überall dort,
    wo die Ansicht eine Liste ist.
    ========================================================================== */
-const XLS_KINDS = ["cases","exceptions","catalogue","users","companies","trainees","audit","checkpoints","notes"];
+const XLS_KINDS = ["cases","exceptions","catalogue","users","companies","trainees","audit","auditall","checkpoints","notes"];
 const fmtLong = d => d ? new Date(d).toLocaleDateString(L === "de" ? "de-AT" : "en-GB",
   { day:"2-digit", month:"2-digit", year:"numeric" }) : t("none");
 const yn = b => b ? t("yes") : t("none");
@@ -1749,7 +1774,7 @@ const cpRow = (c, x) => [x.g, x[L], DEPTS[x.d], yn(x.m), yn(x.f), cpStateName(c,
 const cpRows = c => caseCat(c).map(x => cpRow(c, x));
 const CP_COLS = () => [t("cat_gate"), t("cat_lb"), t("cat_dept"), t("r_mand"), t("fourEyes"),
   t("c_status"), t("deadline"), t("by"), t("verifiedBy"), t("evidence")];
-const auditRows = c => c.log.map(e => [e.when,
+const auditRows = c => c.log.map(e => [logWhen(e),
   e.who === "system" ? "System" : user(e.who).name, e.txt, e.reason || ""]);
 const AUDIT_COLS = () => [t("exp_when"), t("exp_who"), t("exp_what"), t("m_reason")];
 
@@ -1817,6 +1842,11 @@ function docDef(kind) {
         rows:TRAINEES.slice().sort(byName).map(x => [x.name, fmtLong(x.dob), company(x.co).name,
           CASES.filter(y => y.traineeId === x.id && canView(y)).length,
           thread("trainee", x.id).length, (x.notes || []).length]) }] };
+  }
+  if (kind === "auditall") {
+    return { title:t("aud_t"),
+      meta:[[t("exp_filter"), auditFilterDesc()], [t("exp_count"), audRows().length]],
+      sections:[{ cols:AUD_COLS(), rows:audRows() }] };
   }
   if (kind === "audit") {
     return { title:t("tab_log") + " — " + c.no, meta:caseMeta(c),
@@ -1982,6 +2012,69 @@ function renderNotes() {
   wireExports();
 }
 
+/* ---------- Audit-Auswertung ---------- */
+const logDept = e => e.who === "system" ? null : user(e.who).dept;
+function auditAll() {
+  const out = [];
+  visibleCases().forEach(c => c.log.forEach(e => {
+    const d = e.ts.slice(0,10);
+    if (AF.from && d < AF.from) return;
+    if (AF.to && d > AF.to) return;
+    if (AF.who && e.who !== AF.who) return;
+    if (AF.dept && logDept(e) !== AF.dept) return;
+    if (AF.q) {
+      const q = AF.q.toLowerCase();
+      const hay = (e.txt + " " + (e.reason || "") + " " + c.no + " " + trName(c) + " " + coName(c)).toLowerCase();
+      if (!hay.includes(q)) return;
+    }
+    out.push({ c, e });
+  }));
+  return out.sort((a, b) => a.e.ts < b.e.ts ? 1 : a.e.ts > b.e.ts ? -1 : 0);
+}
+const auditFilterDesc = () => {
+  const p = [];
+  if (AF.from || AF.to) p.push(t("aud_period") + ": " + (AF.from ? fmtLong(AF.from) : "…") + " – " + (AF.to ? fmtLong(AF.to) : "…"));
+  if (AF.who) p.push(t("exp_who") + ": " + user(AF.who).name);
+  if (AF.dept) p.push(t("cat_dept") + ": " + DEPTS[AF.dept]);
+  if (AF.q) p.push(`"${AF.q}"`);
+  return p.length ? p.join(" · ") : t("exp_nofilter");
+};
+const AUD_COLS = () => [t("exp_when"), t("c_no"), t("c_trainee"), t("c_co"), t("exp_who"),
+  t("cat_dept"), t("exp_what"), t("m_reason")];
+const audRows = () => auditAll().map(({ c, e }) => [
+  fmtLong(e.ts.slice(0,10)) + (e.ts.length > 10 ? " " + e.ts.slice(11,16) : ""),
+  c.no, trName(c), coName(c), e.who === "system" ? "System" : user(e.who).name,
+  logDept(e) ? DEPTS[logDept(e)] : "System", e.txt, e.reason || ""]);
+
+function auditHTML() {
+  const rows = auditAll();
+  const quick = [[7, "7"], [30, "30"], [90, "90"]];
+  return `<div class="notice">${t("aud_h")}</div>
+    <div class="filters">
+      <input type="search" id="aq" placeholder="${t("aud_q")}" value="${esc(AF.q)}" aria-label="${t("aud_q")}">
+      <label class="chk">${t("aud_from")}<input type="date" id="afrom" value="${AF.from}"></label>
+      <label class="chk">${t("aud_to")}<input type="date" id="ato" value="${AF.to}"></label>
+      <select id="awho" aria-label="${t("exp_who")}"><option value="">${t("aud_allwho")}</option>${
+        USERS.slice().sort(byName).map(u => `<option value="${u.id}" ${AF.who === u.id ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select>
+      <select id="adept" aria-label="${t("cat_dept")}"><option value="">${t("f_dept")}</option>${
+        Object.keys(DEPTS).map(k => `<option value="${k}" ${AF.dept === k ? "selected" : ""}>${DEPTS[k]}</option>`).join("")}</select>
+      ${quick.map(([d, l]) => `<button class="clear" data-adays="${d}">${l} ${t("days")}</button>`).join("")}
+      <button class="clear" id="aclear">${t("f_clear")}</button>
+      <span class="fcount">${rows.length} ${t("aud_entries")}</span>
+    </div>
+    ${rows.length ? `<div class="tblwrap"><table><thead><tr>
+      <th>${t("exp_when")}</th><th>${t("c_no")}</th><th>${t("exp_who")}</th>
+      <th>${t("cat_dept")}</th><th>${t("exp_what")}</th>
+    </tr></thead><tbody>${rows.map(({ c, e }) => `<tr data-id="${c.id}">
+      <td class="num">${fmtDate(e.ts.slice(0,10))}${e.ts.length > 10 ? " " + e.ts.slice(11,16) : ""}</td>
+      <td class="num">${c.no}<div class="co">${esc(trName(c))}</div></td>
+      <td>${e.who === "system" ? "System" : esc(user(e.who).name)}</td>
+      <td class="co">${logDept(e) ? DEPTS[logDept(e)] : "System"}</td>
+      <td>${esc(e.txt)}${e.reason ? `<div class="co" style="font-style:italic">„${esc(e.reason)}"</div>` : ""}</td>
+    </tr>`).join("")}</tbody></table></div>`
+    : `<div class="tblwrap"><div class="empty"><b>${t("aud_none_t")}</b>${t("aud_none_s")}</div></div>`}`;
+}
+
 /* ---------- Render: Chrome ---------- */
 function navItems() {
   const vis = visibleCases();
@@ -1991,7 +2084,8 @@ function navItems() {
           ["pool","nav_pool", vis.filter(inMyPool).length, false],
           ["mine","nav_mine", vis.filter(isMine).length, false],
           ["all","nav_all", vis.length, false]],
-    org:[["exc","nav_exc", nExc, true], ["data","nav_data", 0, false], ["admin","nav_admin", 0, false]]
+    org:[["exc","nav_exc", nExc, true], ["audit","nav_audit", 0, false],
+         ["data","nav_data", 0, false], ["admin","nav_admin", 0, false]]
   };
 }
 const fnLabel = u => holds(u, "director_training") ? " · Director Training"
@@ -2243,6 +2337,11 @@ function renderMain() {
     wireMain(); return;
   }
 
+  if (view === "audit") {
+    m.innerHTML = head("aud_t","aud_s", expBtns("auditall")) + auditHTML();
+    wireMain(); return;
+  }
+
   if (view === "exc") {
     const all = [];
     vis.forEach(c => c.exc.forEach(e => all.push({ c, e })));
@@ -2388,7 +2487,7 @@ function saveCheckpoint(x, v) {
       if (nx.courses.length && !(c.courses || []).some(y => nx.courses.includes(y))) return;
       c.catIds.push(nx.id);
       c.cp[nx.id] = { state:"open", by:null, vby:null, due:null, note:null };
-      lg(c, me, (L === "de" ? "Prüfpunkt aus Katalog ergänzt: " : "Checkpoint added from catalogue: ") + nx[L], null, now());
+      lg(c, me, (L === "de" ? "Prüfpunkt aus Katalog ergänzt: " : "Checkpoint added from catalogue: ") + nx[L], null);
     });
     toast(t("t_cpnew"));
   }
@@ -2675,7 +2774,7 @@ function chatHTML(c) {
   </div>`;
 }
 const logHTML = c => `<div class="log">${c.log.map(e => `<div class="e">
-  <span class="t">${esc(e.when)}</span>
+  <span class="t">${esc(logWhen(e))}</span>
   <span><b>${e.who === "system" ? "System" : esc(user(e.who).name)}</b> — ${esc(e.txt)}
     ${e.reason ? `<span class="rsn">„${esc(e.reason)}"</span>` : ""}</span></div>`).join("")}</div>`;
 
@@ -2801,6 +2900,19 @@ function wireMain() {
     q("fpool").onchange   = e => { F.pool = e.target.checked; renderMain(); };
     q("fclear").onclick   = () => { F = { q:"", type:"", status:"", dept:"", owner:"", late:false, pool:false }; renderMain(); };
   }
+  if (q("aq")) {
+    q("aq").oninput = e => { AF.q = e.target.value; renderMain();
+      const el = q("aq"); el.focus(); el.setSelectionRange(AF.q.length, AF.q.length); };
+    q("afrom").onchange = e => { AF.from = e.target.value; renderMain(); };
+    q("ato").onchange   = e => { AF.to = e.target.value; renderMain(); };
+    q("awho").onchange  = e => { AF.who = e.target.value; renderMain(); };
+    q("adept").onchange = e => { AF.dept = e.target.value; renderMain(); };
+    q("aclear").onclick = () => { AF = { from:"", to:"", who:"", dept:"", q:"" }; renderMain(); };
+    document.querySelectorAll("[data-adays]").forEach(b => b.onclick = () => {
+      const d = new Date(today()); d.setDate(d.getDate() - (+b.dataset.adays));
+      AF.from = iso(d); AF.to = today(); renderMain();
+    });
+  }
   document.querySelectorAll("[data-stage]").forEach(b => b.onclick = () => {
     F.status = F.status === b.dataset.stage ? "" : b.dataset.stage; renderMain();
   });
@@ -2867,7 +2979,7 @@ function wireDrawer() {
       value:m.txt.replace(/<[^>]+>/g, ""), min:1, err:t("m_edit_e"), okLabel:t("save") }, v => {
         m.history.push({ body:m.txt, by:me, at:now() });
         m.txt = esc(v); m.edited = true;
-        lg(c, me, L === "de" ? "Nachricht bearbeitet" : "Message edited", null, now());
+        lg(c, me, L === "de" ? "Nachricht bearbeitet" : "Message edited", null);
         toast(t("t_edited")); render();
       });
   });
@@ -2877,7 +2989,7 @@ function wireDrawer() {
     if (!ta.value.trim()) return;
     const id = chatScope === "case" ? c.id : chatScope === "trainee" ? c.traineeId : c.companyId;
     msg(chatScope, id, me, esc(ta.value.trim()), now(), document.getElementById("cref").value || null, c.id);
-    lg(c, me, (L === "de" ? "Nachricht hinzugefügt — " : "Message added — ") + t("ctx_" + chatScope), null, now());
+    lg(c, me, (L === "de" ? "Nachricht hinzugefügt — " : "Message added — ") + t("ctx_" + chatScope), null);
     toast(t("t_msg")); render();
   };
 }

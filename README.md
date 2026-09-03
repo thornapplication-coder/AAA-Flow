@@ -38,7 +38,9 @@ verschiebt das simulierte Datum um 1, 8 oder 31 Tage — damit werden Fristen,
 erlebbar. Zurücksetzen stellt den Ausgangszustand her.
 
 Exportiert wird über **PDF** (Druckansicht, in jeder Ansicht) und **Excel**
-(überall dort, wo die Ansicht eine Liste ist). Die Vorgangsakte lässt sich als
+(überall dort, wo die Ansicht eine Liste ist). Der Audit-Trail ist je Vorgang
+und über die Ansicht **Audit-Trail** auch nach Zeitraum, Person und Abteilung
+auswertbar. Die Vorgangsakte lässt sich als
 vollständiges PDF mit Gates, Bearbeitern, Ausnahmen, Audit-Trail und
 Unterschriftenzeile ausgeben.
 

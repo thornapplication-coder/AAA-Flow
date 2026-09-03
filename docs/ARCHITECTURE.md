@@ -192,9 +192,12 @@ je Vorgang, Zeitraum, Person oder Abteilung exportierbaren Audit-Trail
 - Exportierbar sind: Vorgangsliste in der jeweils gefilterten Sicht,
   Ausnahmen, Prüfpunkt-Katalog, Nutzer, Firmen, Trainees, Prüfpunkte und
   Audit-Trail eines Vorgangs sowie die vollständige Vorgangsakte als PDF.
-- Der Audit-Export je Zeitraum, Person oder Abteilung fehlt noch; er braucht
-  eine eigene Auswertungsansicht über `audit_log` und ist im Frontend
-  nachzuziehen.
+- Der Audit-Export je Zeitraum, Person und Abteilung ist umgesetzt. In der
+  Zielversion liest die Ansicht `audit_log` mit den Filtern auf `created_at`,
+  `user_id` und der Abteilung des handelnden Nutzers; die RLS-Policy
+  `audit_log_select` beschränkt die Zeilen bereits heute auf Vorgänge im Rahmen
+  der eigenen Sichtbarkeit, Admins sehen alles. Für große Zeiträume ist eine
+  Seitenaufteilung nachzurüsten, der Index `audit_log_created_idx` liegt vor.
 
 ## Logins und Rollen
 

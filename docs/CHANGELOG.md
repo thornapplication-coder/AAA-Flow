@@ -3,6 +3,20 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 1.7.0 — 2026-09-03
+
+- **Audit-Auswertung über alle Vorgänge.** Neue Ansicht mit Filtern nach
+  Zeitraum (Von-Bis oder Schnellwahl 7, 30, 90 Tage), Person, Abteilung und
+  Volltext über Ereignis, Begründung, Vorgangsnummer, Trainee und Firma.
+  Export als PDF und Excel, der gewählte Filter steht im Kopf des Dokuments.
+  Ein Klick auf eine Zeile öffnet den zugehörigen Vorgang. Sichtbar sind
+  ausschließlich Ereignisse zu Vorgängen im Rahmen der eigenen Sichtbarkeit.
+- Audit-Einträge tragen jetzt einen echten Zeitstempel statt einer
+  Anzeigezeichenkette; Live-Einträge hängen an der simulierten Uhr, sodass die
+  Zeitraumfilter auch nach einem Zeitsprung stimmen.
+- Damit ist Abschnitt 13 der Spec vollständig abgedeckt: Audit-Trail
+  exportierbar je Vorgang, Zeitraum, Person und Abteilung.
+
 ## 1.6.0 — 2026-09-03
 
 - **Firma und Trainee als Schreibfeld** mit Vorschlagsliste statt reinem
