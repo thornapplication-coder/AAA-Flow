@@ -3,6 +3,24 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 1.5.0 — 2026-09-03
+
+- **Export.** PDF über eine eigene Druckansicht in jeder Ansicht, Excel überall
+  dort, wo die Ansicht eine Liste ist: Vorgangsliste (gefilterte Sicht),
+  Ausnahmen, Prüfpunkt-Katalog, Nutzer, Firmen, Trainees, Prüfpunkte und
+  Audit-Trail eines Vorgangs. Dazu die vollständige **Vorgangsakte als PDF**
+  mit Stammdaten, allen drei Gates samt Bearbeiter und Kontrolleur, Ausnahmen,
+  Audit-Trail und Unterschriftenzeile.
+- **Logins und Rollen.** Die E-Mail-Adresse ist der Login und wird vom
+  Superadmin vergeben; Anlegen versendet eine Einladung, der Status zeigt
+  Eingeladen, Aktiv oder Deaktiviert. Rollen vergibt ausschließlich der
+  Superadmin, und er kann sich die eigene Rolle nicht entziehen. Auf dem
+  Anmeldebildschirm führt die vergebene Adresse tatsächlich zur Anmeldung;
+  unbekannte Adressen werden mit dem Hinweis auf die fehlende
+  Selbstregistrierung abgewiesen.
+- Sales ohne Musterzuordnung sieht eine erklärende leere Ansicht statt einer
+  wortlosen Liste.
+
 ## 1.4.0 — 2026-09-03
 
 Angeregt durch die Sandbox von InstructorConnect:

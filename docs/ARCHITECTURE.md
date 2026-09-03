@@ -173,6 +173,40 @@ empfangenden Abteilung mit Vier-Augen-Pflicht. Drei Wege:
 3. Belassen und über den Audit-Trail nachhalten. Nicht empfohlen: die Prüfung
    wäre dann nachträglich statt sperrend, was dem Grundgedanken widerspricht.
 
+## Export
+
+Die Spec verlangt Export der gefilterten Sicht als PDF und Excel sowie einen
+je Vorgang, Zeitraum, Person oder Abteilung exportierbaren Audit-Trail
+(Abschnitt 13).
+
+- **PDF** entsteht in der Sandbox über eine eigene Druckansicht: die
+  Bildschirmoberfläche wird per `@media print` ausgeblendet und ein eigens
+  aufgebautes Dokument gedruckt. Das hat gegenüber einer PDF-Bibliothek den
+  Vorteil, dass Kopf, Fußzeile, Seitenumbrüche und wiederholte Tabellenköpfe
+  vom Browser übernommen werden. Für die Zielversion bleibt das der einfachste
+  Weg; erst wenn serverseitig erzeugte PDFs gebraucht werden (etwa als Anhang
+  einer Mail), lohnt eine Edge Function mit einer Rendering-Bibliothek.
+- **Excel** liefert die Sandbox als tabulatorgetrennten Text zum Einfügen,
+  weil die Artifact-Vorschau Dateidownloads unterbindet. In der Zielversion
+  wird daraus ein echter `.xlsx`-Download.
+- Exportierbar sind: Vorgangsliste in der jeweils gefilterten Sicht,
+  Ausnahmen, Prüfpunkt-Katalog, Nutzer, Firmen, Trainees, Prüfpunkte und
+  Audit-Trail eines Vorgangs sowie die vollständige Vorgangsakte als PDF.
+- Der Audit-Export je Zeitraum, Person oder Abteilung fehlt noch; er braucht
+  eine eigene Auswertungsansicht über `audit_log` und ist im Frontend
+  nachzuziehen.
+
+## Logins und Rollen
+
+Die E-Mail-Adresse in `users.email` ist der Login. Angelegt wird ausschließlich
+durch den Superadmin: In der Zielversion legt eine Edge Function mit der
+Supabase Admin API den Auth-Nutzer an und verschickt die Einladung, das Profil
+in `public.users` entsteht im selben Schritt. Der Guard-Trigger
+`tg_users_role_guard` erzwingt bereits heute, dass nur ein Superadmin Nutzer
+anlegt und die Superadmin-Rolle vergibt; ergänzt werden sollte, dass ein
+Superadmin sich die eigene Rolle nicht entziehen kann, damit kein Projekt ohne
+Superadmin zurückbleibt.
+
 ## Nächste Ausbauschritte
 
 1. Vorgangsakte im Frontend: Gates, Prüfpunkte, Erledigen/Kontrollieren,

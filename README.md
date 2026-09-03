@@ -37,6 +37,11 @@ verschiebt das simulierte Datum um 1, 8 oder 31 Tage — damit werden Fristen,
 Überfälligkeit, Liegedauer im Pool und der Statuswechsel bei Kursbeginn
 erlebbar. Zurücksetzen stellt den Ausgangszustand her.
 
+Exportiert wird über **PDF** (Druckansicht, in jeder Ansicht) und **Excel**
+(überall dort, wo die Ansicht eine Liste ist). Die Vorgangsakte lässt sich als
+vollständiges PDF mit Gates, Bearbeitern, Ausnahmen, Audit-Trail und
+Unterschriftenzeile ausgeben.
+
 Die Ansicht ist für Desktop ausgelegt und nach unten reduziert: auf dem Tablet
 wandert die Navigation in eine Leiste unter die Kopfzeile, auf dem Handy tritt an
 die Stelle der Tabelle eine Kartenliste. Gates, Kommunikation und die Übernahme

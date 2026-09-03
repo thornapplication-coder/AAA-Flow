@@ -155,7 +155,7 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .dhd{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:flex-start}
 .dhd h2{font-size:17px;font-weight:600}
 .dhd .meta{color:var(--ink-soft);font-size:12.5px;margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.dhd .x{font-size:22px;color:var(--ink-faint);line-height:1;padding:2px 8px;margin-left:auto}
+.dhd .x{font-size:22px;color:var(--ink-faint);line-height:1;padding:2px 8px}
 .tabs{display:flex;gap:2px;padding:0 14px;border-bottom:1px solid var(--line);background:var(--surface-2);overflow-x:auto}
 .tabs button{padding:11px 13px;font-size:13.5px;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tabs button.on{color:var(--navy-700);border-bottom-color:var(--navy-600);font-weight:600}
@@ -261,6 +261,42 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .modal .btns button{padding:8px 15px;border-radius:var(--r);font-size:13px;font-weight:600;border:1px solid var(--line-strong)}
 .modal .btns .go{background:var(--navy-600);color:#fff;border-color:var(--navy-600)}
 .modal .btns .go:hover{background:var(--navy-700)}
+
+/* ---------- Druck- und Exportdokument ---------- */
+.hdacts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#print{display:none;position:fixed;inset:0;z-index:60;background:#fff;overflow-y:auto}
+#print.on{display:block}
+.pbar{position:sticky;top:0;background:var(--navy-900);color:#fff;display:flex;align-items:center;gap:10px;padding:10px 16px;z-index:2}
+.pbar .ttl{font-size:13.5px;font-weight:600;flex:1;min-width:0}
+.pbar button{border:1px solid #24405F;color:#C6D8E8;border-radius:var(--r);padding:6px 13px;font-size:13px;font-weight:600}
+.pbar button.go{background:var(--navy-600);border-color:var(--navy-600);color:#fff}
+.pdoc{max-width:900px;margin:0 auto;padding:28px 26px 60px;color:#111;font-size:11.5px}
+.pdoc h1{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.pdoc .brand{font-size:11px;letter-spacing:.14em;color:#5A6B7F;text-transform:uppercase;margin-bottom:3px}
+.pdoc .sub{color:#5A6B7F;font-size:12px;margin-top:3px}
+.pdoc .rule{height:2px;background:var(--navy-900);margin:12px 0 14px}
+.pdoc h2{font-size:13px;font-weight:600;margin:20px 0 7px;padding-bottom:4px;border-bottom:1px solid #C3CFDD}
+.pdoc table{width:100%;border-collapse:collapse;margin-bottom:6px}
+.pdoc th{background:#EEF2F7;border:1px solid #C3CFDD;padding:5px 6px;font-size:10px;text-align:left;
+  text-transform:uppercase;letter-spacing:.03em;color:#3A4A5E}
+.pdoc td{border:1px solid #DDE4EC;padding:5px 6px;vertical-align:top}
+.pdoc tr{break-inside:avoid}
+.pdoc thead{display:table-header-group}
+.pdoc .kv{width:100%;border-collapse:collapse;margin-bottom:6px}
+.pdoc .kv td{border:none;padding:2px 0;vertical-align:top}
+.pdoc .kv td:first-child{width:190px;color:#5A6B7F}
+.pdoc .foot{margin-top:26px;padding-top:8px;border-top:1px solid #C3CFDD;color:#5A6B7F;font-size:10px}
+.pdoc .sign{margin-top:26px;display:flex;gap:40px}
+.pdoc .sign div{flex:1;border-top:1px solid #111;padding-top:4px;color:#5A6B7F;font-size:10px}
+.pdoc .none{color:#5A6B7F;font-style:italic}
+@media print{
+  .app,.login,.sandbar,.scrim,.drawer,.modal,.toast{display:none!important}
+  #print{display:block!important;position:static;overflow:visible}
+  .pbar{display:none!important}
+  .pdoc{max-width:none;padding:0}
+  @page{margin:14mm 12mm}
+  body{background:#fff}
+}
 
 /* ---------- Anmeldung ---------- */
 .login{position:fixed;inset:0;overflow-y:auto;display:none;
@@ -412,6 +448,7 @@ tr.inactive td{opacity:.55}
   </div>
 </div>
 
+<div id="print"></div>
 <div class="sandbar" id="sandbar"></div>
 <div class="toast" id="toast"></div>
 
@@ -484,6 +521,8 @@ de:{
   scope_company:"Dieser Strang gehört zur Firma und ist bei allen Vorgängen dieser Firma sichtbar.",
   edited:"bearbeitet", edit:"Bearbeiten", fromCase:"aus Vorgang",
   empty_t:"Nichts gefunden", empty_s:"Passen Sie die Filter an oder setzen Sie sie zurück.",
+  empty_types_t:"Noch kein Muster zugeordnet",
+  empty_types_s:"Sales sieht ausschließlich Vorgänge der zugeordneten Muster. Der Superadmin vergibt die Zuordnung im Admin-Panel unter „Nutzer und Muster\u201c.",
   pool_empty_t:"Pool ist leer", pool_empty_s:"Alle sichtbaren Vorgänge sind zugewiesen.",
   exc_empty_t:"Keine Ausnahmen", exc_empty_s:"Es liegt kein Antrag vor.",
   notice_pool:"Wird ein Vorgang nicht innerhalb von 2 Arbeitstagen übernommen, geht er automatisch an die Teamleitung zur Zuweisung.",
@@ -524,6 +563,17 @@ de:{
   t_case:"Vorgang {n} angelegt.", t_co:"Firma angelegt.", t_tr:"Trainee angelegt.",
   t_nocreate:"Vorgänge legen Sales und Training Admin an.",
   days:"Tage", today:"heute", in_:"in", ago:"her", none:"—",
+  exp_pdf:"PDF", exp_xls:"Excel", exp_print:"Drucken", exp_close:"Schließen", exp_record:"Akte als PDF",
+  exp_printed:"Ausgedruckt am {d} von {n}", exp_sandbox:"AAA Flow Sandbox — Demodaten, kein Echtsystem",
+  exp_filter:"Filter", exp_nofilter:"keine Einschränkung", exp_count:"Datensätze", exp_state:"Zustand",
+  exp_none:"Keine Einträge.", exp_all:"alle", exp_when:"Zeitpunkt", exp_who:"Person", exp_what:"Vorgang",
+  exp_case:"Vorgangsakte", exp_sign1:"Datum, Unterschrift Training Admin",
+  exp_sign2:"Datum, Unterschrift Head of Training",
+  exp_xls_t:"Nach Excel exportieren",
+  exp_xls_p:"Der Text unten ist tabulatorgetrennt und lässt sich direkt in Excel einfügen. In der fertigen Anwendung lädt dieser Knopf eine .xlsx-Datei; in der Sandbox-Vorschau sind Dateidownloads gesperrt.",
+  exp_copy:"In die Zwischenablage kopieren",
+  exp_manual:"Bitte den Text markieren und mit Strg+C beziehungsweise Cmd+C kopieren.",
+  t_copied:"Kopiert — in Excel mit Einfügen übernehmen.",
   cat_gate:"Gate", cat_lb:"Prüfpunkt", cat_dept:"Abteilung", cat_m:"Pflicht", cat_4:"4-Augen",
   cat_dl:"Frist", cat_ev:"Nachweis", yes:"ja", g3lock:"Gate-3-Sperre",
   anchor_course_start:"AT vor Kursbeginn", anchor_enquiry_date:"AT nach Anfrage", anchor_course_end:"AT nach Kursende",
@@ -553,7 +603,7 @@ de:{
   e_cpname:"Bitte deutsche und englische Bezeichnung angeben (mindestens 3 Zeichen).",
   t_cpsaved:"Prüfpunkt gespeichert.", t_cpnew:"Prüfpunkt angelegt.", t_cpdel:"Prüfpunkt gelöscht.",
   t_cpact:"Prüfpunkt aktiviert.", t_cpdeact:"Prüfpunkt deaktiviert.", t_set:"Einstellung übernommen.",
-  t_usr:"Nutzer gespeichert.", t_usrnew:"Nutzer angelegt.", t_noself:"Sie können sich nicht selbst deaktivieren.",
+  t_usr:"Nutzer gespeichert.", t_usrnew:"Nutzer angelegt, Einladung an {m} versandt.", t_noself:"Sie können sich nicht selbst deaktivieren.",
   lock_blocked:"Zuerst erledigen: {s}", lock_dep:"Vorbedingung offen: {s}",
   lock_role:"Nur die Teamleitung darf diesen Prüfpunkt erledigen",
   m_ev_t:"Nachweis erfassen", m_ev_p:"Für diesen Prüfpunkt ist ein Nachweis verpflichtend.",
@@ -565,7 +615,19 @@ de:{
   set_dt:"Director Training", set_hot:"Head of Training", set_sl:"Sales-Leitung",
   set_fn_h:"Director Training und Head of Training geben Ausnahmen frei. Head of Training ist der ATO-Fallback bei unbesetztem Muster.",
   set_esc_h:"Empfänger der ersten Eskalation. Wirkt in der Zielversion.",
-  usr_new:"Neuer Nutzer", usr_edit:"Nutzer bearbeiten",
+  usr_new:"Neuer Nutzer", usr_edit:"Nutzer bearbeiten", usr_invite:"Anlegen und einladen",
+  usr_email:"E-Mail (Login)", usr_email_h:"Diese Adresse ist der Login. Leer lassen erzeugt sie aus dem Namen.",
+  usr_status:"Status", usr_invited:"Eingeladen", usr_resend:"Einladung",
+  usr_role_h:"Nur der Superadmin vergibt Rollen. Admin darf alles außer Nutzeranlage und Katalogänderung.",
+  usr_role_ro:"Rollen vergibt ausschließlich der Superadmin.",
+  e_mail:"Bitte eine gültige E-Mail-Adresse angeben.",
+  e_maildup:"Diese E-Mail-Adresse ist bereits vergeben.",
+  e_rolerights:"Rollen vergibt ausschließlich der Superadmin.",
+  e_selfrole:"Sie können sich die Superadmin-Rolle nicht selbst entziehen.",
+  t_invite:"Einladung an {m} versandt (in der Sandbox simuliert).",
+  lg_unknown:"Kein Konto zu dieser Adresse. Nutzer werden ausschließlich durch den Superadmin angelegt.",
+  lg_inactive:"Dieses Konto ist deaktiviert. Bitte an den Superadmin wenden.",
+  lg_ok:"Angemeldet als {n}.",
   usr_help:"Rolle und Abteilung bestimmen die Rechte, die Musterzuordnung die Sichtbarkeit bei Sales und die automatische Zuständigkeit bei ATO.",
   usr_name:"Name", usr_dept:"Abteilung", usr_role:"Rolle", usr_types:"Musterzuordnung",
   usr_types_h:"Sales: steuert, welche Vorgänge sichtbar sind. ATO: Course Supervisor der Flotte.",
@@ -633,6 +695,8 @@ en:{
   scope_company:"This thread belongs to the company and is visible on all of its cases.",
   edited:"edited", edit:"Edit", fromCase:"from case",
   empty_t:"Nothing found", empty_s:"Adjust the filters or clear them.",
+  empty_types_t:"No aircraft type assigned yet",
+  empty_types_s:"Sales sees only cases for their assigned aircraft types. The superadmin assigns them in the admin panel under \u201cUsers and types\u201d.",
   pool_empty_t:"Pool is empty", pool_empty_s:"All visible cases are assigned.",
   exc_empty_t:"No exceptions", exc_empty_s:"There is no request on file.",
   notice_pool:"A case not taken within 2 working days is passed to the team lead for assignment.",
@@ -671,6 +735,17 @@ en:{
   t_case:"Case {n} created.", t_co:"Company created.", t_tr:"Trainee created.",
   t_nocreate:"Cases are created by Sales and Training Admin.",
   days:"days", today:"today", in_:"in", ago:"ago", none:"—",
+  exp_pdf:"PDF", exp_xls:"Excel", exp_print:"Print", exp_close:"Close", exp_record:"Record as PDF",
+  exp_printed:"Printed on {d} by {n}", exp_sandbox:"AAA Flow sandbox — demo data, not a live system",
+  exp_filter:"Filter", exp_nofilter:"no restriction", exp_count:"Records", exp_state:"State",
+  exp_none:"No entries.", exp_all:"all", exp_when:"Time", exp_who:"Person", exp_what:"Event",
+  exp_case:"Case record", exp_sign1:"Date, signature Training Admin",
+  exp_sign2:"Date, signature Head of Training",
+  exp_xls_t:"Export to Excel",
+  exp_xls_p:"The text below is tab separated and can be pasted straight into Excel. In the finished application this button downloads an .xlsx file; file downloads are blocked in the sandbox preview.",
+  exp_copy:"Copy to clipboard",
+  exp_manual:"Please select the text and copy it with Ctrl+C or Cmd+C.",
+  t_copied:"Copied — paste into Excel.",
   cat_gate:"Gate", cat_lb:"Checkpoint", cat_dept:"Department", cat_m:"Mandatory", cat_4:"4-eyes",
   cat_dl:"Due", cat_ev:"Evidence", yes:"yes", g3lock:"Gate 3 lock",
   anchor_course_start:"bd before course start", anchor_enquiry_date:"bd after enquiry", anchor_course_end:"bd after course end",
@@ -700,7 +775,7 @@ en:{
   e_cpname:"Please give a German and an English label (at least 3 characters).",
   t_cpsaved:"Checkpoint saved.", t_cpnew:"Checkpoint created.", t_cpdel:"Checkpoint deleted.",
   t_cpact:"Checkpoint activated.", t_cpdeact:"Checkpoint deactivated.", t_set:"Setting applied.",
-  t_usr:"User saved.", t_usrnew:"User created.", t_noself:"You cannot deactivate yourself.",
+  t_usr:"User saved.", t_usrnew:"User created, invitation sent to {m}.", t_noself:"You cannot deactivate yourself.",
   lock_blocked:"Complete first: {s}", lock_dep:"Prerequisite open: {s}",
   lock_role:"Only the team lead may complete this item",
   m_ev_t:"Record evidence", m_ev_p:"Evidence is mandatory for this checkpoint.",
@@ -712,7 +787,19 @@ en:{
   set_dt:"Director Training", set_hot:"Head of Training", set_sl:"Head of Sales",
   set_fn_h:"Director Training and Head of Training approve exceptions. Head of Training is the ATO fallback for unstaffed types.",
   set_esc_h:"Recipient of the first escalation. Takes effect in the target version.",
-  usr_new:"New user", usr_edit:"Edit user",
+  usr_new:"New user", usr_edit:"Edit user", usr_invite:"Create and invite",
+  usr_email:"Email (login)", usr_email_h:"This address is the login. Leave empty to derive it from the name.",
+  usr_status:"Status", usr_invited:"Invited", usr_resend:"Invite",
+  usr_role_h:"Only the superadmin assigns roles. Admin may do everything except creating users and changing the catalogue.",
+  usr_role_ro:"Roles are assigned by the superadmin only.",
+  e_mail:"Please enter a valid email address.",
+  e_maildup:"This email address is already in use.",
+  e_rolerights:"Roles are assigned by the superadmin only.",
+  e_selfrole:"You cannot remove your own superadmin role.",
+  t_invite:"Invitation sent to {m} (simulated in the sandbox).",
+  lg_unknown:"No account for this address. Users are created by the superadmin only.",
+  lg_inactive:"This account is deactivated. Please contact the superadmin.",
+  lg_ok:"Signed in as {n}.",
   usr_help:"Role and department define the rights, the type assignment defines Sales visibility and the automatic ATO responsibility.",
   usr_name:"Name", usr_dept:"Department", usr_role:"Role", usr_types:"Aircraft type assignment",
   usr_types_h:"Sales: controls which cases are visible. ATO: course supervisor of the fleet.",
@@ -730,13 +817,18 @@ const TYPES = ["ATR","C525","CL350","CL650","M2","Phenom","XLS"];
 const COURSE_TYPES = ["Differences","Recurrent / OPC","Refresher","Type Rating Initial"];
 const DEPTS = { sales:"Sales", training_admin:"Training Admin", ato:"ATO" };
 
+const MAILDOM = "@aviationacademy.at";
+const mailFor = n => n.toLowerCase()
+  .replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")
+  .replace(/[^a-z ]/g,"").trim().split(/\s+/).join(".") + MAILDOM;
+
 const USERS = [
-  { id:"u1",  name:"Patrick Thorn",  dept:"training_admin", role:"superadmin", fn:"director_training", types:[] },
-  { id:"u2",  name:"Christian Wies", dept:"ato",            role:"teamleader", fn:"head_of_training",  types:TYPES },
+  { id:"u1",  name:"Patrick Thorn",  dept:"training_admin", role:"superadmin", types:[] },
+  { id:"u2",  name:"Christian Wies", dept:"ato",            role:"teamleader", types:TYPES },
   { id:"u3",  name:"Marion Kern",    dept:"training_admin", role:"teamleader", types:[] },
   { id:"u4",  name:"Lena Ostheim",   dept:"training_admin", role:"staff",      types:[] },
   { id:"u5",  name:"Tobias Reindl",  dept:"training_admin", role:"staff",      types:[] },
-  { id:"u6",  name:"Nina Hartl",     dept:"sales",          role:"teamleader", fn:"sales_lead", types:TYPES },
+  { id:"u6",  name:"Nina Hartl",     dept:"sales",          role:"teamleader", types:TYPES },
   { id:"u7",  name:"David Sturm",    dept:"sales",          role:"staff",      types:["CL350","CL650","XLS"] },
   { id:"u8",  name:"Petra Lohner",   dept:"sales",          role:"staff",      types:["ATR","C525","M2","Phenom"] },
   { id:"u9",  name:"Bernd Winkler",  dept:"ato",            role:"staff",      types:["C525"] },
@@ -745,6 +837,9 @@ const USERS = [
   { id:"u12", name:"Robert Zach",    dept:"ato",            role:"staff",      types:["CL650"] },
   { id:"u13", name:"Iris Halanda",   dept:"ato",            role:"staff",      types:["ATR"] }
 ];
+/* Die E-Mail-Adresse ist der Login. Sie wird ausschließlich vom Superadmin
+   vergeben; eine Selbstregistrierung gibt es nicht (Spec Abschnitt 3). */
+USERS.forEach(u => { u.email = mailFor(u.name); u.active = true; u.invited = false; });
 const user = id => USERS.find(u => u.id === id) || { name:"?", dept:"training_admin", role:"staff", types:[] };
 const initials = n => n.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
 const isAdmin = u => u.role === "superadmin" || u.role === "admin";
@@ -1462,6 +1557,217 @@ function dialogNewTrainee(companyId) {
   });
 }
 
+/* ============================================================================
+   Export
+   PDF entsteht über eine eigene Druckansicht: die Bildschirmoberfläche wird
+   ausgeblendet und ein sauberes Dokument gedruckt. Excel gibt es überall dort,
+   wo die Ansicht eine Liste ist.
+   ========================================================================== */
+const XLS_KINDS = ["cases","exceptions","catalogue","users","companies","trainees","audit","checkpoints"];
+const fmtLong = d => d ? new Date(d).toLocaleDateString(L === "de" ? "de-AT" : "en-GB",
+  { day:"2-digit", month:"2-digit", year:"numeric" }) : t("none");
+const yn = b => b ? t("yes") : t("none");
+
+function filterDesc() {
+  const p = [];
+  if (F.q) p.push(`"${F.q}"`);
+  if (F.type) p.push(t("c_type") + ": " + F.type);
+  if (F.status) p.push(t("c_status") + ": " + t("st_" + F.status));
+  if (F.dept) p.push(t("f_dept") + ": " + DEPTS[F.dept]);
+  if (F.owner) p.push(t("c_owner") + ": " + user(F.owner).name);
+  if (F.late) p.push(t("f_late"));
+  if (F.pool) p.push(t("f_pool"));
+  return p.length ? p.join(" · ") : t("exp_nofilter");
+}
+const stateName = s => ({ open:t("open"), in_progress:t("inwork"), done:t("done"),
+  overdue:t("late"), discarded:t("st_discarded") })[s];
+const cpStateName = (c, x) => approvedExc(c, x.id) ? t("excepted")
+  : c.cp[x.id].state === "verified" ? t("done")
+  : c.cp[x.id].state === "completed" ? t("waiting")
+  : cpOverdue(c, x) ? t("late") : t("open");
+
+function caseRows(rows) {
+  return rows.map(c => {
+    const nt = nextTask(c);
+    return [c.no, trName(c), coName(c), c.type, c.course, fmtLong(c.course_start), fmtLong(c.course_end),
+      t("st_" + c.status), stateName(caseState(c)), progress(c) + "%",
+      nt ? nt[L] : t("none"), nt ? DEPTS[nt.d] : t("none"),
+      c.owner.sales ? user(c.owner.sales).name : t("unassigned"),
+      c.owner.training_admin ? user(c.owner.training_admin).name : t("unassigned"),
+      c.owner.ato ? user(c.owner.ato).name : t("unassigned"),
+      c.exc.filter(e => e.status === "approved").length];
+  });
+}
+const cpRow = (c, x) => [x.g, x[L], DEPTS[x.d], yn(x.m), yn(x.f), cpStateName(c, x),
+  fmtLong(c.cp[x.id].due),
+  c.cp[x.id].by ? user(c.cp[x.id].by).name : t("none"),
+  c.cp[x.id].vby ? user(c.cp[x.id].vby).name : t("none"),
+  c.cp[x.id].note || x.ev || t("none")];
+const cpRows = c => caseCat(c).map(x => cpRow(c, x));
+const CP_COLS = () => [t("cat_gate"), t("cat_lb"), t("cat_dept"), t("r_mand"), t("fourEyes"),
+  t("c_status"), t("deadline"), t("by"), t("verifiedBy"), t("evidence")];
+const auditRows = c => c.log.map(e => [e.when,
+  e.who === "system" ? "System" : user(e.who).name, e.txt, e.reason || ""]);
+const AUDIT_COLS = () => [t("exp_when"), t("exp_who"), t("exp_what"), t("m_reason")];
+
+function docDef(kind) {
+  const vis = visibleCases();
+  const c = drawerCase;
+  if (kind === "cases") {
+    const base = view === "pool" ? vis.filter(inMyPool) : view === "mine" ? vis.filter(isMine) : vis;
+    const rows = filtered(base);
+    return { title:t(view === "pool" ? "pool_t" : view === "mine" ? "mine_t" : "all_t"),
+      meta:[[t("exp_filter"), filterDesc()], [t("exp_count"), rows.length]],
+      sections:[{ cols:[t("c_no"), t("c_trainee"), t("c_co"), t("c_type"), t("f_course"), t("c_start"),
+        t("f_cend"), t("c_status"), t("exp_state"), t("c_prog"), t("c_next"), t("cat_dept"),
+        "Sales", "Training Admin", "ATO", t("nav_exc")], rows:caseRows(rows) }] };
+  }
+  if (kind === "exceptions") {
+    const all = [];
+    vis.forEach(x => x.exc.forEach(e => all.push([x.no, trName(x), coName(x), x.type, cat(e.cp).g,
+      cat(e.cp)[L], DEPTS[cat(e.cp).d], t("ex_" + e.status), e.reason,
+      user(e.by).name, e.at, e.decBy ? user(e.decBy).name : t("none"), e.decAt || t("none")])));
+    return { title:t("exc_t"), meta:[[t("exp_count"), all.length]],
+      sections:[{ cols:[t("c_no"), t("c_trainee"), t("c_co"), t("c_type"), t("cat_gate"), t("cat_lb"),
+        t("cat_dept"), t("c_status"), t("m_reason"), t("ex_by"), t("exp_when"), t("ex_dec"), t("exp_when")],
+        rows:all }] };
+  }
+  if (kind === "catalogue") {
+    return { title:t("admin_t") + " — " + t("a_cat"), meta:[[t("exp_count"), CAT.length]],
+      sections:[{ cols:[t("cat_gate"), "Code", t("cp_de"), t("cp_en"), t("cat_dept"), t("r_mand"),
+        t("fourEyes"), t("r_blocks"), t("r_dep"), t("r_gate"), t("r_role"), t("r_ev"),
+        t("cat_dl"), t("cp_anchor"), t("cat_ev"), t("cp_types"), t("cp_courses"), t("r_active")],
+        rows:CAT.map(x => [x.g, x.id, x.de, x.en, DEPTS[x.d], yn(x.m), yn(x.f), yn(x.blocks),
+          x.dep ? (cat(x.dep) || {})[L] || "?" : t("none"), yn(x.needsGate), yn(x.roleReq), yn(x.evReq),
+          x.days == null ? t("none") : x.days, t("anchor_" + x.a), x.ev || t("none"),
+          x.types.join(", ") || t("exp_all"), x.courses.join(", ") || t("exp_all"), yn(x.active)]) }] };
+  }
+  if (kind === "users") {
+    return { title:t("admin_t") + " — " + t("a_users"), meta:[[t("exp_count"), USERS.length]],
+      sections:[{ cols:[t("usr_name"), t("usr_email"), t("usr_dept"), t("usr_role"), t("usr_types"),
+        t("usr_status"), t("set_fn")],
+        rows:USERS.slice().sort(byRole).map(x => [x.name, x.email, DEPTS[x.dept], t("role_" + x.role),
+          x.types.join(", ") || t("none"),
+          x.active === false ? t("r_inactive") : x.invited ? t("usr_invited") : t("r_active"),
+          ["director_training","head_of_training","sales_lead"].filter(f => holds(x, f))
+            .map(f => t("set_" + { director_training:"dt", head_of_training:"hot", sales_lead:"sl" }[f])).join(", ") || t("none")]) }] };
+  }
+  if (kind === "companies") {
+    return { title:t("data_t") + " — " + t("d_co"), meta:[[t("exp_count"), COMPANIES.length]],
+      sections:[{ cols:[t("c_co"), t("d_tr"), t("d_cases"), t("tab_chat")],
+        rows:COMPANIES.slice().sort(byName).map(x => [x.name,
+          TRAINEES.filter(y => y.co === x.id).length,
+          CASES.filter(y => y.companyId === x.id && canView(y)).length,
+          thread("company", x.id).length]) }] };
+  }
+  if (kind === "trainees") {
+    return { title:t("data_t") + " — " + t("d_tr"), meta:[[t("exp_count"), TRAINEES.length]],
+      sections:[{ cols:[t("c_trainee"), t("f_dob"), t("c_co"), t("d_cases"), t("tab_chat")],
+        rows:TRAINEES.slice().sort(byName).map(x => [x.name, fmtLong(x.dob), company(x.co).name,
+          CASES.filter(y => y.traineeId === x.id && canView(y)).length,
+          thread("trainee", x.id).length]) }] };
+  }
+  if (kind === "audit") {
+    return { title:t("tab_log") + " — " + c.no, meta:caseMeta(c),
+      sections:[{ cols:AUDIT_COLS(), rows:auditRows(c) }] };
+  }
+  if (kind === "checkpoints") {
+    return { title:t("tab_gates") + " — " + c.no, meta:caseMeta(c),
+      sections:[{ cols:CP_COLS(), rows:cpRows(c) }] };
+  }
+  if (kind === "case") {
+    const secs = [];
+    [1,2,3].forEach(g => {
+      const items = caseCat(c).filter(x => x.g === g);
+      secs.push({ h:`${t("gate")} ${g} — ${t("g" + g)}   ·   ${t("accepts")} ${DEPTS[GATE_RECEIVER[g]]}   ·   ${
+          c.gate[g].released ? `${t("released")} ${user(c.gate[g].by).name}, ${fmtLong(c.gate[g].at)}`
+                             : stateName(gateState(c, g))}`,
+        cols:CP_COLS().slice(1), rows:items.map(x => cpRow(c, x).slice(1)) });
+    });
+    secs.push({ h:t("nav_exc"), cols:[t("cat_gate"), t("cat_lb"), t("c_status"), t("m_reason"), t("ex_by"), t("ex_dec")],
+      rows:c.exc.map(e => [cat(e.cp).g, cat(e.cp)[L], t("ex_" + e.status), e.reason,
+        user(e.by).name, e.decBy ? user(e.decBy).name : t("none")]) });
+    secs.push({ h:t("tab_log"), cols:AUDIT_COLS(), rows:auditRows(c) });
+    return { title:t("exp_case") + " " + c.no, meta:caseMeta(c), sections:secs, sign:true };
+  }
+}
+function caseMeta(c) {
+  const tr = trainee(c.traineeId);
+  return [[t("c_no"), c.no], [t("c_trainee"), tr.name + (tr.dob ? " · " + t("f_dob") + " " + fmtLong(tr.dob) : "")],
+    [t("c_co"), coName(c)], [t("c_type"), c.type], [t("f_course"), c.course],
+    [t("f_enquiry"), fmtLong(c.enquiry_date)],
+    [t("c_start"), fmtLong(c.course_start) + " – " + fmtLong(c.course_end)],
+    [t("c_status"), t("st_" + c.status) + " · " + stateName(caseState(c))],
+    [t("c_owner"), ["sales","training_admin","ato"].map(d =>
+      DEPTS[d] + ": " + (c.owner[d] ? user(c.owner[d]).name : t("unassigned"))).join("  ·  ")]];
+}
+
+function renderPrint(def) {
+  const tbl = sec => sec.rows.length
+    ? `<table><thead><tr>${sec.cols.map(h => `<th>${esc(h)}</th>`).join("")}</tr></thead>
+       <tbody>${sec.rows.map(r => `<tr>${r.map(v => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+    : `<p class="none">${t("exp_none")}</p>`;
+  return `<div class="pdoc">
+    <div class="brand">Aviation Academy Austria · AAA Flow</div>
+    <h1>${esc(def.title)}</h1>
+    ${def.subtitle ? `<div class="sub">${esc(def.subtitle)}</div>` : ""}
+    <div class="rule"></div>
+    ${def.meta && def.meta.length ? `<table class="kv">${def.meta.map(([k,v]) =>
+      `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")}</table>` : ""}
+    ${def.sections.map(sec => `${sec.h ? `<h2>${esc(sec.h)}</h2>` : ""}${tbl(sec)}`).join("")}
+    ${def.sign ? `<div class="sign"><div>${t("exp_sign1")}</div><div>${t("exp_sign2")}</div></div>` : ""}
+    <div class="foot">${t("exp_printed", { d:fmtLong(today()) + ", " +
+      new Date().toLocaleTimeString(L === "de" ? "de-AT" : "en-GB", { hour:"2-digit", minute:"2-digit" }),
+      n:M().name })} · ${t("exp_sandbox")}</div>
+  </div>`;
+}
+function openPrint(kind) {
+  const def = docDef(kind);
+  const el = document.getElementById("print");
+  el.innerHTML = `<div class="pbar">
+      <span class="ttl">${esc(def.title)}</span>
+      <button id="pPrint" class="go">${t("exp_print")}</button>
+      <button id="pClose">${t("exp_close")}</button>
+    </div>` + renderPrint(def);
+  el.classList.add("on");
+  document.getElementById("pClose").onclick = () => el.classList.remove("on");
+  document.getElementById("pPrint").onclick = () => { try { window.print(); } catch (e) { toast(t("exp_manual"), true); } };
+  try { window.print(); } catch (e) { /* Vorschau blockiert den Druckdialog — Ansicht bleibt sichtbar */ }
+}
+function exportTable(kind) {
+  const def = docDef(kind);
+  const lines = [];
+  def.sections.forEach(sec => {
+    if (sec.h) lines.push(sec.h);
+    lines.push(sec.cols.join("\t"));
+    sec.rows.forEach(r => lines.push(r.map(v => String(v == null ? "" : v).replace(/[\t\n]/g, " ")).join("\t")));
+    lines.push("");
+  });
+  const tsv = lines.join("\n").trim();
+  openDialog({
+    title:t("exp_xls_t"), text:t("exp_xls_p"), okLabel:t("exp_copy"),
+    values:{ data:tsv },
+    build: () => [{ name:"data", label:def.title, type:"textarea" }],
+    validate: () => null,
+    onSubmit: v => {
+      const done = () => toast(t("t_copied"));
+      if (navigator.clipboard && navigator.clipboard.writeText)
+        navigator.clipboard.writeText(v.data).then(done, () => toast(t("exp_manual"), true));
+      else toast(t("exp_manual"), true);
+    }
+  });
+}
+const expBtns = kind =>
+  `<button class="btn-ghost" data-exp="pdf|${kind}">${t("exp_pdf")}</button>` +
+  (XLS_KINDS.includes(kind) ? `<button class="btn-ghost" data-exp="xls|${kind}">${t("exp_xls")}</button>` : "");
+function wireExports() {
+  document.querySelectorAll("[data-exp]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const [how, kind] = b.dataset.exp.split("|");
+    how === "pdf" ? openPrint(kind) : exportTable(kind);
+  });
+}
+
 /* ---------- Render: Chrome ---------- */
 function navItems() {
   const vis = visibleCases();
@@ -1516,7 +1822,16 @@ function renderLogin() {
   document.querySelectorAll("[data-login]").forEach(b => b.onclick = () => {
     me = b.dataset.login; view = "dash"; drawerCase = null; render();
   });
-  document.getElementById("lgGo").onclick = () => toast(t("lg_demo"), true);
+  document.getElementById("lgGo").onclick = () => {
+    const v = (document.getElementById("lgMail").value || "").trim().toLowerCase();
+    if (!v) return toast(t("lg_demo"), true);
+    const u = USERS.find(x => (x.email || "").toLowerCase() === v);
+    if (!u) return toast(t("lg_unknown"), true);
+    if (u.active === false) return toast(t("lg_inactive"), true);
+    u.invited = false;
+    me = u.id; view = "dash"; drawerCase = null; render();
+    toast(t("lg_ok", { n:u.name }));
+  };
   document.querySelectorAll("#login .lang button").forEach(b => b.onclick = () => setLang(b.dataset.l));
 }
 
@@ -1611,8 +1926,15 @@ function stateChip(s) {
   return `<span class="pill ${map[s]}">${lbl[s]}</span>`;
 }
 function listHTML(rows, mode) {
-  if (!rows.length) return `<div class="tblwrap"><div class="empty"><b>${
-    mode === "pool" ? t("pool_empty_t") : t("empty_t")}</b>${mode === "pool" ? t("pool_empty_s") : t("empty_s")}</div></div>`;
+  if (!rows.length) {
+    const u = M();
+    /* Sales ohne Musterzuordnung sieht nichts — das ist die Regel, aber ohne
+       Erklärung wirkt es wie ein Fehler. */
+    const noTypes = u.dept === "sales" && u.role === "staff" && !holds(u, "sales_lead") && !u.types.length;
+    return `<div class="tblwrap"><div class="empty"><b>${
+      noTypes ? t("empty_types_t") : mode === "pool" ? t("pool_empty_t") : t("empty_t")}</b>${
+      noTypes ? t("empty_types_s") : mode === "pool" ? t("pool_empty_s") : t("empty_s")}</div></div>`;
+  }
   const poolMode = mode === "pool";
   const dept = M().dept;
   const table = `<div class="tblwrap aslist"><table>
@@ -1661,10 +1983,11 @@ function renderMain() {
   const m = document.getElementById("main");
   const vis = visibleCases();
   const newBtn = canCreateCase(M()) ? `<button class="btn-primary" id="newCase">+ ${t("new_case")}</button>` : "";
-  const head = (title, sub, extra) => `<div class="hd"><div><h1>${t(title)}</h1><p>${t(sub)}</p></div>${extra || ""}</div>`;
+  const head = (title, sub, extra) => `<div class="hd"><div><h1>${t(title)}</h1><p>${t(sub)}</p></div>${extra ? `<div class="hdacts">${extra}</div>` : ""}</div>`;
 
   if (view === "admin") {
-    m.innerHTML = head("admin_t","admin_s") + adminHTML();
+    m.innerHTML = head("admin_t","admin_s",
+      adminTab === "cat" ? expBtns("catalogue") : adminTab === "users" ? expBtns("users") : "") + adminHTML();
     wireMain(); return;
   }
 
@@ -1674,7 +1997,8 @@ function renderMain() {
     m.innerHTML = head("data_t","data_s") + `
       <section class="panel">
         <header><h2>${t("d_co")} <span class="co">(${COMPANIES.length})</span></h2>
-          <button class="btn-ghost" id="newCo">+ ${t("new_co")}</button></header>
+          <span class="hdacts">${expBtns("companies")}
+          <button class="btn-ghost" id="newCo">+ ${t("new_co")}</button></span></header>
         <div class="tblwrap"><table><thead><tr>
           <th>${t("c_co")}</th><th>${t("d_tr")}</th><th>${t("d_cases")}</th><th>${t("tab_chat")}</th>
         </tr></thead><tbody>${COMPANIES.slice().sort(byName).map(co => `<tr>
@@ -1687,7 +2011,8 @@ function renderMain() {
       </section>
       <section class="panel">
         <header><h2>${t("d_tr")} <span class="co">(${TRAINEES.length})</span></h2>
-          <button class="btn-ghost" id="newTr">+ ${t("new_tr")}</button></header>
+          <span class="hdacts">${expBtns("trainees")}
+          <button class="btn-ghost" id="newTr">+ ${t("new_tr")}</button></span></header>
         <div class="tblwrap"><table><thead><tr>
           <th>${t("c_trainee")}</th><th>${t("f_dob")}</th><th>${t("c_co")}</th><th>${t("d_cases")}</th><th>${t("tab_chat")}</th>
         </tr></thead><tbody>${TRAINEES.slice().sort(byName).map(tr => `<tr>
@@ -1706,7 +2031,7 @@ function renderMain() {
     const all = [];
     vis.forEach(c => c.exc.forEach(e => all.push({ c, e })));
     all.sort((a,b) => (a.e.status === "requested" ? 0 : 1) - (b.e.status === "requested" ? 0 : 1));
-    m.innerHTML = head("exc_t","exc_s") +
+    m.innerHTML = head("exc_t","exc_s", expBtns("exceptions")) +
       (canDecideExceptions(M()) ? "" : `<div class="notice">${t("ex_only")}</div>`) +
       (all.length ? `<div class="exlist">${all.map(({ c, e }) => {
         const x = cat(e.cp), cls = { requested:"p-work", approved:"p-done", rejected:"p-late" }[e.status];
@@ -1755,7 +2080,7 @@ function renderMain() {
   } else {
     body = filterHTML(rows.length) + listHTML(rows, mode);
   }
-  m.innerHTML = head(title, sub, newBtn) + body;
+  m.innerHTML = head(title, sub, expBtns("cases") + newBtn) + body;
   wireMain();
 }
 
@@ -1862,28 +2187,50 @@ function moveCp(x, dir) {
   CAT[a] = sib[j]; CAT[b] = x;
   render();
 }
+const MAILRE = /^[^@\s]+@[^@\s.]+\.[a-z]{2,}$/i;
 function dialogUser(u) {
   const isNew = !u;
-  const b = u || { name:"", dept:"sales", role:"staff", types:[], active:true };
+  const sup = M().role === "superadmin";
+  const b = u || { name:"", email:"", dept:"sales", role:"staff", types:[], active:true };
   openDialog({
     title:isNew ? t("usr_new") : t("usr_edit"), text:t("usr_help"),
-    okLabel:isNew ? t("create") : t("save"),
-    values:{ name:b.name, dept:b.dept, role:b.role, types:(b.types || []).slice(), active:b.active !== false },
-    build: v => [
-      { name:"name", label:t("usr_name"), type:"text" },
-      { name:"dept", label:t("usr_dept"), type:"select", half:true, reactive:true, options:
-        Object.keys(DEPTS).map(k => ({ v:k, l:DEPTS[k] })) },
-      { name:"role", label:t("usr_role"), type:"select", half:true, options:
-        ["staff","teamleader","admin","superadmin"].map(k => ({ v:k, l:t("role_" + k) })) },
-      { name:"types", label:t("usr_types"), type:"checks", hint:t("usr_types_h"), options:TYPES.map(y => ({ v:y, l:y })) },
-      { name:"active", label:t("usr_active"), type:"toggle", text:t("usr_active_h") }
-    ],
-    validate: v => (v.name || "").trim().length < 3 ? t("e_name") : null,
+    okLabel:isNew ? t("usr_invite") : t("save"),
+    values:{ name:b.name, email:b.email || "", dept:b.dept, role:b.role,
+             types:(b.types || []).slice(), active:b.active !== false, mailTouched:false },
+    build: v => {
+      const f = [
+        { name:"name", label:t("usr_name"), type:"text", reactive:true },
+        { name:"email", label:t("usr_email"), type:"text", hint:t("usr_email_h"),
+          placeholder:v.name && !v.email ? mailFor(v.name) : "" },
+        { name:"dept", label:t("usr_dept"), type:"select", half:true, options:
+          Object.keys(DEPTS).map(k => ({ v:k, l:DEPTS[k] })) },
+        { name:"role", label:t("usr_role"), type:"select", half:true, options:
+          ["staff","teamleader","admin","superadmin"].map(k => ({ v:k, l:t("role_" + k) })),
+          hint: sup ? t("usr_role_h") : t("usr_role_ro") }
+      ];
+      f.push({ name:"types", label:t("usr_types"), type:"checks", hint:t("usr_types_h"),
+        options:TYPES.map(y => ({ v:y, l:y })) });
+      f.push({ name:"active", label:t("usr_active"), type:"toggle", text:t("usr_active_h") });
+      return f;
+    },
+    validate: v => {
+      if ((v.name || "").trim().length < 3) return t("e_name");
+      const mail = (v.email || "").trim() || mailFor(v.name);
+      if (!MAILRE.test(mail)) return t("e_mail");
+      if (USERS.some(x => x !== u && (x.email || "").toLowerCase() === mail.toLowerCase())) return t("e_maildup");
+      if (!sup && v.role !== (u ? u.role : "staff")) return t("e_rolerights");
+      if (u && u.id === me && v.role !== "superadmin" && u.role === "superadmin") return t("e_selfrole");
+      return null;
+    },
     onSubmit: v => {
       if (u && u.id === me && !v.active) return toast(t("t_noself"), true);
-      const data = { name:v.name.trim(), dept:v.dept, role:v.role, types:v.types || [], active:!!v.active };
+      const data = { name:v.name.trim(), email:((v.email || "").trim() || mailFor(v.name)).toLowerCase(),
+        dept:v.dept, role:v.role, types:v.types || [], active:!!v.active };
       if (u) { Object.assign(u, data); toast(t("t_usr")); }
-      else { USERS.push(Object.assign({ id:nid("u") }, data)); toast(t("t_usrnew")); }
+      else {
+        USERS.push(Object.assign({ id:nid("u"), invited:true }, data));
+        toast(t("t_usrnew", { m:data.email }));
+      }
       render();
     }
   });
@@ -1960,17 +2307,24 @@ function adminHTML() {
       ${edit ? `<div class="panel"><header><h2>${t("a_users")} <span class="co">(${USERS.length})</span></h2>
         <button class="btn-primary" id="usrNew">+ ${t("usr_new")}</button></header></div>` : ""}
       <div class="tblwrap"><table><thead><tr>
-        <th>${t("usr_name")}</th><th>${t("usr_dept")}</th><th>${t("usr_role")}</th>
-        <th>${t("usr_types")}</th><th>${t("usr_active")}</th>${edit ? `<th>${t("col_edit")}</th>` : ""}
-      </tr></thead><tbody>${USERS.slice().sort(byName).map(x => `<tr class="${x.active === false ? "inactive" : ""}">
+        <th>${t("usr_name")}</th><th>${t("usr_email")}</th><th>${t("usr_dept")}</th><th>${t("usr_role")}</th>
+        <th>${t("usr_types")}</th><th>${t("usr_status")}</th>${edit ? `<th>${t("col_edit")}</th>` : ""}
+      </tr></thead><tbody>${USERS.slice().sort(byRole).map(x => `<tr class="${x.active === false ? "inactive" : ""}">
         <td class="tn">${esc(x.name)}${
           ["director_training","head_of_training","sales_lead"].filter(f => holds(x, f))
             .map(f => ` <span class="pill p-exc">${t("set_" + { director_training:"dt", head_of_training:"hot", sales_lead:"sl" }[f])}</span>`).join("")}</td>
+        <td class="num">${esc(x.email || "")}</td>
         <td class="co">${DEPTS[x.dept]}</td>
         <td class="co">${t("role_" + x.role)}</td>
         <td class="co">${x.types.length ? esc(x.types.join(", ")) : t("none")}</td>
-        <td>${x.active === false ? `<span class="pill p-late">${t("r_inactive")}</span>` : `<span class="pill p-done">${t("r_active")}</span>`}</td>
-        ${edit ? `<td class="acts"><button data-usredit="${x.id}">${t("edit")}</button></td>` : ""}
+        <td>${x.active === false ? `<span class="pill p-late">${t("r_inactive")}</span>`
+             : x.invited ? `<span class="pill p-work">${t("usr_invited")}</span>`
+             : `<span class="pill p-done">${t("r_active")}</span>`}</td>
+        ${edit ? `<td class="acts">
+          <button data-usredit="${x.id}">${t("edit")}</button>
+          <button data-usrmail="${x.id}">${t("usr_resend")}</button>
+          <button data-usrtoggle="${x.id}">${x.active === false ? t("cp_act") : t("cp_deact")}</button>
+        </td>` : ""}
       </tr>`).join("")}</tbody></table></div>`;
   }
   return `<div class="subtabs">${tabs}</div>` + body;
@@ -2114,7 +2468,10 @@ function renderDrawer() {
           <span>${esc(coName(c))}</span><span>${esc(c.course)}</span><span>${fmtStart(c)}</span>${stateChip(caseState(c))}</div>
         <div class="meta">${ow}</div>
       </div>
-      <button class="x" id="dx" aria-label="${t("cancel")}">×</button>
+      <span class="hdacts" style="margin-left:auto">
+        <button class="btn-ghost" data-exp="pdf|case">${t("exp_record")}</button>
+        <button class="x" id="dx" aria-label="${t("cancel")}">×</button>
+      </span>
     </div>
     <div class="tabs">
       <button data-tab="gates" class="${dtab === "gates" ? "on" : ""}">${t("tab_gates")}</button>
@@ -2127,8 +2484,10 @@ function renderDrawer() {
             L === "de" ? "Übernehmen Sie den Vorgang, um Prüfpunkte zu bearbeiten." : "Take the case to work on its checkpoints."
             } <button class="lnk" id="dtake">${t("take")}</button></div>` : "")
           + (g3warn ? `<div class="notice warn"><b>${t("k_g3")}:</b> ${t("notice_g3")}</div>` : "")
+          + `<div class="hdacts" style="margin-bottom:12px">${expBtns("checkpoints")}</div>`
           + [1,2,3].map(g => gateHTML(c, g)).join("")
-        : dtab === "chat" ? chatHTML(c) : logHTML(c)}</div>`;
+        : dtab === "chat" ? chatHTML(c)
+        : `<div class="hdacts" style="margin-bottom:12px">${expBtns("audit")}</div>` + logHTML(c)}</div>`;
   d.classList.add("on"); d.setAttribute("aria-hidden","false");
   document.getElementById("scrim").classList.add("on");
   wireDrawer();
@@ -2159,6 +2518,16 @@ function wireMain() {
     toast(t("t_cpdel")); render();
   });
   document.querySelectorAll("[data-usredit]").forEach(b => b.onclick = () => dialogUser(user(b.dataset.usredit)));
+  document.querySelectorAll("[data-usrmail]").forEach(b => b.onclick = () => {
+    const x = user(b.dataset.usrmail); x.invited = true;
+    toast(t("t_invite", { m:x.email })); render();
+  });
+  document.querySelectorAll("[data-usrtoggle]").forEach(b => b.onclick = () => {
+    const x = user(b.dataset.usrtoggle);
+    if (x.id === me && x.active !== false) return toast(t("t_noself"), true);
+    x.active = x.active === false;
+    toast(x.active ? t("t_cpact") : t("t_cpdeact")); render();
+  });
   const setNum = (id, k, min) => { const el = q(id); if (!el) return;
     el.onchange = () => { SETTINGS[k] = Math.max(min, parseInt(el.value, 10) || min); toast(t("t_set")); render(); }; };
   setNum("sPool", "poolStale", 1);
@@ -2199,12 +2568,14 @@ function wireMain() {
     const [cid, eid] = b.dataset.exno.split("|"); const c = findCase(cid);
     doDecideException(c, c.exc.find(e => e.id === eid), false);
   });
+  wireExports();
   document.querySelectorAll("[data-id]").forEach(el => el.onclick = () => {
     drawerCase = findCase(el.dataset.id); dtab = "gates"; chatScope = "case"; renderDrawer();
   });
 }
 function wireDrawer() {
   const c = drawerCase;
+  wireExports();
   document.getElementById("dx").onclick = closeDrawer;
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { dtab = b.dataset.tab; renderDrawer(); });
   document.querySelectorAll("[data-complete]").forEach(b => b.onclick = () => {
