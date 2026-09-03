@@ -3,6 +3,18 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 1.1.0 — 2026-09-03
+
+- Sandbox `sandbox/AAA-Flow-Sandbox.html`: klickbarer Prototyp der Vorgangsakte
+  mit Demodaten. Gate-Sperre, Vier-Augen-Prinzip als zweistufiger Ablauf,
+  Gate-3-Sperre des Abschlussnachweises, Ausnahmen mit Antrag und Freigabe,
+  Kommunikation auf drei Kontextebenen mit Bearbeitungsvermerk, Audit-Trail,
+  Pool mit Liegedauer, Vorgangsbahn, Prüfpunkt-Katalog, Rollenwechsel, DE/EN.
+- Design-Tokens in `src/styles/theme.css` auf die Farbwerte und die Typografie
+  des Prototyps umgestellt (IBM Plex Sans / Mono, Navy-Palette, semantische
+  Statusfarben getrennt vom Akzent).
+- `sandbox/AAA-Flow-Sandbox-v0.html` als Referenz abgelegt.
+
 ## 1.0.0 — 2026-09-02
 
 Fundament.

@@ -19,10 +19,27 @@ der Versionsstand in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 | Sprachen | Deutsch / Englisch je Nutzer (`react-i18next`) |
 | Tests | SQL-Testsuite gegen PostgreSQL (`supabase/tests`), CI über GitHub Actions |
 
+## Sandbox
+
+`sandbox/AAA-Flow-Sandbox.html` ist ein klickbarer Prototyp mit Demodaten, ohne
+Backend. Er dient dazu, Oberfläche und Bedienung zu entscheiden, bevor sie gegen
+Supabase gebaut werden. Einfach im Browser öffnen.
+
+Enthalten sind Vorgangsakte mit den drei Gates, Gate-Sperre, Vier-Augen-Prinzip,
+Gate-3-Sperre des Abschlussnachweises, Ausnahmen mit Freigabe, Kommunikation auf
+drei Kontextebenen, Audit-Trail, Pool mit Liegedauer, Vorgangsbahn und
+Prüfpunkt-Katalog. Über die Auswahl **Angemeldet als** lassen sich die Rechte
+aller Rollen durchspielen.
+
+Die Sperrlogik im Prototyp spiegelt `supabase/migrations/20260902000300_logic.sql`.
+Weichen beide voneinander ab, gilt die Datenbank. `AAA-Flow-Sandbox-v0.html` ist
+der ursprüngliche Prototyp und bleibt als Referenz liegen.
+
 ## Struktur
 
 ```
 docs/                    Spezifikation, Architektur, Changelog
+sandbox/                 Klickbarer Prototyp mit Demodaten, ohne Backend
 supabase/migrations/     Schema 1.0.0 in fünf Migrationen (Schema, Helfer, Logik, RLS, Views)
 supabase/seed.sql        Muster, Prüfpunkt-Katalog Gate 1–3, Einstellungen
 supabase/tests/          SQL-Tests für Gate-Sperre, Vier-Augen, Pool, Sichtbarkeit, Kommunikation

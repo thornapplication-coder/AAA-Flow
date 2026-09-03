@@ -112,7 +112,7 @@ und Prüfpunkt, `v_gate_lead_times` die Gate-Durchlaufzeiten.
 |---|---|---|
 | 1 | Gate-3-Sperre | umgesetzt (`requires_gate_complete`, Test 7) |
 | 2 | Supabase-Region | Projekt noch nicht angelegt; Empfehlung EU/Frankfurt bleibt |
-| 3 | Hex-Codes und Logo | Platzhalter-Tokens in `src/styles/theme.css`, Icon in `public/icon.svg` |
+| 3 | Hex-Codes und Logo | Farbwerte und Typografie aus dem Prototyp übernommen (`src/styles/theme.css`); Logo steht weiterhin aus |
 | 4 | Eskalationsstufen | `settings.escalation.contacts` je Abteilung, im Admin-Panel zu pflegen |
 | 5 | Sales-Leitung | `settings.function_holders.sales_lead` |
 | 6 | Course Supervisor Phenom, M2 | Fallback auf Head of Training aktiv (Test) |
@@ -120,6 +120,25 @@ und Prüfpunkt, `v_gate_lead_times` die Gate-Durchlaufzeiten.
 | 8, 10 | Aufbewahrungsfristen | `settings.retention`, noch leer; keine Löschlogik |
 | 9 | Regulatorische Referenzen | Katalog ohne Paragraphenverweise, Feld `evidence` vorbereitet |
 | 11 | Sales-Akzeptanz | Kennzahlen dafür: `v_pool` (Liegedauer Sales), `v_exception_stats` |
+
+## Offene Entscheidung: Vier-Augen-Prinzip an Gate 3
+
+Bei Gate 1 und Gate 2 empfängt eine andere Abteilung, als geliefert hat — die
+Gate-Freigabe ist dort automatisch ein zweites Augenpaar. Bei **Gate 3 nicht:**
+Training Admin empfängt von ATO, hat in Gate 3 aber selbst zwei Pflichtpunkte
+(Records übergeben, Zertifikat ausstellen). Dieselbe Person kann beide erledigen
+und anschließend das Gate freigeben.
+
+Der ursprüngliche Prototyp löste das mit einem eigenen Abnahme-Prüfpunkt der
+empfangenden Abteilung mit Vier-Augen-Pflicht. Drei Wege:
+
+1. **Freigabe darf nicht von der Person kommen, die einen Pflichtpunkt des Gates
+   erledigt hat.** Kleinste Änderung, eine zusätzliche Prüfung in `release_gate`.
+   Empfohlen.
+2. Abnahme-Prüfpunkt je Gate wie im Prototyp — dokumentiert die Abnahme
+   ausdrücklich, erfasst sie aber neben `gates.released_by` ein zweites Mal.
+3. Belassen und über den Audit-Trail nachhalten. Nicht empfohlen: die Prüfung
+   wäre dann nachträglich statt sperrend, was dem Grundgedanken widerspricht.
 
 ## Nächste Ausbauschritte
 

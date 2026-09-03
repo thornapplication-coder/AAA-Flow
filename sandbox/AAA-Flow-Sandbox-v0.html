@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AAA Flow — Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-900:#0C1B2E;
+  --navy-800:#12283F;
+  --navy-700:#1B3A5A;
+  --navy-600:#26507A;
+  --navy-400:#5B84B1;
+  --line:#DDE4EC;
+  --line-strong:#C3CFDD;
+  --paper:#F1F4F8;
+  --surface:#FFFFFF;
+  --ink:#132132;
+  --ink-soft:#5A6B7F;
+  --ink-faint:#8A9AAC;
+  --open:#8FA3BC;
+  --work:#B87514;
+  --work-bg:#FDF3E2;
+  --done:#26714F;
+  --done-bg:#E6F2EC;
+  --late:#A83A2A;
+  --late-bg:#FBECE9;
+  --focus:#4A90D9;
+  --r:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--paper);color:var(--ink);
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- Chrome ---------- */
+.app{display:grid;grid-template-columns:212px 1fr;grid-template-rows:56px 1fr;height:100vh}
+.topbar{
+  grid-column:1/-1;background:var(--navy-900);display:flex;align-items:center;
+  gap:20px;padding:0 20px;color:#fff;
+}
+.brand{display:flex;align-items:baseline;gap:9px;font-weight:600;letter-spacing:-.01em;font-size:16px}
+.brand span{color:var(--navy-400);font-weight:400;font-size:12px;letter-spacing:.04em}
+.topbar .spacer{flex:1}
+.ctl{display:flex;align-items:center;gap:8px}
+.ctl label{color:#9DB4CC;font-size:12px}
+.ctl select{
+  background:var(--navy-800);color:#fff;border:1px solid #24405F;
+  border-radius:var(--r);padding:5px 8px;font-size:13px;
+}
+.lang{display:flex;border:1px solid #24405F;border-radius:var(--r);overflow:hidden}
+.lang button{padding:5px 11px;font-size:12px;font-weight:600;color:#9DB4CC}
+.lang button.on{background:var(--navy-600);color:#fff}
+
+.side{background:var(--navy-800);padding:16px 10px;display:flex;flex-direction:column;gap:2px}
+.side button{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 12px;border-radius:var(--r);color:#A9C0D6;font-size:13.5px;text-align:left;width:100%;
+}
+.side button:hover{background:#1A3552}
+.side button.on{background:var(--navy-600);color:#fff;font-weight:600}
+.side .count{font-size:11px;background:rgba(255,255,255,.14);padding:1px 6px;border-radius:9px}
+.side .grp{color:#5B7794;font-size:11px;padding:14px 12px 5px;letter-spacing:.03em}
+
+.main{overflow-y:auto;padding:22px 24px 60px}
+.hd{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap}
+.hd h1{font-size:21px;font-weight:600;letter-spacing:-.015em}
+.hd p{color:var(--ink-soft);font-size:13px;margin-top:3px}
+
+/* ---------- Vorgangsbahn ---------- */
+.track{
+  background:var(--navy-900);border-radius:8px;padding:16px 18px 14px;margin-bottom:20px;
+  display:flex;align-items:stretch;overflow-x:auto;
+}
+.stage{flex:1;min-width:112px;padding:0 4px;text-align:left}
+.stage button{width:100%;text-align:left;padding:8px 10px;border-radius:var(--r);display:block}
+.stage button:hover{background:rgba(255,255,255,.06)}
+.stage button.on{background:rgba(255,255,255,.11)}
+.stage .n{font-size:27px;font-weight:600;color:#fff;line-height:1.1;letter-spacing:-.02em}
+.stage .lb{font-size:11.5px;color:#8FAAC6;margin-top:2px}
+.stage .late{font-size:11.5px;color:#F0A192;margin-top:5px;display:flex;align-items:center;gap:5px}
+.stage .late i{width:6px;height:6px;border-radius:50%;background:#E0705C;display:inline-block}
+.gatebar{
+  width:74px;flex:0 0 74px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;position:relative;
+}
+.gatebar::before,.gatebar::after{content:"";position:absolute;left:50%;width:1px;background:#24405F}
+.gatebar::before{top:0;height:14px}
+.gatebar::after{bottom:0;height:14px}
+.gatebar .g{
+  font-size:10.5px;color:#7E9AB6;letter-spacing:.05em;text-align:center;line-height:1.35;
+  border:1px solid #24405F;border-radius:3px;padding:4px 7px;background:var(--navy-800);
+}
+.gatebar .g b{display:block;color:#C6D8E8;font-size:11.5px;font-weight:600}
+.gatebar.block .g{border-color:#7A3A2C;background:#2A1815}
+.gatebar.block .g b{color:#F0A192}
+
+/* ---------- Filter ---------- */
+.filters{
+  background:var(--surface);border:1px solid var(--line);border-radius:8px;
+  padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+}
+.filters input[type=search]{
+  border:1px solid var(--line-strong);border-radius:var(--r);padding:7px 10px;min-width:230px;
+}
+.filters select{border:1px solid var(--line-strong);border-radius:var(--r);padding:7px 9px;background:#fff}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft)}
+.filters .clear{color:var(--navy-600);font-size:13px;text-decoration:underline;padding:6px 2px}
+.fcount{color:var(--ink-faint);font-size:12.5px;margin-left:auto}
+
+/* ---------- Tabelle ---------- */
+.tbl{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{
+  text-align:left;font-size:11.5px;font-weight:600;color:var(--ink-soft);
+  padding:10px 12px;border-bottom:1px solid var(--line);background:#FAFCFE;white-space:nowrap;
+}
+th.srt{cursor:pointer}
+th.srt:hover{color:var(--ink)}
+td{padding:11px 12px;border-bottom:1px solid #EDF1F6;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#F7FAFD}
+.num{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-soft)}
+.tn{font-weight:600}
+.co{color:var(--ink-soft);font-size:12.5px}
+.pill{display:inline-block;padding:2px 8px;border-radius:11px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.p-open{background:#EEF2F7;color:#5A6B7F}
+.p-work{background:var(--work-bg);color:var(--work)}
+.p-done{background:var(--done-bg);color:var(--done)}
+.p-late{background:var(--late-bg);color:var(--late)}
+.p-pool{background:#E8F0FA;color:var(--navy-600)}
+.type{font-family:"IBM Plex Mono",monospace;font-size:12px;background:#EEF2F7;padding:2px 6px;border-radius:3px}
+.prog{display:flex;align-items:center;gap:7px}
+.prog .bar{width:52px;height:5px;background:#E6ECF3;border-radius:3px;overflow:hidden}
+.prog .bar i{display:block;height:100%;background:var(--navy-600)}
+.prog span{font-size:11.5px;color:var(--ink-soft);font-family:"IBM Plex Mono",monospace}
+.empty{padding:44px 20px;text-align:center;color:var(--ink-soft)}
+.empty b{display:block;color:var(--ink);margin-bottom:5px;font-size:15px}
+
+/* ---------- Drawer ---------- */
+.scrim{position:fixed;inset:0;background:rgba(12,27,46,.42);opacity:0;pointer-events:none;transition:opacity .16s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{
+  position:fixed;top:0;right:0;height:100%;width:min(720px,94vw);background:var(--surface);
+  box-shadow:-14px 0 40px rgba(12,27,46,.2);transform:translateX(100%);transition:transform .2s ease;
+  display:flex;flex-direction:column;
+}
+.drawer.on{transform:none}
+.dhd{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:flex-start}
+.dhd h2{font-size:17px;font-weight:600}
+.dhd .meta{color:var(--ink-soft);font-size:12.5px;margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dhd .x{font-size:22px;color:var(--ink-faint);line-height:1;padding:2px 6px;margin-left:auto}
+.tabs{display:flex;gap:2px;padding:0 14px;border-bottom:1px solid var(--line);background:#FAFCFE}
+.tabs button{padding:11px 13px;font-size:13.5px;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--navy-700);border-bottom-color:var(--navy-600);font-weight:600}
+.dbody{flex:1;overflow-y:auto;padding:18px 20px 30px}
+
+.gate{border:1px solid var(--line);border-radius:8px;margin-bottom:14px;overflow:hidden}
+.gate>header{padding:11px 14px;background:#FAFCFE;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.gate>header h3{font-size:14px;font-weight:600;flex:1}
+.gate>header .hint{font-size:12px;color:var(--ink-faint)}
+.gate.locked{opacity:.62}
+.cp{display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-bottom:1px solid #F0F4F8}
+.cp:last-child{border-bottom:none}
+.cp input{margin-top:3px;width:15px;height:15px;accent-color:var(--navy-600)}
+.cp .txt{flex:1;font-size:13.5px}
+.cp .sub{font-size:11.5px;color:var(--ink-faint);margin-top:2px}
+.cp.opt .txt::after{content:" · optional";color:var(--ink-faint);font-size:11.5px;font-weight:400}
+.cp .blocked{font-size:11.5px;color:var(--late);margin-top:3px}
+.rel{padding:11px 14px;background:#F7FAFD;display:flex;align-items:center;gap:12px}
+.rel .btn{background:var(--navy-600);color:#fff;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:600}
+.rel .btn:disabled{background:#C3CFDD;cursor:not-allowed}
+.rel .note{font-size:12px;color:var(--ink-soft)}
+.exc{font-size:12.5px;color:var(--navy-600);text-decoration:underline}
+
+/* ---------- Chat ---------- */
+.ctx{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.ctx button{
+  border:1px solid var(--line-strong);border-radius:14px;padding:5px 12px;font-size:12.5px;color:var(--ink-soft);
+}
+.ctx button.on{background:var(--navy-700);border-color:var(--navy-700);color:#fff;font-weight:600}
+.ctx button .b{background:#E0705C;color:#fff;border-radius:8px;padding:0 5px;font-size:10.5px;margin-left:5px}
+.msg{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #F0F4F8}
+.av{
+  width:29px;height:29px;flex:0 0 29px;border-radius:5px;background:var(--navy-600);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
+}
+.av.s{background:#6B4E9E}.av.t{background:#1F6E5A}.av.a{background:#B0641A}
+.msg .who{font-size:13px;font-weight:600}
+.msg .dept{font-size:11px;color:var(--ink-faint);font-weight:400}
+.msg .tm{font-size:11px;color:var(--ink-faint);margin-left:auto}
+.msg .row{display:flex;align-items:baseline;gap:7px}
+.msg .body{font-size:13.5px;margin-top:3px}
+.msg .body .tag{background:#EEF2F7;border-radius:3px;padding:1px 5px;font-size:12px;color:var(--navy-600);font-weight:600}
+.composer{border:1px solid var(--line-strong);border-radius:8px;margin-top:14px;overflow:hidden}
+.composer textarea{width:100%;border:none;padding:11px 12px;resize:vertical;min-height:66px;font-size:13.5px}
+.composer footer{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#FAFCFE;border-top:1px solid var(--line)}
+.composer .send{background:var(--navy-600);color:#fff;padding:6px 15px;border-radius:var(--r);font-size:13px;font-weight:600;margin-left:auto}
+.composer .keep{font-size:11.5px;color:var(--ink-faint)}
+
+.log{font-size:12.5px}
+.log .e{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #F0F4F8}
+.log .t{font-family:"IBM Plex Mono",monospace;color:var(--ink-faint);flex:0 0 118px;font-size:11.5px}
+.log b{font-weight:600}
+
+.notice{
+  background:#FAFCFE;border:1px solid var(--line);border-left:3px solid var(--navy-600);
+  border-radius:var(--r);padding:11px 13px;font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;
+}
+.notice b{color:var(--ink)}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 15px}
+.kpi .n{font-size:24px;font-weight:600;letter-spacing:-.02em}
+.kpi .lb{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.kpi.warn .n{color:var(--late)}
+.kpi.ok .n{color:var(--done)}
+
+@media(max-width:1000px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  .main{padding:16px 14px 50px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">AAA Flow <span id="brandSub">Sandbox</span></div>
+    <div class="spacer"></div>
+    <div class="ctl">
+      <label id="lblRole">Angemeldet als</label>
+      <select id="role"></select>
+    </div>
+    <div class="lang">
+      <button data-l="de" class="on">DE</button>
+      <button data-l="en">EN</button>
+    </div>
+  </div>
+
+  <nav class="side" id="side"></nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
+
+<script>
+/* ============================================================
+   AAA Flow — Sandbox
+   Klickbarer Prototyp. Keine Persistenz, Daten nur im Speicher.
+   ============================================================ */
+
+/* ---------- i18n ---------- */
+const I = {
+  de:{
+    sub:"Sandbox — Demodaten",loggedIn:"Angemeldet als",
+    nav_dash:"Dashboard",nav_pool:"Pool",nav_mine:"Meine Vorgänge",nav_all:"Alle Vorgänge",nav_admin:"Admin",
+    grp_work:"Arbeit",grp_org:"Organisation",
+    dash_t:"Dashboard",dash_s:"Bestand, Engpässe und Fristen über alle Abteilungen",
+    pool_t:"Pool",pool_s:"Nicht zugewiesene Vorgänge. Übernehmen per Klick.",
+    mine_t:"Meine Vorgänge",mine_s:"Vorgänge, für die du zuständig bist",
+    all_t:"Alle Vorgänge",all_s:"Vollständige Liste im Rahmen deiner Sichtbarkeit",
+    admin_t:"Admin",admin_s:"Prüfpunkte, Fristen, Zuordnungen",
+    st_enq:"Anfrage",st_book:"Gebucht",st_ready:"Freigegeben",st_train:"In Durchführung",st_closed:"Abgeschlossen",st_void:"Verworfen",
+    g1:"Booking Accepted",g2:"Course Readiness",g3:"Course Closure",gate:"Gate",
+    overdue:"überfällig",open:"Offen",inwork:"In Arbeit",done:"Erledigt",late:"Überfällig",unassigned:"Im Pool",
+    k_open:"Offene Vorgänge",k_late:"Überfällige Aufgaben",k_pool:"Im Pool",k_exc:"Ausnahmen (30 Tage)",k_closed:"Abgeschlossen (30 Tage)",
+    f_search:"Trainee, Firma, Vorgangsnummer …",f_type:"Alle Muster",f_status:"Alle Status",f_dept:"Alle Abteilungen",f_owner:"Alle Zuständigen",f_late:"Nur überfällig",f_pool:"Nur im Pool",f_clear:"Filter zurücksetzen",
+    c_no:"Vorgang",c_trainee:"Trainee",c_co:"Firma",c_type:"Muster",c_course:"Kurs",c_start:"Kursbeginn",c_status:"Status",c_owner:"Zuständig",c_prog:"Fortschritt",c_next:"Nächste Aufgabe",
+    tab_gates:"Gates",tab_chat:"Kommunikation",tab_log:"Audit-Trail",
+    take:"Übernehmen",release:"Gate freigeben",releasedBy:"Freigegeben von",
+    lock_prev:"Vorheriges Gate noch offen",lock_own:"Vier-Augen: du hast diesen Punkt bearbeitet",
+    need:"offene Pflichtpunkte",allDone:"Alle Pflichtpunkte erledigt",
+    exception:"Ausnahme beantragen",
+    ctx_case:"Dieser Vorgang",ctx_trainee:"Trainee",ctx_co:"Firma",
+    ph:"Nachricht an alle beteiligten Abteilungen …",send:"Senden",keep:"Nachrichten sind Teil der Vorgangsakte und können nicht gelöscht werden.",
+    empty_t:"Nichts gefunden",empty_s:"Passe die Filter an oder setze sie zurück.",
+    pool_empty_t:"Pool ist leer",pool_empty_s:"Alle Vorgänge sind zugewiesen.",
+    results:"Treffer",
+    notice_pool:"Wird ein Vorgang nicht innerhalb von 2 Arbeitstagen übernommen, geht er automatisch an die Teamleitung.",
+    notice_vis:"Sales sieht ausschließlich Vorgänge der zugeordneten Muster. Training Admin und ATO sehen alle Vorgänge, dürfen aber nur eigene Punkte abhaken.",
+    admin_note:"Im Prototyp nicht implementiert. In der Zielversion: Prüfpunkt-Katalog, Fristen, Vier-Augen-Pflicht je Punkt, Musterzuordnungen, Vertretungen, Eskalationsstufen, Changelog.",
+    days:"Tage",today:"heute",in_:"in",ago:"vor"
+  },
+  en:{
+    sub:"Sandbox — demo data",loggedIn:"Signed in as",
+    nav_dash:"Dashboard",nav_pool:"Pool",nav_mine:"My cases",nav_all:"All cases",nav_admin:"Admin",
+    grp_work:"Work",grp_org:"Organisation",
+    dash_t:"Dashboard",dash_s:"Volume, bottlenecks and deadlines across all departments",
+    pool_t:"Pool",pool_s:"Unassigned cases. Click to take one.",
+    mine_t:"My cases",mine_s:"Cases you are responsible for",
+    all_t:"All cases",all_s:"Full list within your visibility",
+    admin_t:"Admin",admin_s:"Checkpoints, deadlines, assignments",
+    st_enq:"Enquiry",st_book:"Booked",st_ready:"Released",st_train:"In training",st_closed:"Closed",st_void:"Cancelled",
+    g1:"Booking Accepted",g2:"Course Readiness",g3:"Course Closure",gate:"Gate",
+    overdue:"overdue",open:"Open",inwork:"In progress",done:"Done",late:"Overdue",unassigned:"In pool",
+    k_open:"Open cases",k_late:"Overdue tasks",k_pool:"In pool",k_exc:"Exceptions (30 days)",k_closed:"Closed (30 days)",
+    f_search:"Trainee, company, case number …",f_type:"All types",f_status:"All statuses",f_dept:"All departments",f_owner:"All owners",f_late:"Overdue only",f_pool:"In pool only",f_clear:"Clear filters",
+    c_no:"Case",c_trainee:"Trainee",c_co:"Company",c_type:"Type",c_course:"Course",c_start:"Course start",c_status:"Status",c_owner:"Owner",c_prog:"Progress",c_next:"Next task",
+    tab_gates:"Gates",tab_chat:"Communication",tab_log:"Audit trail",
+    take:"Take",release:"Release gate",releasedBy:"Released by",
+    lock_prev:"Previous gate still open",lock_own:"Four-eyes: you completed this item",
+    need:"mandatory items open",allDone:"All mandatory items complete",
+    exception:"Request exception",
+    ctx_case:"This case",ctx_trainee:"Trainee",ctx_co:"Company",
+    ph:"Message to all departments involved …",send:"Send",keep:"Messages are part of the case record and cannot be deleted.",
+    empty_t:"Nothing found",empty_s:"Adjust the filters or clear them.",
+    pool_empty_t:"Pool is empty",pool_empty_s:"All cases are assigned.",
+    results:"results",
+    notice_pool:"A case not taken within 2 working days is automatically passed to the team lead.",
+    notice_vis:"Sales sees only cases for their assigned types. Training Admin and ATO see all cases but may only tick their own items.",
+    admin_note:"Not implemented in the prototype. In the target version: checkpoint catalogue, deadlines, four-eyes flag per item, type assignments, deputies, escalation levels, changelog.",
+    days:"days",today:"today",in_:"in",ago:""
+  }
+};
+let L="de"; const t=k=>I[L][k]||k;
+
+/* ---------- Stammdaten ---------- */
+const TYPES=["ATR","C525","CL350","CL650","M2","Phenom","XLS"];
+
+const USERS=[
+  {id:"u1",name:"Patrick Thorn",dept:"DIR",role:"superadmin",types:[]},
+  {id:"u2",name:"Christian W.",dept:"ATO",role:"lead",types:TYPES},
+  {id:"u3",name:"Marion Kern",dept:"TA",role:"lead",types:[]},
+  {id:"u4",name:"Lena Ostheim",dept:"TA",role:"member",types:[]},
+  {id:"u5",name:"Tobias Reindl",dept:"TA",role:"member",types:[]},
+  {id:"u6",name:"Nina Hartl",dept:"SALES",role:"lead",types:TYPES},
+  {id:"u7",name:"David Sturm",dept:"SALES",role:"member",types:["CL350","CL650","XLS"]},
+  {id:"u8",name:"Petra Lohner",dept:"SALES",role:"member",types:["ATR","C525","M2","Phenom"]},
+  {id:"u9",name:"B. Winkler",dept:"ATO",role:"member",types:["C525"]},
+  {id:"u10",name:"K. Bauer",dept:"ATO",role:"member",types:["XLS"]},
+  {id:"u11",name:"D. Müller",dept:"ATO",role:"member",types:["CL350"]},
+  {id:"u12",name:"R. Zach",dept:"ATO",role:"member",types:["CL650"]},
+  {id:"u13",name:"I. Halanda",dept:"ATO",role:"member",types:["ATR"]}
+];
+const DEPTS={SALES:"Sales",TA:"Training Admin",ATO:"ATO",DIR:"Director Training"};
+const user=id=>USERS.find(u=>u.id===id);
+const initials=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+
+/* ---------- Prüfpunkt-Katalog ---------- */
+const CAT=[
+  // Gate 1 — Sales liefert, Training Admin nimmt ab
+  {id:"c101",g:1,d:"SALES",m:1,four:0,de:"Kundenauftrag liegt vor",en:"Customer order received"},
+  {id:"c102",g:1,d:"SALES",m:1,four:0,de:"Trainee-Stammdaten vollständig",en:"Trainee master data complete"},
+  {id:"c103",g:1,d:"SALES",m:1,four:0,de:"Lizenzkopie vorhanden und gültig",en:"Licence copy on file and valid"},
+  {id:"c104",g:1,d:"SALES",m:1,four:0,de:"Medical gültig am letzten Kurstag",en:"Medical valid on last course day"},
+  {id:"c105",g:1,d:"SALES",m:1,four:0,de:"Sprachkenntnisvermerk gültig",en:"Language proficiency valid"},
+  {id:"c106",g:1,d:"SALES",m:1,four:0,de:"Voraussetzungen für den Kurstyp geprüft",en:"Course prerequisites verified"},
+  {id:"c107",g:1,d:"SALES",m:1,four:0,de:"Rechnungsdaten vollständig",en:"Invoicing details complete"},
+  {id:"c108",g:1,d:"SALES",m:0,four:0,de:"Sonderbedarf erfasst (Visum, Unterkunft)",en:"Special needs recorded (visa, accommodation)"},
+  {id:"c109",g:1,d:"TA",m:1,four:1,de:"Dokumentensatz geprüft und angenommen",en:"Document set checked and accepted"},
+  // Gate 2 — Training Admin liefert, ATO nimmt ab
+  {id:"c201",g:2,d:"TA",m:1,four:0,de:"Kursdatum bestätigt",en:"Course date confirmed"},
+  {id:"c202",g:2,d:"TA",m:1,four:0,de:"FSTD-Slot bestätigt",en:"FSTD slot confirmed"},
+  {id:"c203",g:2,d:"TA",m:1,four:0,de:"Instruktor zugewiesen, qualifiziert und current",en:"Instructor assigned, qualified and current"},
+  {id:"c204",g:2,d:"TA",m:0,four:0,de:"Prüfer zugewiesen, qualifiziert und current",en:"Examiner assigned, qualified and current"},
+  {id:"c205",g:2,d:"TA",m:1,four:0,de:"Trainingsunterlagen auf gültigem Revisionsstand",en:"Training material at valid revision"},
+  {id:"c206",g:2,d:"TA",m:1,four:0,de:"Formulare auf gültigem Revisionsstand",en:"Forms at valid revision"},
+  {id:"c207",g:2,d:"TA",m:1,four:0,de:"Kursakte angelegt",en:"Course file created"},
+  {id:"c208",g:2,d:"TA",m:1,four:0,de:"Joining Instructions versandt",en:"Joining instructions sent"},
+  {id:"c209",g:2,d:"ATO",m:1,four:1,de:"Kursbereitschaft geprüft und bestätigt",en:"Course readiness checked and confirmed"},
+  // Gate 3 — ATO liefert, Training Admin nimmt ab
+  {id:"c301",g:3,d:"ATO",m:1,four:0,de:"Anwesenheit dokumentiert",en:"Attendance documented"},
+  {id:"c302",g:3,d:"ATO",m:1,four:0,de:"Grading Sheets vollständig und unterschrieben",en:"Grading sheets complete and signed"},
+  {id:"c303",g:3,d:"ATO",m:1,four:0,de:"Deferred Items geschlossen oder dokumentiert",en:"Deferred items closed or documented"},
+  {id:"c304",g:3,d:"ATO",m:0,four:0,de:"Additional Training dokumentiert",en:"Additional training documented"},
+  {id:"c305",g:3,d:"ATO",m:1,four:0,de:"Prüfungsergebnis dokumentiert",en:"Test result documented"},
+  {id:"c306",g:3,d:"TA",m:1,four:1,de:"Records vollständig übernommen",en:"Records received in full"},
+  {id:"c307",g:3,d:"TA",m:1,four:0,de:"Zertifikat ausgestellt",en:"Certificate issued"},
+  {id:"c308",g:3,d:"TA",m:0,four:0,de:"Kundenfeedback eingeholt",en:"Customer feedback collected"}
+];
+const GATE_OWNER={1:"TA",2:"ATO",3:"TA"};
+
+/* ---------- Demo-Vorgänge ---------- */
+const D=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+let SEQ=1240;
+function mk(o){
+  const c=Object.assign({
+    id:"case"+(++SEQ),no:"AF-26-"+SEQ,cp:{},chat:[],log:[],exc:0,
+    owner:{SALES:null,TA:null,ATO:null},poolDays:0
+  },o);
+  return c;
+}
+const CASES=[
+  mk({trainee:"A. Brenner",co:"Glacier Air GmbH",type:"CL650",course:"Type Rating Initial",start:D(19),status:"book",
+      owner:{SALES:"u7",TA:"u4",ATO:"u12"},done:["c101","c102","c103","c104","c105","c106","c107","c109","c201","c202"],late:["c203"]}),
+  mk({trainee:"M. Feldkirch",co:"Glacier Air GmbH",type:"CL650",course:"Type Rating Initial",start:D(19),status:"book",
+      owner:{SALES:"u7",TA:"u4",ATO:"u12"},done:["c101","c102","c103","c105","c106","c107","c109","c201","c202"],late:["c104"]}),
+  mk({trainee:"S. Ortner",co:"Danube Executive AG",type:"XLS",course:"Recurrent / OPC",start:D(6),status:"ready",
+      owner:{SALES:"u7",TA:"u5",ATO:"u10"},done:["c101","c102","c103","c104","c105","c106","c107","c109","c201","c202","c203","c204","c205","c206","c207","c208","c209"]}),
+  mk({trainee:"J. Lindner",co:"Alpenwind Charter",type:"C525",course:"Type Rating Initial",start:D(33),status:"enq",
+      owner:{SALES:"u8",TA:null,ATO:null},done:["c101","c102"],poolDays:3}),
+  mk({trainee:"P. Haslinger",co:"Nordstern Aviation",type:"Phenom",course:"Differences",start:D(12),status:"book",
+      owner:{SALES:"u8",TA:null,ATO:null},done:["c101","c102","c103","c107"],late:["c104","c105"],poolDays:1}),
+  mk({trainee:"C. Reiter",co:"Danube Executive AG",type:"CL350",course:"Recurrent / OPC",start:D(-4),status:"train",
+      owner:{SALES:"u7",TA:"u4",ATO:"u11"},done:["c101","c102","c103","c104","c105","c106","c107","c109","c201","c202","c203","c204","c205","c206","c207","c208","c209","c301"]}),
+  mk({trainee:"T. Wagner",co:"Marchfeld Air",type:"ATR",course:"Type Rating Initial",start:D(-21),status:"train",
+      owner:{SALES:"u8",TA:"u5",ATO:"u13"},done:["c101","c102","c103","c104","c105","c106","c107","c109","c201","c202","c203","c205","c206","c207","c208","c209","c301","c305"],late:["c302"]}),
+  mk({trainee:"E. Novotny",co:"Marchfeld Air",type:"ATR",course:"Type Rating Initial",start:D(-21),status:"train",
+      owner:{SALES:"u8",TA:"u5",ATO:"u13"},done:["c101","c102","c103","c104","c105","c106","c107","c109","c201","c202","c203","c205","c206","c207","c208","c209","c301","c302","c305"]}),
+  mk({trainee:"F. Aigner",co:"Nordstern Aviation",type:"M2",course:"Recurrent / OPC",start:D(-38),status:"closed",
+      owner:{SALES:"u8",TA:"u4",ATO:"u9"},done:CAT.map(c=>c.id)}),
+  mk({trainee:"L. Steiner",co:"Glacier Air GmbH",type:"XLS",course:"Recurrent / OPC",start:D(27),status:"enq",
+      owner:{SALES:null,TA:null,ATO:null},done:["c101"],poolDays:2}),
+  mk({trainee:"H. Prager",co:"Alpenwind Charter",type:"C525",course:"Recurrent / OPC",start:D(9),status:"book",
+      owner:{SALES:"u8",TA:"u5",ATO:"u9"},done:["c101","c102","c103","c104","c105","c106","c107","c109","c201","c203","c205","c207"],late:["c202"]}),
+  mk({trainee:"R. Kolar",co:"Danube Executive AG",type:"CL350",course:"Type Rating Initial",start:D(45),status:"enq",
+      owner:{SALES:"u7",TA:null,ATO:null},done:["c101","c102","c107"],poolDays:0})
+];
+// Prüfpunkt-Zustände materialisieren
+CASES.forEach(c=>{
+  CAT.forEach(cp=>{
+    c.cp[cp.id]={done:(c.done||[]).includes(cp.id),late:(c.late||[]).includes(cp.id),by:null};
+    if(c.cp[cp.id].done) c.cp[cp.id].by = c.owner[cp.d] || "u3";
+  });
+});
+CASES[0].exc=1;
+CASES[6].exc=1;
+
+/* ---------- Demo-Kommunikation ---------- */
+function msg(c,scope,uid,txt,when){c.chat.push({scope,uid,txt,when})}
+msg(CASES[0],"co","u7","Rechnung für <b class='tag'>Glacier Air GmbH</b> ist seit 14 Tagen offen. Zweite Mahnung raus. Bitte bei Gate 2 berücksichtigen.","vor 2 Std");
+msg(CASES[0],"co","u3","Danke. Wir planen weiter, halten aber die Joining Instructions zurück bis Zahlungseingang.","vor 1 Std");
+msg(CASES[0],"case","u4","Instruktor für CL650 am 19. noch offen — Zach ist in dem Zeitraum auf Recurrent. Alternative?","vor 40 Min");
+msg(CASES[0],"case","u2","Ich schaue heute Nachmittag, ob wir tauschen können. Sonst verschieben wir den Slot um zwei Tage.","vor 22 Min");
+msg(CASES[1],"trainee","u7","Medical von M. Feldkirch läuft vier Tage vor Kursende ab. Kunde ist informiert, neues Attest zugesagt.","vor 3 Std");
+msg(CASES[1],"trainee","u5","Ohne gültiges Medical am letzten Kurstag kann ich Gate 1 nicht abnehmen. Bitte Nachweis vor dem 12.","vor 2 Std");
+msg(CASES[4],"case","u8","<b class='tag'>Nordstern Aviation</b> fragt, ob wir zwei Wochen früher können. Slot verfügbar?","vor 1 Tag");
+msg(CASES[4],"case","u3","Nur wenn die Dokumente diese Woche kommen. Aktuell fehlen Medical und Sprachvermerk.","vor 1 Tag");
+msg(CASES[6],"case","u13","Grading Sheets von T. Wagner liegen noch beim Prüfer. Erinnerung ist raus.","vor 5 Std");
+msg(CASES[6],"case","u4","Kurs ist seit drei Wochen beendet. Zertifikat hängt daran. Bitte bis Freitag.","vor 3 Std");
+
+/* ---------- Demo-Audit ---------- */
+function lg(c,when,who,txt){c.log.push({when,who,txt})}
+CASES.forEach(c=>{
+  lg(c,"—","system","Vorgang angelegt (Trigger: Kundenanfrage)");
+  if(c.owner.SALES) lg(c,"—",c.owner.SALES,"Vorgang aus dem Pool übernommen — Sales");
+  if(c.owner.TA) lg(c,"—",c.owner.TA,"Vorgang aus dem Pool übernommen — Training Admin");
+  if(c.cp["c109"]&&c.cp["c109"].done) lg(c,"—",c.owner.TA||"u3","Gate 1 freigegeben");
+  if(c.cp["c209"]&&c.cp["c209"].done) lg(c,"—",c.owner.ATO||"u2","Gate 2 freigegeben");
+  if(c.exc) lg(c,"—","u1","Ausnahme freigegeben — Kurzfristbuchung, Frist Gate 2 verkürzt");
+});
+
+/* ---------- State ---------- */
+let me="u3", view="dash", drawerCase=null, chatScope="case", dtab="gates";
+let F={q:"",type:"",status:"",dept:"",owner:"",late:false,pool:false};
+
+/* ---------- Sichtbarkeit ---------- */
+function visible(c){
+  const u=user(me);
+  if(u.dept==="SALES"&&u.role!=="lead") return u.types.includes(c.type);
+  return true;
+}
+function myCase(c){const u=user(me);return c.owner[u.dept]===me}
+function inPool(c){const u=user(me);return u.dept!=="DIR"&&!c.owner[u.dept]}
+
+/* ---------- Ableitungen ---------- */
+function gateState(c,g){
+  const items=CAT.filter(x=>x.g===g);
+  const mand=items.filter(x=>x.m);
+  const openM=mand.filter(x=>!c.cp[x.id].done);
+  const anyDone=items.some(x=>c.cp[x.id].done);
+  if(openM.length===0) return {s:"done",open:0};
+  if(items.some(x=>c.cp[x.id].late)) return {s:"late",open:openM.length};
+  if(anyDone) return {s:"work",open:openM.length};
+  return {s:"open",open:openM.length};
+}
+function prevReleased(c,g){return g===1?true:gateState(c,g-1).s==="done"}
+function progress(c){
+  const m=CAT.filter(x=>x.m);
+  return Math.round(m.filter(x=>c.cp[x.id].done).length/m.length*100);
+}
+function isLate(c){return CAT.some(x=>c.cp[x.id].late&&!c.cp[x.id].done)}
+function nextTask(c){
+  for(const g of [1,2,3]){
+    const it=CAT.filter(x=>x.g===g&&x.m&&!c.cp[x.id].done);
+    if(it.length) return it[0];
+  }
+  return null;
+}
+function daysTo(d){
+  const ms=new Date(d)-new Date(new Date().toISOString().slice(0,10));
+  return Math.round(ms/864e5);
+}
+function fmtStart(c){
+  const n=daysTo(c.start);
+  const s=new Date(c.start).toLocaleDateString(L==="de"?"de-AT":"en-GB",{day:"2-digit",month:"short"});
+  if(n===0) return s+" · "+t("today");
+  return s+" · "+(n>0?t("in_")+" "+n+" "+t("days"):Math.abs(n)+" "+t("days")+(L==="de"?" her":" ago"));
+}
+
+/* ---------- Filter ---------- */
+function pool(){return CASES.filter(visible)}
+function filtered(base){
+  return base.filter(c=>{
+    if(F.q){
+      const q=F.q.toLowerCase();
+      if(!(c.trainee+c.co+c.no+c.type+c.course).toLowerCase().includes(q)) return false;
+    }
+    if(F.type&&c.type!==F.type) return false;
+    if(F.status&&c.status!==F.status) return false;
+    if(F.owner&&!Object.values(c.owner).includes(F.owner)) return false;
+    if(F.dept){const nt=nextTask(c);if(!nt||nt.d!==F.dept) return false;}
+    if(F.late&&!isLate(c)) return false;
+    if(F.pool&&!inPool(c)) return false;
+    return true;
+  });
+}
+
+/* ---------- Render: Chrome ---------- */
+function renderTop(){
+  document.getElementById("brandSub").textContent=t("sub");
+  document.getElementById("lblRole").textContent=t("loggedIn");
+  const s=document.getElementById("role");
+  s.innerHTML=USERS.filter(u=>["u1","u3","u4","u7","u8","u2","u13"].includes(u.id))
+    .map(u=>`<option value="${u.id}" ${u.id===me?"selected":""}>${u.name} — ${DEPTS[u.dept]}</option>`).join("");
+}
+function renderSide(){
+  const vis=pool();
+  const nPool=vis.filter(inPool).length;
+  const nMine=vis.filter(myCase).length;
+  const nLate=vis.filter(isLate).length;
+  const items=[
+    ["dash","nav_dash",nLate?nLate:null],
+    ["pool","nav_pool",nPool||null],
+    ["mine","nav_mine",nMine||null],
+    ["all","nav_all",vis.length]
+  ];
+  document.getElementById("side").innerHTML=
+    `<div class="grp">${t("grp_work")}</div>`+
+    items.map(([k,lb,n])=>`<button data-v="${k}" class="${view===k?"on":""}">${t(lb)}${n?`<span class="count">${n}</span>`:""}</button>`).join("")+
+    `<div class="grp">${t("grp_org")}</div>`+
+    `<button data-v="admin" class="${view==="admin"?"on":""}">${t("nav_admin")}</button>`;
+}
+
+/* ---------- Render: Bahn ---------- */
+function trackHTML(){
+  const vis=pool();
+  const stages=[
+    ["enq","st_enq"],["book","st_book"],["train","st_train"],["closed","st_closed"]
+  ];
+  const gates=[null,{g:1},{g:2},{g:3}];
+  let h='<div class="track">';
+  stages.forEach(([k,lb],i)=>{
+    if(i>0){
+      const g=i;
+      const blocked=vis.filter(c=>gateState(c,g).s==="late").length;
+      h+=`<div class="gatebar ${blocked?"block":""}">
+        <div class="g"><b>${t("gate")} ${g}</b>${t("g"+g)}${blocked?`<br>${blocked} ${t("overdue")}`:""}</div>
+      </div>`;
+    }
+    const set=vis.filter(c=>k==="train"?["ready","train"].includes(c.status):c.status===k);
+    const late=set.filter(isLate).length;
+    h+=`<div class="stage"><button data-stage="${k}" class="${F.status===k?"on":""}">
+      <div class="n">${set.length}</div>
+      <div class="lb">${t(lb)}</div>
+      ${late?`<div class="late"><i></i>${late} ${t("overdue")}</div>`:""}
+    </button></div>`;
+  });
+  return h+"</div>";
+}
+
+/* ---------- Render: Filterleiste ---------- */
+function filterHTML(n){
+  const owners=USERS.filter(u=>u.dept!=="DIR");
+  return `<div class="filters">
+    <input type="search" id="fq" placeholder="${t("f_search")}" value="${F.q}">
+    <select id="ftype"><option value="">${t("f_type")}</option>${TYPES.map(x=>`<option ${F.type===x?"selected":""}>${x}</option>`).join("")}</select>
+    <select id="fstatus"><option value="">${t("f_status")}</option>${
+      [["enq","st_enq"],["book","st_book"],["ready","st_ready"],["train","st_train"],["closed","st_closed"]]
+      .map(([k,lb])=>`<option value="${k}" ${F.status===k?"selected":""}>${t(lb)}</option>`).join("")}</select>
+    <select id="fdept"><option value="">${t("f_dept")}</option>${
+      ["SALES","TA","ATO"].map(k=>`<option value="${k}" ${F.dept===k?"selected":""}>${DEPTS[k]}</option>`).join("")}</select>
+    <select id="fowner"><option value="">${t("f_owner")}</option>${
+      owners.map(u=>`<option value="${u.id}" ${F.owner===u.id?"selected":""}>${u.name}</option>`).join("")}</select>
+    <label class="chk"><input type="checkbox" id="flate" ${F.late?"checked":""}> ${t("f_late")}</label>
+    <label class="chk"><input type="checkbox" id="fpool" ${F.pool?"checked":""}> ${t("f_pool")}</label>
+    <button class="clear" id="fclear">${t("f_clear")}</button>
+    <span class="fcount">${n} ${t("results")}</span>
+  </div>`;
+}
+
+/* ---------- Render: Tabelle ---------- */
+function tableHTML(rows,mode){
+  if(!rows.length) return `<div class="tbl"><div class="empty">
+    <b>${mode==="pool"?t("pool_empty_t"):t("empty_t")}</b>${mode==="pool"?t("pool_empty_s"):t("empty_s")}</div></div>`;
+  const stName={enq:"st_enq",book:"st_book",ready:"st_ready",train:"st_train",closed:"st_closed"};
+  return `<div class="tbl"><table>
+    <thead><tr>
+      <th>${t("c_no")}</th><th>${t("c_trainee")}</th><th>${t("c_co")}</th><th>${t("c_type")}</th>
+      <th>${t("c_start")}</th><th>${t("c_status")}</th><th>${t("c_prog")}</th>
+      <th>${t("c_next")}</th><th>${t("c_owner")}</th>
+    </tr></thead><tbody>${rows.map(c=>{
+      const nt=nextTask(c), p=progress(c), lt=isLate(c);
+      const ow=c.owner[user(me).dept==="DIR"?"TA":user(me).dept];
+      return `<tr data-id="${c.id}">
+        <td class="num">${c.no}</td>
+        <td class="tn">${c.trainee}</td>
+        <td class="co">${c.co}</td>
+        <td><span class="type">${c.type}</span></td>
+        <td>${fmtStart(c)}</td>
+        <td><span class="pill ${lt?"p-late":c.status==="closed"?"p-done":c.status==="enq"?"p-open":"p-work"}">${
+          lt?t("late"):t(stName[c.status])}</span></td>
+        <td><div class="prog"><div class="bar"><i style="width:${p}%"></i></div><span>${p}%</span></div></td>
+        <td style="font-size:12.5px;color:var(--ink-soft)">${nt?nt[L]:"—"}</td>
+        <td>${ow?`<span style="font-size:12.5px">${user(ow).name}</span>`:`<span class="pill p-pool">${t("unassigned")}</span>`}</td>
+      </tr>`;
+    }).join("")}</tbody></table></div>`;
+}
+
+/* ---------- Render: Views ---------- */
+function renderMain(){
+  const m=document.getElementById("main");
+  const vis=pool();
+  if(view==="admin"){
+    m.innerHTML=`<div class="hd"><div><h1>${t("admin_t")}</h1><p>${t("admin_s")}</p></div></div>
+      <div class="notice">${t("admin_note")}</div>`;
+    return;
+  }
+  let base=vis,title="all_t",sub="all_s",mode="all";
+  if(view==="pool"){base=vis.filter(inPool);title="pool_t";sub="pool_s";mode="pool"}
+  if(view==="mine"){base=vis.filter(myCase);title="mine_t";sub="mine_s"}
+  const rows=filtered(base);
+
+  let head=`<div class="hd"><div><h1>${t(title)}</h1><p>${t(sub)}</p></div></div>`;
+  let body="";
+  if(view==="dash"){
+    const late=vis.filter(isLate).length;
+    const openC=vis.filter(c=>c.status!=="closed").length;
+    const pl=vis.filter(inPool).length;
+    const exc=vis.reduce((a,c)=>a+c.exc,0);
+    const cl=vis.filter(c=>c.status==="closed").length;
+    body=trackHTML()+`<div class="kpis">
+      <div class="kpi"><div class="n">${openC}</div><div class="lb">${t("k_open")}</div></div>
+      <div class="kpi warn"><div class="n">${late}</div><div class="lb">${t("k_late")}</div></div>
+      <div class="kpi"><div class="n">${pl}</div><div class="lb">${t("k_pool")}</div></div>
+      <div class="kpi"><div class="n">${exc}</div><div class="lb">${t("k_exc")}</div></div>
+      <div class="kpi ok"><div class="n">${cl}</div><div class="lb">${t("k_closed")}</div></div>
+    </div>
+    <div class="notice">${t("notice_vis")}</div>`+filterHTML(rows.length)+tableHTML(rows,mode);
+  } else if(view==="pool"){
+    body=`<div class="notice">${t("notice_pool")}</div>`+filterHTML(rows.length)+tableHTML(rows,mode);
+  } else {
+    body=filterHTML(rows.length)+tableHTML(rows,mode);
+  }
+  m.innerHTML=head+body;
+  wireMain();
+}
+
+/* ---------- Render: Drawer ---------- */
+function gateHTML(c,g){
+  const st=gateState(c,g), ok=prevReleased(c,g);
+  const items=CAT.filter(x=>x.g===g);
+  const ownerDept=GATE_OWNER[g];
+  const canRelease = user(me).dept===ownerDept || user(me).dept==="DIR";
+  const pillCls={done:"p-done",late:"p-late",work:"p-work",open:"p-open"}[st.s];
+  const pillTxt={done:t("done"),late:t("late"),work:t("inwork"),open:t("open")}[st.s];
+  return `<div class="gate ${ok?"":"locked"}">
+    <header>
+      <h3>${t("gate")} ${g} — ${t("g"+g)}</h3>
+      <span class="pill ${pillCls}">${pillTxt}</span>
+      <span class="hint">${ok?"":t("lock_prev")}</span>
+    </header>
+    ${items.map(x=>{
+      const s=c.cp[x.id];
+      const mine=user(me).dept===x.d||user(me).dept==="DIR";
+      const fourBlock = x.four && s.by===me;
+      const dis=!ok||!mine||fourBlock;
+      return `<label class="cp ${x.m?"":"opt"}">
+        <input type="checkbox" ${s.done?"checked":""} ${dis?"disabled":""} data-cp="${x.id}">
+        <span class="txt">${x[L]}
+          <span class="sub">${DEPTS[x.d]}${x.four?" · Vier-Augen":""}${s.done&&s.by?" · "+user(s.by).name:""}</span>
+          ${s.late&&!s.done?`<span class="blocked">${t("late")}</span>`:""}
+          ${fourBlock?`<span class="blocked">${t("lock_own")}</span>`:""}
+        </span>
+      </label>`;
+    }).join("")}
+    <div class="rel">
+      <button class="btn" ${st.s==="done"||!ok||!canRelease?"disabled":""} data-rel="${g}">${t("release")}</button>
+      <span class="note">${st.open?`${st.open} ${t("need")}`:t("allDone")} · ${DEPTS[ownerDept]}</span>
+      <button class="exc" data-exc="${g}" style="margin-left:auto">${t("exception")}</button>
+    </div>
+  </div>`;
+}
+function chatHTML(c){
+  const counts={
+    case:c.chat.filter(m=>m.scope==="case").length,
+    trainee:c.chat.filter(m=>m.scope==="trainee").length,
+    co:c.chat.filter(m=>m.scope==="co").length
+  };
+  const list=c.chat.filter(m=>m.scope===chatScope);
+  const av={SALES:"s",TA:"t",ATO:"a",DIR:""};
+  return `<div class="ctx">
+    <button data-sc="case" class="${chatScope==="case"?"on":""}">${t("ctx_case")}${counts.case?`<span class="b">${counts.case}</span>`:""}</button>
+    <button data-sc="trainee" class="${chatScope==="trainee"?"on":""}">${t("ctx_trainee")}: ${c.trainee}${counts.trainee?`<span class="b">${counts.trainee}</span>`:""}</button>
+    <button data-sc="co" class="${chatScope==="co"?"on":""}">${t("ctx_co")}: ${c.co}${counts.co?`<span class="b">${counts.co}</span>`:""}</button>
+  </div>
+  ${list.length?list.map(m=>{
+    const u=user(m.uid);
+    return `<div class="msg">
+      <div class="av ${av[u.dept]}">${initials(u.name)}</div>
+      <div style="flex:1">
+        <div class="row"><span class="who">${u.name}</span><span class="dept">${DEPTS[u.dept]}</span><span class="tm">${m.when}</span></div>
+        <div class="body">${m.txt}</div>
+      </div>
+    </div>`;
+  }).join(""):`<div class="empty" style="padding:26px 0"><b>${t("empty_t")}</b></div>`}
+  <div class="composer">
+    <textarea id="cmsg" placeholder="${t("ph")}"></textarea>
+    <footer><span class="keep">${t("keep")}</span><button class="send" id="csend">${t("send")}</button></footer>
+  </div>`;
+}
+function logHTML(c){
+  return `<div class="log">${c.log.map(e=>`<div class="e">
+    <span class="t">${e.when}</span>
+    <span><b>${e.who==="system"?"System":user(e.who).name}</b> — ${e.txt}</span>
+  </div>`).join("")}</div>`;
+}
+function renderDrawer(){
+  const d=document.getElementById("drawer");
+  if(!drawerCase){d.classList.remove("on");document.getElementById("scrim").classList.remove("on");d.setAttribute("aria-hidden","true");return}
+  const c=drawerCase;
+  const ow=Object.entries(c.owner).filter(([k,v])=>v).map(([k,v])=>`${DEPTS[k]}: ${user(v).name}`).join(" · ");
+  d.innerHTML=`
+    <div class="dhd">
+      <div>
+        <h2>${c.trainee}</h2>
+        <div class="meta"><span class="num">${c.no}</span><span class="type">${c.type}</span>
+          <span>${c.co}</span><span>${c.course}</span><span>${fmtStart(c)}</span></div>
+        <div class="meta" style="margin-top:4px">${ow||`<span class="pill p-pool">${t("unassigned")}</span>`}</div>
+      </div>
+      <button class="x" id="dx">×</button>
+    </div>
+    <div class="tabs">
+      <button data-tab="gates" class="${dtab==="gates"?"on":""}">${t("tab_gates")}</button>
+      <button data-tab="chat" class="${dtab==="chat"?"on":""}">${t("tab_chat")}${c.chat.length?` (${c.chat.length})`:""}</button>
+      <button data-tab="log" class="${dtab==="log"?"on":""}">${t("tab_log")}</button>
+    </div>
+    <div class="dbody">${
+      dtab==="gates"?(inPool(c)?`<div class="notice"><b>${t("unassigned")}.</b> <button class="exc" id="dtake">${t("take")}</button></div>`:"")
+        +[1,2,3].map(g=>gateHTML(c,g)).join("")
+      :dtab==="chat"?chatHTML(c)
+      :logHTML(c)}</div>`;
+  d.classList.add("on");d.setAttribute("aria-hidden","false");
+  document.getElementById("scrim").classList.add("on");
+  wireDrawer();
+}
+
+/* ---------- Wiring ---------- */
+function wireMain(){
+  const q=id=>document.getElementById(id);
+  if(q("fq")){
+    q("fq").oninput=e=>{F.q=e.target.value;renderMain();q("fq").focus();
+      q("fq").setSelectionRange(F.q.length,F.q.length)};
+    q("ftype").onchange=e=>{F.type=e.target.value;renderMain()};
+    q("fstatus").onchange=e=>{F.status=e.target.value;renderMain()};
+    q("fdept").onchange=e=>{F.dept=e.target.value;renderMain()};
+    q("fowner").onchange=e=>{F.owner=e.target.value;renderMain()};
+    q("flate").onchange=e=>{F.late=e.target.checked;renderMain()};
+    q("fpool").onchange=e=>{F.pool=e.target.checked;renderMain()};
+    q("fclear").onclick=()=>{F={q:"",type:"",status:"",dept:"",owner:"",late:false,pool:false};renderMain()};
+  }
+  document.querySelectorAll("[data-stage]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.stage;
+    F.status=F.status===k?"":(k==="train"?"train":k);renderMain();
+  });
+  document.querySelectorAll("tbody tr").forEach(tr=>tr.onclick=()=>{
+    drawerCase=CASES.find(c=>c.id===tr.dataset.id);dtab="gates";chatScope="case";renderDrawer();
+  });
+}
+function wireDrawer(){
+  const c=drawerCase;
+  document.getElementById("dx").onclick=close;
+  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{dtab=b.dataset.tab;renderDrawer()});
+  document.querySelectorAll("[data-cp]").forEach(cb=>cb.onchange=()=>{
+    const s=c.cp[cb.dataset.cp];
+    s.done=cb.checked; s.late=s.done?false:s.late; s.by=s.done?me:null;
+    c.log.unshift({when:"gerade",who:me,txt:(s.done?"Prüfpunkt erledigt: ":"Prüfpunkt zurückgesetzt: ")+CAT.find(x=>x.id===cb.dataset.cp)[L]});
+    syncStatus(c);renderDrawer();renderSide();
+  });
+  document.querySelectorAll("[data-rel]").forEach(b=>b.onclick=()=>{
+    const g=+b.dataset.rel;
+    c.log.unshift({when:"gerade",who:me,txt:`Gate ${g} freigegeben`});
+    syncStatus(c);renderDrawer();renderMain();renderSide();
+  });
+  document.querySelectorAll("[data-exc]").forEach(b=>b.onclick=()=>{
+    c.exc++;c.log.unshift({when:"gerade",who:me,txt:`Ausnahme beantragt — Gate ${b.dataset.exc} (Freigabe durch Director Training erforderlich)`});
+    renderDrawer();renderMain();
+  });
+  const tk=document.getElementById("dtake");
+  if(tk) tk.onclick=()=>{
+    c.owner[user(me).dept]=me;
+    c.log.unshift({when:"gerade",who:me,txt:"Vorgang aus dem Pool übernommen — "+DEPTS[user(me).dept]});
+    renderDrawer();renderMain();renderSide();
+  };
+  document.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{chatScope=b.dataset.sc;renderDrawer()});
+  const sd=document.getElementById("csend");
+  if(sd) sd.onclick=()=>{
+    const ta=document.getElementById("cmsg");
+    if(!ta.value.trim())return;
+    c.chat.push({scope:chatScope,uid:me,txt:ta.value.replace(/</g,"&lt;"),when:"gerade"});
+    c.log.unshift({when:"gerade",who:me,txt:"Nachricht hinzugefügt ("+t("ctx_"+chatScope)+")"});
+    renderDrawer();
+  };
+}
+function syncStatus(c){
+  const g1=gateState(c,1).s==="done",g2=gateState(c,2).s==="done",g3=gateState(c,3).s==="done";
+  if(g3)c.status="closed";else if(g2)c.status=daysTo(c.start)<=0?"train":"ready";
+  else if(g1)c.status="book";else c.status="enq";
+}
+function close(){drawerCase=null;renderDrawer()}
+document.getElementById("scrim").onclick=close;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+
+document.getElementById("role").onchange=e=>{me=e.target.value;view="dash";drawerCase=null;render()};
+document.querySelectorAll(".lang button").forEach(b=>b.onclick=()=>{
+  L=b.dataset.l;document.documentElement.lang=L;
+  document.querySelectorAll(".lang button").forEach(x=>x.classList.toggle("on",x===b));
+  render();
+});
+document.getElementById("side").addEventListener("click",e=>{
+  const b=e.target.closest("[data-v]");if(!b)return;
+  view=b.dataset.v;renderMain();renderSide();
+});
+
+function render(){renderTop();renderSide();renderMain();renderDrawer()}
+render();
+</script>
+</body>
+</html>

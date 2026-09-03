@@ -3,27 +3,40 @@
    Die endgültigen Hex-Codes und das Logo werden nachgeliefert (Spec 15, Punkt 3);
    bis dahin gelten die Platzhalter unten. Alle Farben nur über Tokens verwenden. */
 :root {
-  --aaa-navy-900: #0b1f3a;
-  --aaa-navy-800: #12294d;
-  --aaa-navy-700: #1b3a6b;
-  --aaa-navy-100: #dfe6f3;
-  --aaa-accent: #5b8def;
-  --aaa-bg: #f4f6fa;
-  --aaa-surface: #ffffff;
-  --aaa-border: #d7dde8;
-  --aaa-text: #14213d;
-  --aaa-text-muted: #5b6b85;
-  --aaa-on-navy: #ffffff;
+  /* Farbwerte übernommen aus dem Prototyp (sandbox/AAA-Flow-Sandbox.html),
+     abgestimmt auf AAA Connect. Endgültige Freigabe mit dem Logo steht aus
+     (Spec Abschnitt 15, Punkt 3). Farben ausschließlich über diese Tokens. */
+  --aaa-navy-900: #0C1B2E;
+  --aaa-navy-800: #12283F;
+  --aaa-navy-700: #1B3A5A;
+  --aaa-navy-600: #26507A;
+  --aaa-navy-500: #3A6796;
+  --aaa-navy-400: #5B84B1;
 
-  /* Statusmodell (Spec 13): dieselbe Farbe bedeutet überall dasselbe */
-  --state-open: #8a94a6;
-  --state-in-progress: #2f6fed;
-  --state-done: #1e9e5a;
-  --state-overdue: #d6362b;
+  --aaa-paper: #F1F4F8;
+  --aaa-surface: #FFFFFF;
+  --aaa-surface-2: #FAFCFE;
+  --aaa-line: #DDE4EC;
+  --aaa-line-strong: #C3CFDD;
 
-  --radius: 12px;
-  --shadow: 0 1px 2px rgba(11, 31, 58, 0.06), 0 4px 16px rgba(11, 31, 58, 0.06);
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --aaa-ink: #132132;
+  --aaa-ink-soft: #5A6B7F;
+  --aaa-ink-faint: #8A9AAC;
+  --aaa-on-navy: #FFFFFF;
+
+  /* Statusmodell (Spec Abschnitt 13): dieselbe Farbe bedeutet überall dasselbe.
+     Semantische Farben sind bewusst getrennt vom Navy-Akzent. */
+  --state-open: #8FA3BC;
+  --state-in-progress: #B87514;   --state-in-progress-bg: #FDF3E2;
+  --state-done: #26714F;          --state-done-bg: #E6F2EC;
+  --state-overdue: #A83A2A;       --state-overdue-bg: #FBECE9;
+  --state-exception: #5C4B8A;     --state-exception-bg: #EFEBF7;
+
+  --focus: #4A90D9;
+  --radius: 6px;
+  --shadow: 0 1px 2px rgba(12, 27, 46, .06), 0 4px 16px rgba(12, 27, 46, .06);
+  --font: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -31,17 +44,17 @@ html, body, #root { height: 100%; margin: 0; }
 body {
   font-family: var(--font);
   font-size: 15px;
-  color: var(--aaa-text);
-  background: var(--aaa-bg);
+  color: var(--aaa-ink);
+  background: var(--aaa-paper);
   -webkit-font-smoothing: antialiased;
 }
 a { color: var(--aaa-navy-700); }
 button {
   font: inherit;
   border-radius: 8px;
-  border: 1px solid var(--aaa-border);
+  border: 1px solid var(--aaa-line);
   background: var(--aaa-surface);
-  color: var(--aaa-text);
+  color: var(--aaa-ink);
   padding: 8px 14px;
   cursor: pointer;
 }
@@ -50,10 +63,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 input, select {
   font: inherit;
   padding: 9px 12px;
-  border: 1px solid var(--aaa-border);
+  border: 1px solid var(--aaa-line);
   border-radius: 8px;
   background: var(--aaa-surface);
-  color: var(--aaa-text);
+  color: var(--aaa-ink);
   width: 100%;
 }
 
@@ -89,13 +102,13 @@ input, select {
 
 .tile {
   background: var(--aaa-surface);
-  border: 1px solid var(--aaa-border);
+  border: 1px solid var(--aaa-line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 20px;
 }
 .tile + .tile { margin-top: 16px; }
-.muted { color: var(--aaa-text-muted); }
+.muted { color: var(--aaa-ink-soft); }
 h1 { font-size: 22px; margin: 0 0 16px; }
 h2 { font-size: 17px; margin: 0 0 12px; }
 
@@ -104,11 +117,11 @@ h2 { font-size: 17px; margin: 0 0 12px; }
 .state.in_progress { background: var(--state-in-progress); }
 .state.done { background: var(--state-done); }
 .state.overdue { background: var(--state-overdue); }
-.state.discarded { background: var(--aaa-text-muted); }
+.state.discarded { background: var(--aaa-ink-soft); }
 
 table.list { width: 100%; border-collapse: collapse; }
-table.list th, table.list td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--aaa-border); }
-table.list th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--aaa-text-muted); }
+table.list th, table.list td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--aaa-line); }
+table.list th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--aaa-ink-soft); }
 .table-wrap { overflow-x: auto; }
 
 .login { min-height: 100%; display: grid; place-items: center; background: var(--aaa-navy-900); padding: 24px; }
