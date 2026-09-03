@@ -3,6 +3,27 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 1.6.0 — 2026-09-03
+
+- **Firma und Trainee als Schreibfeld** mit Vorschlagsliste statt reinem
+  Auswahlfeld: ein bekannter Name wird übernommen, ein unbekannter legt den
+  Eintrag mit dem Vorgang an. Beim neuen Trainee erscheint das Feld für das
+  Geburtsdatum von selbst.
+- **Kurstypen als Mehrfachauswahl.** Ein Vorgang kann mehrere tragen, etwa
+  Recurrent zusammen mit LVO und Steep Approach. Der Katalog umfasst AAA
+  Recurrent, CAT II/III, CPDLC, Difference Training, EPSQ, HUD, LVO, LVTO only,
+  Recurrent, Renewal, Special Airport, Steep Approach und Type Rating und wird
+  vom Superadmin im Admin-Panel gepflegt. Der Kurstypfilter je Prüfpunkt greift
+  jetzt, sobald einer der Kurstypen des Vorgangs passt.
+- **Feldrechte nach Abteilung.** Das Anfragedatum pflegt Sales, Kursbeginn und
+  Kursende pflegt Training Admin; fremde Felder sind sichtbar, aber gesperrt und
+  mit Begründung versehen. Neu ist der Dialog **Stammdaten des Vorgangs**, über
+  den Training Admin die Kursdaten nachträgt — Fristen und Prüfpunkt-Katalog
+  werden dabei neu berechnet, die Änderung landet im Audit-Trail.
+- **Notizen zu Personen und Firmen.** Interne Vermerke über alle Vorgänge
+  hinweg, erreichbar aus der Vorgangsakte und aus den Stammdaten, nicht
+  löschbar, mit Bearbeitungsvermerk und eigenem PDF- und Excel-Export.
+
 ## 1.5.0 — 2026-09-03
 
 - **Export.** PDF über eine eigene Druckansicht in jeder Ansicht, Excel überall

@@ -298,6 +298,25 @@ tbody tr[data-id]:hover{background:#F7FAFD}
   body{background:#fff}
 }
 
+/* ---------- Notizen ---------- */
+.ovl{display:none;position:fixed;inset:0;z-index:55;background:rgba(12,27,46,.5);padding:16px;overflow-y:auto}
+.ovl.on{display:flex;align-items:flex-start;justify-content:center}
+.ovlcard{background:var(--surface);border-radius:10px;width:min(620px,100%);margin:24px 0 96px;
+  box-shadow:0 20px 60px rgba(12,27,46,.3);display:flex;flex-direction:column;max-height:calc(100vh - 140px)}
+.ovlcard>header{display:flex;align-items:flex-start;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.ovlcard>header h3{font-size:16px;font-weight:600}
+.ovlcard>header .x{font-size:22px;color:var(--ink-faint);line-height:1;padding:2px 6px}
+.ovlcard .body{padding:16px 18px 20px;overflow-y:auto}
+.note{padding:11px 0;border-bottom:1px solid #F0F4F8}
+.note:last-of-type{border-bottom:none}
+.note .row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.note .row b{font-size:13px;font-weight:600}
+.note .tm{font-size:11px;color:var(--ink-faint);margin-left:auto}
+.note .txt{font-size:13.5px;margin-top:3px;white-space:pre-wrap;overflow-wrap:anywhere}
+.note .edit{font-size:11.5px;color:var(--navy-600);text-decoration:underline;margin-top:4px}
+.notecount{font-size:11.5px;border:1px solid var(--line-strong);border-radius:4px;padding:2px 8px;color:var(--navy-600);background:#fff}
+.notecount:hover{border-color:var(--navy-500);background:var(--surface-2)}
+
 /* ---------- Anmeldung ---------- */
 .login{position:fixed;inset:0;overflow-y:auto;display:none;
   background:linear-gradient(160deg,var(--navy-900) 0%,var(--navy-700) 100%);padding:32px 16px 110px}
@@ -373,8 +392,14 @@ tr.inactive td{opacity:.55}
 .setgrid .fld input,.setgrid .fld select{width:100%;border:1px solid var(--line-strong);border-radius:var(--r);padding:8px 10px;font-size:13.5px;background:#fff}
 .setgrid .fld label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:4px}
 .setgrid .fld .hint{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
-.checks{display:flex;flex-wrap:wrap;gap:6px 14px;border:1px solid var(--line-strong);border-radius:var(--r);padding:9px 11px;background:#fff}
-.checks label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;color:var(--ink);cursor:pointer;margin:0}
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:7px 10px;
+  border:1px solid var(--line-strong);border-radius:var(--r);padding:10px 11px;background:#fff}
+.checks label{display:flex;align-items:flex-start;gap:7px;font-size:13px;font-weight:400;color:var(--ink);cursor:pointer;margin:0;line-height:1.3}
+.checks input{margin-top:1px;flex:0 0 auto;accent-color:var(--navy-600)}
+.checks input:disabled{opacity:.4}
+.checks input:disabled + *,.checks label:has(input:disabled){color:var(--ink-faint);cursor:not-allowed}
+.fld input:disabled,.fld select:disabled,.fld textarea:disabled{background:#F1F4F8;color:var(--ink-faint);cursor:not-allowed}
+.fld input:disabled::placeholder{color:var(--line-strong)}
 .tgl{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line-strong);border-radius:var(--r);padding:9px 11px;background:#fff;cursor:pointer}
 .tgl input{margin-top:2px;width:16px;height:16px;accent-color:var(--navy-600);flex:0 0 16px}
 .tgl span{font-size:12.5px;color:var(--ink-soft);font-weight:400}
@@ -449,6 +474,7 @@ tr.inactive td{opacity:.55}
 </div>
 
 <div id="print"></div>
+<div class="ovl" id="notes"></div>
 <div class="sandbar" id="sandbar"></div>
 <div class="toast" id="toast"></div>
 
@@ -540,7 +566,26 @@ de:{
   hint_types:"Sales kann nur Vorgänge der zugeordneten Muster anlegen.",
   e_company:"Bitte eine Firma wählen oder anlegen.", e_trainee:"Bitte einen Trainee wählen oder anlegen.",
   e_name:"Bitte einen Namen angeben (mindestens 2 Zeichen).", e_aircraft:"Bitte ein Muster wählen.",
-  e_course:"Bitte einen Kurstyp angeben.", e_dates:"Das Kursende darf nicht vor dem Kursbeginn liegen.",
+  e_course:"Bitte mindestens einen Kurstyp wählen.", e_dates:"Das Kursende darf nicht vor dem Kursbeginn liegen.",
+  ph_company:"Firma eingeben oder aus der Liste wählen", ph_trainee:"Name eingeben oder aus der Liste wählen",
+  hint_combo:"Bekannte Namen werden vorgeschlagen; ein neuer Name legt den Eintrag an.",
+  hint_newco:"Neue Firma — wird mit dem Vorgang angelegt.",
+  hint_newtr:"Neuer Trainee — wird mit dem Vorgang angelegt.",
+  hint_courses:"Mehrfachauswahl möglich, etwa Recurrent zusammen mit LVO und Steep Approach.",
+  hint_wait_ta:"Kursbeginn und Kursende trägt Training Admin nach. Bis dahin laufen keine Gate-Fristen.",
+  only_sales:"Dieses Feld pflegt Sales.", only_ta:"Dieses Feld pflegt Training Admin.",
+  ec_t:"Stammdaten des Vorgangs", ec_p:"Gesperrte Felder gehören einer anderen Abteilung. Änderungen stehen im Audit-Trail.",
+  ec_log:"Stammdaten geändert", e_noedit:"Für diesen Vorgang haben Sie kein Feld zur Bearbeitung.",
+  t_caseedit:"Stammdaten gespeichert.", t_nochange:"Nichts geändert.",
+  notes_t:"Notizen", notes_tr:"Notizen zum Trainee", notes_co:"Notizen zur Firma",
+  notes_h:"Interne Vermerke zur Person beziehungsweise Firma. Anders als der Kommunikationsstrang keine Unterhaltung, sondern Merkposten — über alle Vorgänge hinweg sichtbar.",
+  notes_none:"Noch keine Notiz erfasst.", notes_ph:"Notiz erfassen …", notes_add:"Notiz hinzufügen",
+  notes_keep:"Notizen können nicht gelöscht werden. Bearbeiten erzeugt einen Vermerk.",
+  notes_edit:"Notiz bearbeiten", notes_edit_p:"Die bisherige Fassung bleibt in der Historie erhalten.",
+  t_note:"Notiz gespeichert.",
+  ct_t:"Kurstypen", ct_add:"Kurstyp hinzufügen", ct_inuse:"in Verwendung",
+  ct_h:"Ein Vorgang kann mehrere Kurstypen tragen. Kurstypen, die in Vorgängen oder in Prüfpunkt-Filtern verwendet werden, lassen sich nicht löschen.",
+  e_ctdup:"Diesen Kurstyp gibt es bereits.", t_ctnew:"Kurstyp angelegt.", t_ctdel:"Kurstyp gelöscht.",
   e_endonly:"Ein Kursende ohne Kursbeginn ist nicht möglich.",
   e_conameDup:"Eine Firma mit diesem Namen existiert bereits.",
   nco_t:"Neue Firma anlegen", nco_p:"Firmen sind eigene Stammdaten, weil Kommunikation und Zahlungsthemen auf Firmenebene laufen.",
@@ -713,7 +758,26 @@ en:{
   hint_types:"Sales can only create cases for their assigned aircraft types.",
   e_company:"Please choose or create a company.", e_trainee:"Please choose or create a trainee.",
   e_name:"Please enter a name (at least 2 characters).", e_aircraft:"Please choose an aircraft type.",
-  e_course:"Please enter a course type.", e_dates:"Course end cannot be before course start.",
+  e_course:"Please select at least one course type.", e_dates:"Course end cannot be before course start.",
+  ph_company:"Type a company or pick from the list", ph_trainee:"Type a name or pick from the list",
+  hint_combo:"Known names are suggested; a new name creates the record.",
+  hint_newco:"New company — created together with the case.",
+  hint_newtr:"New trainee — created together with the case.",
+  hint_courses:"Multiple selection possible, e.g. Recurrent together with LVO and Steep Approach.",
+  hint_wait_ta:"Course start and end are entered by Training Admin. Until then no gate deadlines run.",
+  only_sales:"This field is maintained by Sales.", only_ta:"This field is maintained by Training Admin.",
+  ec_t:"Case master data", ec_p:"Locked fields belong to another department. Changes are recorded in the audit trail.",
+  ec_log:"Master data changed", e_noedit:"There is no field for you to edit on this case.",
+  t_caseedit:"Master data saved.", t_nochange:"Nothing changed.",
+  notes_t:"Notes", notes_tr:"Trainee notes", notes_co:"Company notes",
+  notes_h:"Internal remarks about the person or company. Unlike the communication thread these are not a conversation but reminders — visible across all cases.",
+  notes_none:"No note yet.", notes_ph:"Write a note …", notes_add:"Add note",
+  notes_keep:"Notes cannot be deleted. Editing leaves a note.",
+  notes_edit:"Edit note", notes_edit_p:"The previous version is kept in the history.",
+  t_note:"Note saved.",
+  ct_t:"Course types", ct_add:"Add course type", ct_inuse:"in use",
+  ct_h:"A case can carry several course types. Course types used in cases or in checkpoint filters cannot be deleted.",
+  e_ctdup:"This course type already exists.", t_ctnew:"Course type created.", t_ctdel:"Course type deleted.",
   e_endonly:"A course end without a course start is not possible.",
   e_conameDup:"A company with this name already exists.",
   nco_t:"Create a company", nco_p:"Companies are their own master data because commercial and payment topics live at company level.",
@@ -814,7 +878,11 @@ const now = () => L === "de" ? "gerade" : "just now";
 
 /* ---------- Stammdaten ---------- */
 const TYPES = ["ATR","C525","CL350","CL650","M2","Phenom","XLS"];
-const COURSE_TYPES = ["Differences","Recurrent / OPC","Refresher","Type Rating Initial"];
+/* Kurstypen. Ein Vorgang kann mehrere tragen (etwa Recurrent zusammen mit LVO
+   und Steep Approach). Der Superadmin pflegt die Liste im Admin-Panel. */
+const COURSE_TYPES = ["AAA Recurrent","CAT II/III","CPDLC","Difference Training","EPSQ","HUD",
+  "LVO","LVTO only","Recurrent","Renewal","Special Airport","Steep Approach","Type Rating"];
+const courseLabel = c => (c.courses || []).join(", ") || "—";
 const DEPTS = { sales:"Sales", training_admin:"Training Admin", ato:"ATO" };
 
 const MAILDOM = "@aviationacademy.at";
@@ -885,7 +953,9 @@ const TRAINEES = [
   { id:"tr11", name:"Thomas Wagner",     dob:"1981-05-19", co:"co4" },
   { id:"tr12", name:"Eva Novotny",       dob:"1993-10-08", co:"co4" }
 ];
-const company = id => COMPANIES.find(c => c.id === id) || { name:"?" };
+COMPANIES.forEach(c => c.notes = []);
+TRAINEES.forEach(x => x.notes = []);
+const company = id => COMPANIES.find(c => c.id === id) || { name:"?", notes:[] };
 const trainee = id => TRAINEES.find(x => x.id === id) || { name:"?" };
 const coName = c => company(c.companyId).name;
 const trName = c => trainee(c.traineeId).name;
@@ -966,7 +1036,7 @@ CAT.forEach(x => {
 cat0("g1_customer_order").blocks = true;   // ohne Auftrag beginnt Gate 1 nicht
 cat0("g2_course_date").blocks    = true;   // ohne bestätigtes Kursdatum kein Gate 2
 cat0("g2_course_file").evReq     = true;   // Ablagepfad der Kursakte erfassen
-cat0("g2_examiner").courses      = ["Type Rating Initial"];
+cat0("g2_examiner").courses      = ["Type Rating","Renewal"];
 
 function cat0(id) { return CAT.find(c => c.id === id); }
 const cat = id => CAT.find(c => c.id === id);
@@ -1009,7 +1079,7 @@ let SEQ = 1240;
    genauso wie in der Datenbank. */
 const applicableCat = c => CAT.filter(x => x.active
   && (!x.types.length || x.types.includes(c.type))
-  && (!x.courses.length || x.courses.includes(c.course))).map(x => x.id);
+  && (!x.courses.length || (c.courses || []).some(y => x.courses.includes(y)))).map(x => x.id);
 const caseCat = c => CAT.filter(x => c.catIds.includes(x.id));
 
 function blankCase(o) {
@@ -1047,37 +1117,37 @@ const allG12 = CAT.filter(x => x.g < 3).map(x => x.id);
 const V6 = { g1_licence:"u6", g1_medical:"u6", g1_prerequisites:"u6" };
 
 const CASES = [
-  blankCase({ traineeId:"tr1", companyId:"co3", type:"CL650", course:"Type Rating Initial",
+  blankCase({ traineeId:"tr1", companyId:"co3", type:"CL650", courses:["Type Rating"],
     enquiry_date:D(-24), course_start:D(19), course_end:D(31),
     owner:{ sales:"u7", training_admin:"u4", ato:"u12" },
     done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_language","g1_course_defined","g1_billing"],
     wait:["g1_licence"], byMap:{ g1_licence:"u7" } }),
 
-  blankCase({ traineeId:"tr2", companyId:"co3", type:"CL650", course:"Type Rating Initial",
+  blankCase({ traineeId:"tr2", companyId:"co3", type:"CL650", courses:["Type Rating"],
     enquiry_date:D(-26), course_start:D(11), course_end:D(23),
     owner:{ sales:"u7", training_admin:"u4", ato:"u12" },
     done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_licence","g1_language","g1_course_defined","g1_billing"],
     byMap:{ g1_licence:"u7" }, vbyMap:{ g1_licence:"u6" } }),
 
-  blankCase({ traineeId:"tr4", companyId:"co2", type:"XLS", course:"Recurrent / OPC",
+  blankCase({ traineeId:"tr4", companyId:"co2", type:"XLS", courses:["Recurrent","LVO","Steep Approach"],
     enquiry_date:D(-14), course_start:D(6), course_end:D(8), status:"booked",
     owner:{ sales:"u7", training_admin:"u5", ato:"u10" },
     done:CAT.filter(x => x.g === 1).map(x => x.id).concat(["g2_course_date","g2_course_file"]),
     byMap:Object.assign({}, V6, { g1_licence:"u7", g1_medical:"u7", g1_prerequisites:"u7" }), vbyMap:V6,
     gates:{ 1:{ by:"u5", at:D(-9) } } }),
 
-  blankCase({ traineeId:"tr7", companyId:"co1", type:"C525", course:"Type Rating Initial",
+  blankCase({ traineeId:"tr7", companyId:"co1", type:"C525", courses:["Type Rating"],
     enquiry_date:D(-6), course_start:D(33), course_end:D(47),
     owner:{ sales:null, training_admin:null, ato:"u9" },
     done:["g1_customer_order"], byMap:{ g1_customer_order:"u8" }, poolDays:{ sales:4, training_admin:4 } }),
 
-  blankCase({ traineeId:"tr9", companyId:"co5", type:"Phenom", course:"Differences",
+  blankCase({ traineeId:"tr9", companyId:"co5", type:"Phenom", courses:["Difference Training"],
     enquiry_date:D(-11), course_start:D(12), course_end:D(15),
     owner:{ sales:"u8", training_admin:null, ato:"u2" },
     done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_billing","g1_course_defined"],
     poolDays:{ training_admin:1 } }),
 
-  blankCase({ traineeId:"tr5", companyId:"co2", type:"CL350", course:"Recurrent / OPC",
+  blankCase({ traineeId:"tr5", companyId:"co2", type:"CL350", courses:["Recurrent"],
     enquiry_date:D(-40), course_start:D(-4), course_end:D(-1), status:"in_progress",
     owner:{ sales:"u7", training_admin:"u4", ato:"u11" },
     done:allG12.concat(["g3_attendance"]),
@@ -1086,7 +1156,7 @@ const CASES = [
     gates:{ 1:{ by:"u4", at:D(-30) }, 2:{ by:"u11", at:D(-12) } } }),
 
   /* Gate-3-Sperre: Kurs beendet, Grading Sheets fehlen, Zertifikat gesperrt */
-  blankCase({ traineeId:"tr11", companyId:"co4", type:"ATR", course:"Type Rating Initial",
+  blankCase({ traineeId:"tr11", companyId:"co4", type:"ATR", courses:["Type Rating","CAT II/III"],
     enquiry_date:D(-70), course_start:D(-21), course_end:D(-9), status:"in_progress",
     owner:{ sales:"u8", training_admin:"u5", ato:"u13" },
     done:allG12.concat(["g3_attendance","g3_deferred_items","g3_exam_result"]),
@@ -1094,7 +1164,7 @@ const CASES = [
     vbyMap:Object.assign({}, V6, { g2_instructor:"u2", g2_training_docs:"u3", g3_exam_result:"u2" }),
     gates:{ 1:{ by:"u5", at:D(-60) }, 2:{ by:"u13", at:D(-30) } } }),
 
-  blankCase({ traineeId:"tr12", companyId:"co4", type:"ATR", course:"Type Rating Initial",
+  blankCase({ traineeId:"tr12", companyId:"co4", type:"ATR", courses:["Type Rating"],
     enquiry_date:D(-70), course_start:D(-21), course_end:D(-9), status:"in_progress",
     owner:{ sales:"u8", training_admin:"u5", ato:"u13" },
     done:allG12.concat(["g3_attendance","g3_grading_sheets","g3_deferred_items","g3_exam_result","g3_records_filed"]),
@@ -1102,25 +1172,25 @@ const CASES = [
     vbyMap:Object.assign({}, V6, { g2_instructor:"u2", g2_training_docs:"u3", g3_grading_sheets:"u2", g3_exam_result:"u2", g3_records_filed:"u3" }),
     gates:{ 1:{ by:"u5", at:D(-60) }, 2:{ by:"u13", at:D(-30) } } }),
 
-  blankCase({ traineeId:"tr10", companyId:"co5", type:"M2", course:"Recurrent / OPC",
+  blankCase({ traineeId:"tr10", companyId:"co5", type:"M2", courses:["Recurrent"],
     enquiry_date:D(-90), course_start:D(-38), course_end:D(-36), status:"completed",
     owner:{ sales:"u8", training_admin:"u4", ato:"u9" },
     done:CAT.map(x => x.id),
     vbyMap:Object.assign({}, V6, { g2_instructor:"u2", g2_training_docs:"u3", g3_grading_sheets:"u2", g3_exam_result:"u2", g3_records_filed:"u3" }),
     gates:{ 1:{ by:"u4", at:D(-70) }, 2:{ by:"u9", at:D(-45) }, 3:{ by:"u4", at:D(-30) } } }),
 
-  blankCase({ traineeId:"tr3", companyId:"co3", type:"XLS", course:"Recurrent / OPC",
+  blankCase({ traineeId:"tr3", companyId:"co3", type:"XLS", courses:["Recurrent"],
     enquiry_date:D(-3), course_start:D(27), course_end:D(29),
     owner:{ sales:null, training_admin:null, ato:"u10" },
     done:[], poolDays:{ sales:2, training_admin:2 } }),
 
-  blankCase({ traineeId:"tr8", companyId:"co1", type:"C525", course:"Recurrent / OPC",
+  blankCase({ traineeId:"tr8", companyId:"co1", type:"C525", courses:["Recurrent"],
     enquiry_date:D(-30), course_start:D(9), course_end:D(11), status:"booked",
     owner:{ sales:"u8", training_admin:"u5", ato:"u9" },
     done:CAT.filter(x => x.g === 1).map(x => x.id).concat(["g2_course_date","g2_course_file","g2_forms"]),
     vbyMap:V6, gates:{ 1:{ by:"u5", at:D(-18) } } }),
 
-  blankCase({ traineeId:"tr6", companyId:"co2", type:"CL350", course:"Type Rating Initial",
+  blankCase({ traineeId:"tr6", companyId:"co2", type:"CL350", courses:["Type Rating"],
     enquiry_date:D(-2), owner:{ sales:"u7", training_admin:null, ato:"u11" },
     done:["g1_customer_order","g1_trainee_data"], poolDays:{ training_admin:0 } })
 ];
@@ -1354,11 +1424,11 @@ function doDecideException(c, e, approve) {
 
 /* Anlegen: Firma, Trainee, Vorgang */
 function createCompany(name) {
-  const co = { id:nid("co"), name:name.trim() };
+  const co = { id:nid("co"), name:name.trim(), notes:[] };
   COMPANIES.push(co); return co;
 }
 function createTrainee(name, dob, companyId) {
-  const tr = { id:nid("tr"), name:name.trim(), dob:dob || null, co:companyId };
+  const tr = { id:nid("tr"), name:name.trim(), dob:dob || null, co:companyId, notes:[] };
   TRAINEES.push(tr); return tr;
 }
 /* ATO: Course Supervisor der Flotte, sonst Head of Training (Spec 8) */
@@ -1368,7 +1438,7 @@ const resolveAto = type => (USERS.filter(u => u.active !== false && u.dept === "
 function createCase(v) {
   const u = M();
   const c = blankCase({
-    traineeId:v.traineeId, companyId:v.companyId, type:v.type, course:v.course,
+    traineeId:v.traineeId, companyId:v.companyId, type:v.type, courses:v.courses,
     enquiry_date:v.enquiry || today(),
     course_start:v.start || null, course_end:v.end || null,
     owner:{ sales: u.dept === "sales" ? me : null, training_admin:null, ato:resolveAto(v.type) }
@@ -1415,6 +1485,9 @@ function openDialog(cfg) { dlg = { cfg, values: Object.assign({}, cfg.values) };
 function closeDialog() { document.getElementById("modal").classList.remove("on"); dlg = null; }
 function renderDialog(err) {
   if (!dlg) return;
+  const a = document.activeElement;
+  const keep = a && a.dataset && a.dataset.f
+    ? { name:a.dataset.f, pos:(a.selectionStart != null ? a.selectionStart : null) } : null;
   const { cfg, values } = dlg;
   const fields = cfg.build(values);
   document.getElementById("mTitle").textContent = cfg.title;
@@ -1427,18 +1500,19 @@ function renderDialog(err) {
     const v = values[f.name] == null ? "" : values[f.name];
     const inner =
       f.type === "toggle"
-        ? `<label class="tgl"><input type="checkbox" data-f="${f.name}" ${v ? "checked" : ""}
+        ? `<label class="tgl"><input type="checkbox" data-f="${f.name}" ${v ? "checked" : ""} ${f.disabled ? "disabled" : ""}
              ${f.reactive ? 'data-reactive="1"' : ""}><span>${esc(f.text || "")}</span></label>`
       : f.type === "checks"
         ? `<div class="checks">${f.options.map(o => `<label><input type="checkbox" data-fm="${f.name}"
-             value="${esc(o.v)}" ${(v || []).includes(o.v) ? "checked" : ""}> ${esc(o.l)}</label>`).join("")}</div>`
+             value="${esc(o.v)}" ${(v || []).includes(o.v) ? "checked" : ""} ${f.disabled ? "disabled" : ""}> ${esc(o.l)}</label>`).join("")}</div>`
       : f.type === "select"
-        ? `<select data-f="${f.name}" ${f.reactive ? 'data-reactive="1"' : ""}>${
+        ? `<select data-f="${f.name}" ${f.disabled ? "disabled" : ""} ${f.reactive ? 'data-reactive="1"' : ""}>${
             f.options.map(o => `<option value="${esc(o.v)}" ${String(o.v) === String(v) ? "selected" : ""}>${esc(o.l)}</option>`).join("")}</select>`
       : f.type === "textarea"
         ? `<textarea data-f="${f.name}" placeholder="${esc(f.placeholder || "")}">${esc(v)}</textarea>`
         : `<input type="${f.type || "text"}" data-f="${f.name}" value="${esc(v)}"
-             placeholder="${esc(f.placeholder || "")}" ${f.list ? `list="${f.list}"` : ""}>`;
+             placeholder="${esc(f.placeholder || "")}" ${f.disabled ? "disabled" : ""}
+             ${f.reactive ? 'data-reactive="1"' : ""} ${f.list ? `list="${f.list}"` : ""}>`;
     return `<div class="fld${f.half ? " half" : ""}">
       ${f.type === "toggle" ? `<label>${esc(f.label)}</label>` : `<label for="">${esc(f.label)}</label>`}${inner}
       ${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ""}
@@ -1457,8 +1531,14 @@ function renderDialog(err) {
     const n = el.dataset.fm;
     dlg.values[n] = Array.from(document.querySelectorAll(`#mBody [data-fm="${n}"]:checked`)).map(x => x.value);
   });
-  const first = document.querySelector("#mBody [data-f]");
-  if (first && !err) first.focus();
+  /* Reaktive Felder zeichnen den Dialog neu — Fokus und Schreibmarke halten */
+  if (keep && keep.name) {
+    const el = document.querySelector(`#mBody [data-f="${keep.name}"]`);
+    if (el) { el.focus(); if (keep.pos != null && el.setSelectionRange) { try { el.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
+  } else {
+    const first = document.querySelector("#mBody [data-f]");
+    if (first && !err) first.focus();
+  }
 }
 document.getElementById("mOk").onclick = () => {
   if (!dlg) return;
@@ -1482,55 +1562,118 @@ function askText({ title, text, label, value, min, err, okLabel, placeholder }, 
 }
 
 /* Vorgang anlegen */
+/* Wer darf welches Datum setzen (Spec Abschnitt 6): das Anfragedatum gehört
+   Sales, Kursbeginn und Kursende gehören Training Admin. */
+const mayEnquiry = c => { const u = M();
+  return isAdmin(u) || (u.dept === "sales" && (!c || u.role === "teamleader" || isResponsible(c, "sales"))); };
+const mayCourseDates = c => { const u = M();
+  return isAdmin(u) || (u.dept === "training_admin" && (!c || u.role === "teamleader" || isResponsible(c, "training_admin"))); };
+const findCo = n => COMPANIES.find(x => x.name.toLowerCase() === (n || "").trim().toLowerCase());
+const findTr = (n, coId) => TRAINEES.find(x => x.co === coId && x.name.toLowerCase() === (n || "").trim().toLowerCase());
+
+/* Katalog nach Änderung von Muster oder Kurstyp nachziehen: neu zutreffende
+   Punkte kommen dazu, nicht mehr zutreffende fallen weg, solange sie unberührt
+   sind — bereits bearbeitete Punkte bleiben in der Akte. */
+function syncCatalogue(c) {
+  const should = applicableCat(c);
+  should.forEach(id => {
+    if (!c.catIds.includes(id)) { c.catIds.push(id); c.cp[id] = { state:"open", by:null, vby:null, due:null, note:null }; }
+  });
+  c.catIds = c.catIds.filter(id => should.includes(id) || (c.cp[id] && c.cp[id].state !== "open"));
+  recomputeDue(c);
+}
+
+/* Felder für Anlegen und Bearbeiten. Firma und Trainee sind Schreibfelder mit
+   Vorschlagsliste: ein bekannter Name wird übernommen, ein unbekannter neu
+   angelegt. */
+function caseFields(v, o) {
+  const co = findCo(v.company);
+  const newCo = (v.company || "").trim().length > 1 && !co;
+  const tr = co ? findTr(v.trainee, co.id) : null;
+  const newTr = (v.trainee || "").trim().length > 1 && !tr;
+  const f = [];
+  if (o.isNew) {
+    f.push({ name:"company", label:t("f_company"), type:"text", reactive:true, list:"lstCo",
+      listOptions:COMPANIES.map(x => x.name).sort(), placeholder:t("ph_company"),
+      hint:newCo ? t("hint_newco") : t("hint_combo") });
+    f.push({ name:"trainee", label:t("f_trainee"), type:"text", reactive:true, list:"lstTr",
+      listOptions:co ? TRAINEES.filter(x => x.co === co.id).map(x => x.name).sort() : [],
+      placeholder:t("ph_trainee"), hint:newTr ? t("hint_newtr") : t("hint_combo") });
+    if (newTr) f.push({ name:"dob", label:t("f_dob"), type:"date", half:true });
+  } else {
+    f.push({ name:"__who", type:"note", label:`${t("f_company")}: ${v.company}   ·   ${t("f_trainee")}: ${v.trainee}` });
+  }
+  f.push({ name:"type", label:t("f_aircraft"), type:"select", half:true, disabled:!o.canBase,
+    hint:!o.canBase ? t("only_sales") : (M().dept === "sales" && M().role === "staff" ? t("hint_types") : null),
+    options:[{ v:"", l:t("opt_pick") }].concat(o.types.slice().sort().map(x => ({ v:x, l:x }))) });
+  f.push({ name:"courses", label:t("f_course"), type:"checks", disabled:!o.canBase,
+    hint:o.canBase ? t("hint_courses") : t("only_sales"),
+    options:COURSE_TYPES.slice().sort().map(x => ({ v:x, l:x })) });
+  f.push({ name:"enquiry", label:t("f_enquiry"), type:"date", half:true, disabled:!o.canEnq,
+    hint:o.canEnq ? null : t("only_sales") });
+  f.push({ name:"start", label:t("f_cstart"), type:"date", half:true, disabled:!o.canTA,
+    hint:o.canTA ? null : t("only_ta") });
+  f.push({ name:"end", label:t("f_cend"), type:"date", half:true, disabled:!o.canTA });
+  f.push({ name:"__hint", label:o.canTA ? t("hint_start") : t("hint_wait_ta"), type:"note" });
+  return f;
+}
+function validateCase(v, o) {
+  if (o.isNew) {
+    if ((v.company || "").trim().length < 2) return t("e_company");
+    if ((v.trainee || "").trim().length < 2) return t("e_trainee");
+  }
+  if (!v.type) return t("e_aircraft");
+  if (!(v.courses || []).length) return t("e_course");
+  if (v.end && !v.start) return t("e_endonly");
+  if (v.start && v.end && v.end < v.start) return t("e_dates");
+  return null;
+}
+
 function dialogNewCase() {
   if (!canCreateCase(M())) return toast(t("t_nocreate"), true);
   const types = myTypes();
+  const canEnq = mayEnquiry(null), canTA = mayCourseDates(null);
   openDialog({
     title:t("nc_t"), text:t("nc_p"), okLabel:t("create"),
-    values:{ company:"", trainee:"", type:types.length === 1 ? types[0] : "",
-             course:"", enquiry:today(), start:"", end:"" },
-    build: v => {
-      const f = [];
-      f.push({ name:"company", label:t("f_company"), type:"select", reactive:true, options:
-        [{ v:"", l:t("opt_pick") }].concat(COMPANIES.slice().sort(byName).map(c => ({ v:c.id, l:c.name })))
-          .concat([{ v:"__new", l:t("opt_newco") }]) });
-      if (v.company === "__new") f.push({ name:"newco", label:t("f_newco"), type:"text", placeholder:"z. B. Alpin Jet Services" });
-      const pool = TRAINEES.filter(x => v.company && v.company !== "__new" ? x.co === v.company : false).sort(byName);
-      f.push({ name:"trainee", label:t("f_trainee"), type:"select", reactive:true, options:
-        [{ v:"", l:t("opt_pick") }].concat(pool.map(x => ({ v:x.id, l:x.name + (x.dob ? " · " + fmtDate(x.dob) : "") })))
-          .concat([{ v:"__new", l:t("opt_newtr") }]) });
-      if (v.trainee === "__new") {
-        f.push({ name:"newtr", label:t("f_newtr"), type:"text", placeholder:"Vorname Nachname" });
-        f.push({ name:"newdob", label:t("f_dob"), type:"date" });
-      }
-      f.push({ name:"type", label:t("f_aircraft"), type:"select",
-        hint: M().dept === "sales" && M().role === "staff" ? t("hint_types") : null,
-        options:[{ v:"", l:t("opt_pick") }].concat(types.slice().sort().map(x => ({ v:x, l:x }))) });
-      f.push({ name:"course", label:t("f_course"), type:"text", list:"courseTypes",
-        listOptions:COURSE_TYPES, placeholder:COURSE_TYPES[3] });
-      f.push({ name:"enquiry", label:t("f_enquiry"), type:"date" });
-      f.push({ name:"start", label:t("f_cstart"), type:"date", half:true });
-      f.push({ name:"end", label:t("f_cend"), type:"date", half:true });
-      f.push({ name:"__hint", label:t("hint_start"), type:"note" });
-      return f;
-    },
-    validate: v => {
-      if (!v.company) return t("e_company");
-      if (v.company === "__new" && (v.newco || "").trim().length < 2) return t("e_name");
-      if (v.company === "__new" && COMPANIES.some(c => c.name.toLowerCase() === (v.newco || "").trim().toLowerCase())) return t("e_conameDup");
-      if (!v.trainee) return t("e_trainee");
-      if (v.trainee === "__new" && (v.newtr || "").trim().length < 2) return t("e_name");
-      if (!v.type) return t("e_aircraft");
-      if (!(v.course || "").trim()) return t("e_course");
-      if (v.end && !v.start) return t("e_endonly");
-      if (v.start && v.end && v.end < v.start) return t("e_dates");
-      return null;
-    },
+    values:{ company:"", trainee:"", dob:"", type:types.length === 1 ? types[0] : "",
+             courses:[], enquiry:today(), start:"", end:"" },
+    build: v => caseFields(v, { types, canBase:true, canEnq, canTA, isNew:true }),
+    validate: v => validateCase(v, { isNew:true }),
     onSubmit: v => {
-      const companyId = v.company === "__new" ? createCompany(v.newco).id : v.company;
-      const traineeId = v.trainee === "__new" ? createTrainee(v.newtr, v.newdob, companyId).id : v.trainee;
-      createCase({ companyId, traineeId, type:v.type, course:v.course.trim(),
-        enquiry:v.enquiry, start:v.start, end:v.end });
+      const co = findCo(v.company) || createCompany(v.company);
+      const tr = findTr(v.trainee, co.id) || createTrainee(v.trainee, v.dob, co.id);
+      createCase({ companyId:co.id, traineeId:tr.id, type:v.type, courses:v.courses,
+        enquiry:canEnq ? v.enquiry : today(), start:canTA ? v.start : "", end:canTA ? v.end : "" });
+    }
+  });
+}
+
+/* Stammdaten eines bestehenden Vorgangs ändern — je Feld nach Zuständigkeit */
+function dialogEditCase(c) {
+  const canBase = mayEnquiry(c), canTA = mayCourseDates(c);
+  if (!canBase && !canTA) return toast(t("e_noedit"), true);
+  openDialog({
+    title:t("ec_t"), text:t("ec_p"), okLabel:t("save"),
+    values:{ company:coName(c), trainee:trName(c), type:c.type, courses:(c.courses || []).slice(),
+             enquiry:c.enquiry_date, start:c.course_start || "", end:c.course_end || "" },
+    build: v => caseFields(v, { types:myTypes(), canBase, canEnq:canBase, canTA, isNew:false }),
+    validate: v => validateCase(v, { isNew:false }),
+    onSubmit: v => {
+      const b = { type:c.type, courses:(c.courses || []).join(", "),
+        enquiry:c.enquiry_date, start:c.course_start, end:c.course_end };
+      if (canBase) { c.type = v.type; c.courses = v.courses; c.enquiry_date = v.enquiry; }
+      if (canTA) { c.course_start = v.start || null; c.course_end = v.end || null; }
+      syncCatalogue(c);
+      if (b.type !== c.type) c.owner.ato = resolveAto(c.type);
+      const ch = [];
+      if (b.type !== c.type) ch.push(`${t("f_aircraft")}: ${b.type} → ${c.type}`);
+      if (b.courses !== (c.courses || []).join(", ")) ch.push(`${t("f_course")}: ${courseLabel(c)}`);
+      if (b.enquiry !== c.enquiry_date) ch.push(`${t("f_enquiry")}: ${fmtDate(c.enquiry_date)}`);
+      if (b.start !== c.course_start) ch.push(`${t("f_cstart")}: ${fmtDate(c.course_start)}`);
+      if (b.end !== c.course_end) ch.push(`${t("f_cend")}: ${fmtDate(c.course_end)}`);
+      if (ch.length) lg(c, me, t("ec_log") + " — " + ch.join(" · "), null, now());
+      toast(ch.length ? t("t_caseedit") : t("t_nochange"));
+      render();
     }
   });
 }
@@ -1563,7 +1706,7 @@ function dialogNewTrainee(companyId) {
    ausgeblendet und ein sauberes Dokument gedruckt. Excel gibt es überall dort,
    wo die Ansicht eine Liste ist.
    ========================================================================== */
-const XLS_KINDS = ["cases","exceptions","catalogue","users","companies","trainees","audit","checkpoints"];
+const XLS_KINDS = ["cases","exceptions","catalogue","users","companies","trainees","audit","checkpoints","notes"];
 const fmtLong = d => d ? new Date(d).toLocaleDateString(L === "de" ? "de-AT" : "en-GB",
   { day:"2-digit", month:"2-digit", year:"numeric" }) : t("none");
 const yn = b => b ? t("yes") : t("none");
@@ -1589,7 +1732,7 @@ const cpStateName = (c, x) => approvedExc(c, x.id) ? t("excepted")
 function caseRows(rows) {
   return rows.map(c => {
     const nt = nextTask(c);
-    return [c.no, trName(c), coName(c), c.type, c.course, fmtLong(c.course_start), fmtLong(c.course_end),
+    return [c.no, trName(c), coName(c), c.type, courseLabel(c), fmtLong(c.course_start), fmtLong(c.course_end),
       t("st_" + c.status), stateName(caseState(c)), progress(c) + "%",
       nt ? nt[L] : t("none"), nt ? DEPTS[nt.d] : t("none"),
       c.owner.sales ? user(c.owner.sales).name : t("unassigned"),
@@ -1652,20 +1795,28 @@ function docDef(kind) {
           ["director_training","head_of_training","sales_lead"].filter(f => holds(x, f))
             .map(f => t("set_" + { director_training:"dt", head_of_training:"hot", sales_lead:"sl" }[f])).join(", ") || t("none")]) }] };
   }
+  if (kind === "notes") {
+    const h = noteHost(notesCtx.scope, notesCtx.id);
+    return { title:t("notes_t") + " — " + h.name,
+      meta:[[notesCtx.scope === "trainee" ? t("ctx_trainee") : t("ctx_company"), h.name],
+            [t("exp_count"), (h.notes || []).length]],
+      sections:[{ cols:[t("exp_when"), t("exp_who"), t("notes_t")],
+        rows:(h.notes || []).map(n => [n.at, user(n.by).name, n.text + (n.edited ? " (" + t("edited") + ")" : "")]) }] };
+  }
   if (kind === "companies") {
     return { title:t("data_t") + " — " + t("d_co"), meta:[[t("exp_count"), COMPANIES.length]],
-      sections:[{ cols:[t("c_co"), t("d_tr"), t("d_cases"), t("tab_chat")],
+      sections:[{ cols:[t("c_co"), t("d_tr"), t("d_cases"), t("tab_chat"), t("notes_t")],
         rows:COMPANIES.slice().sort(byName).map(x => [x.name,
           TRAINEES.filter(y => y.co === x.id).length,
           CASES.filter(y => y.companyId === x.id && canView(y)).length,
-          thread("company", x.id).length]) }] };
+          thread("company", x.id).length, (x.notes || []).length]) }] };
   }
   if (kind === "trainees") {
     return { title:t("data_t") + " — " + t("d_tr"), meta:[[t("exp_count"), TRAINEES.length]],
-      sections:[{ cols:[t("c_trainee"), t("f_dob"), t("c_co"), t("d_cases"), t("tab_chat")],
+      sections:[{ cols:[t("c_trainee"), t("f_dob"), t("c_co"), t("d_cases"), t("tab_chat"), t("notes_t")],
         rows:TRAINEES.slice().sort(byName).map(x => [x.name, fmtLong(x.dob), company(x.co).name,
           CASES.filter(y => y.traineeId === x.id && canView(y)).length,
-          thread("trainee", x.id).length]) }] };
+          thread("trainee", x.id).length, (x.notes || []).length]) }] };
   }
   if (kind === "audit") {
     return { title:t("tab_log") + " — " + c.no, meta:caseMeta(c),
@@ -1694,7 +1845,7 @@ function docDef(kind) {
 function caseMeta(c) {
   const tr = trainee(c.traineeId);
   return [[t("c_no"), c.no], [t("c_trainee"), tr.name + (tr.dob ? " · " + t("f_dob") + " " + fmtLong(tr.dob) : "")],
-    [t("c_co"), coName(c)], [t("c_type"), c.type], [t("f_course"), c.course],
+    [t("c_co"), coName(c)], [t("c_type"), c.type], [t("f_course"), courseLabel(c)],
     [t("f_enquiry"), fmtLong(c.enquiry_date)],
     [t("c_start"), fmtLong(c.course_start) + " – " + fmtLong(c.course_end)],
     [t("c_status"), t("st_" + c.status) + " · " + stateName(caseState(c))],
@@ -1766,6 +1917,69 @@ function wireExports() {
     const [how, kind] = b.dataset.exp.split("|");
     how === "pdf" ? openPrint(kind) : exportTable(kind);
   });
+}
+
+/* ============================================================================
+   Notizen zu Personen und Firmen
+   Interne Vermerke — im Unterschied zum Kommunikationsstrang keine Unterhaltung,
+   sondern Merkposten zur Person oder zur Firma. Wie Nachrichten nicht löschbar;
+   Bearbeiten erzeugt einen Vermerk.
+   ========================================================================== */
+let notesCtx = null;
+const noteHost = (scope, id) => scope === "trainee" ? trainee(id) : company(id);
+const noteCount = (scope, id) => (noteHost(scope, id).notes || []).length;
+const openNotes = (scope, id) => { notesCtx = { scope, id }; renderNotes(); };
+const closeNotes = () => { notesCtx = null; renderNotes(); };
+
+function renderNotes() {
+  const el = document.getElementById("notes");
+  if (!notesCtx) { el.classList.remove("on"); el.innerHTML = ""; return; }
+  const h = noteHost(notesCtx.scope, notesCtx.id);
+  const list = h.notes || [];
+  el.innerHTML = `<div class="ovlcard">
+    <header>
+      <div style="flex:1;min-width:0">
+        <h3>${t("notes_t")}</h3>
+        <div class="co">${notesCtx.scope === "trainee" ? t("ctx_trainee") : t("ctx_company")}: ${esc(h.name)}${
+          notesCtx.scope === "trainee" && h.dob ? " · " + fmtDate(h.dob) : ""}</div>
+      </div>
+      <button class="btn-ghost" data-exp="pdf|notes">${t("exp_pdf")}</button>
+      <button class="btn-ghost" data-exp="xls|notes">${t("exp_xls")}</button>
+      <button class="x" id="nClose" aria-label="${t("exp_close")}">×</button>
+    </header>
+    <div class="body">
+      <div class="notice">${t("notes_h")}</div>
+      ${list.length ? list.map(n => `<div class="note">
+        <div class="row"><b>${esc(user(n.by).name)}</b><span class="co">${DEPTS[user(n.by).dept]}</span>
+          <span class="tm">${esc(n.at)}${n.edited ? ` · ${t("edited")}` : ""}</span></div>
+        <div class="txt">${esc(n.text)}</div>
+        ${n.by === me ? `<button class="edit" data-noteedit="${n.id}">${t("edit")}</button>` : ""}
+      </div>`).join("") : `<p class="muted">${t("notes_none")}</p>`}
+      <div class="composer">
+        <textarea id="nText" placeholder="${t("notes_ph")}"></textarea>
+        <footer><span class="keep">${t("notes_keep")}</span>
+          <button class="send" id="nAdd">${t("notes_add")}</button></footer>
+      </div>
+    </div></div>`;
+  el.classList.add("on");
+  document.getElementById("nClose").onclick = closeNotes;
+  el.onclick = e => { if (e.target === el) closeNotes(); };
+  document.getElementById("nAdd").onclick = () => {
+    const ta = document.getElementById("nText");
+    if (!ta.value.trim()) return;
+    (h.notes = h.notes || []).push({ id:nid("n"), text:ta.value.trim(), by:me, at:now(), edited:false, history:[] });
+    toast(t("t_note")); renderNotes(); renderMain(); renderDrawer();
+  };
+  document.querySelectorAll("[data-noteedit]").forEach(b => b.onclick = () => {
+    const n = h.notes.find(x => x.id === b.dataset.noteedit);
+    askText({ title:t("notes_edit"), text:t("notes_edit_p"), label:t("notes_t"),
+      value:n.text, min:1, err:t("m_edit_e"), okLabel:t("save") }, v => {
+        n.history.push({ body:n.text, by:me, at:now() });
+        n.text = v; n.edited = true;
+        toast(t("t_edited")); renderNotes();
+      });
+  });
+  wireExports();
 }
 
 /* ---------- Render: Chrome ---------- */
@@ -1907,7 +2121,7 @@ function filtered(base) {
   return base.filter(c => {
     if (F.q) {
       const q = F.q.toLowerCase();
-      if (!(trName(c) + coName(c) + c.no + c.type + c.course).toLowerCase().includes(q)) return false;
+      if (!(trName(c) + coName(c) + c.no + c.type + courseLabel(c)).toLowerCase().includes(q)) return false;
     }
     if (F.type && c.type !== F.type) return false;
     if (F.status && c.status !== F.status) return false;
@@ -1965,7 +2179,7 @@ function listHTML(rows, mode) {
     return `<article class="card" data-id="${c.id}">
       <div class="top"><span class="num">${c.no}</span><span class="type">${c.type}</span>${stateChip(caseState(c))}</div>
       <h4>${esc(trName(c))}</h4>
-      <div class="sub"><span>${esc(coName(c))}</span><span>·</span><span>${esc(c.course)}</span></div>
+      <div class="sub"><span>${esc(coName(c))}</span><span>·</span><span>${esc(courseLabel(c))}</span></div>
       <div class="sub"><span>${t("c_start")}: ${fmtStart(c)}</span></div>
       ${nt ? `<div class="next">${t("c_next")}: <b>${esc(nt[L])}</b> · ${DEPTS[nt.d]}</div>` : ""}
       <div class="foot">
@@ -2000,13 +2214,14 @@ function renderMain() {
           <span class="hdacts">${expBtns("companies")}
           <button class="btn-ghost" id="newCo">+ ${t("new_co")}</button></span></header>
         <div class="tblwrap"><table><thead><tr>
-          <th>${t("c_co")}</th><th>${t("d_tr")}</th><th>${t("d_cases")}</th><th>${t("tab_chat")}</th>
+          <th>${t("c_co")}</th><th>${t("d_tr")}</th><th>${t("d_cases")}</th><th>${t("tab_chat")}</th><th>${t("notes_t")}</th>
         </tr></thead><tbody>${COMPANIES.slice().sort(byName).map(co => `<tr>
           <td class="tn">${esc(co.name)}</td>
           <td class="co">${TRAINEES.filter(x => x.co === co.id).length}</td>
           <td class="co">${caseCountCo(co.id)}</td>
           <td class="co">${thread("company", co.id).length}${
             unread("company", co.id) ? ` <span class="pill p-late">${unread("company", co.id)}</span>` : ""}</td>
+          <td><button class="notecount" data-notes="company|${co.id}">${t("notes_t")} (${noteCount("company", co.id)})</button></td>
         </tr>`).join("")}</tbody></table></div>
       </section>
       <section class="panel">
@@ -2014,7 +2229,7 @@ function renderMain() {
           <span class="hdacts">${expBtns("trainees")}
           <button class="btn-ghost" id="newTr">+ ${t("new_tr")}</button></span></header>
         <div class="tblwrap"><table><thead><tr>
-          <th>${t("c_trainee")}</th><th>${t("f_dob")}</th><th>${t("c_co")}</th><th>${t("d_cases")}</th><th>${t("tab_chat")}</th>
+          <th>${t("c_trainee")}</th><th>${t("f_dob")}</th><th>${t("c_co")}</th><th>${t("d_cases")}</th><th>${t("tab_chat")}</th><th>${t("notes_t")}</th>
         </tr></thead><tbody>${TRAINEES.slice().sort(byName).map(tr => `<tr>
           <td class="tn">${esc(tr.name)}</td>
           <td class="co">${tr.dob ? fmtDate(tr.dob) : t("none")}</td>
@@ -2022,6 +2237,7 @@ function renderMain() {
           <td class="co">${caseCountTr(tr.id)}</td>
           <td class="co">${thread("trainee", tr.id).length}${
             unread("trainee", tr.id) ? ` <span class="pill p-late">${unread("trainee", tr.id)}</span>` : ""}</td>
+          <td><button class="notecount" data-notes="trainee|${tr.id}">${t("notes_t")} (${noteCount("trainee", tr.id)})</button></td>
         </tr>`).join("")}</tbody></table></div>
       </section>`;
     wireMain(); return;
@@ -2169,7 +2385,7 @@ function saveCheckpoint(x, v) {
     if (v.apply) CASES.forEach(c => {
       if (c.status === "completed" || c.status === "discarded") return;
       if (nx.types.length && !nx.types.includes(c.type)) return;
-      if (nx.courses.length && !nx.courses.includes(c.course)) return;
+      if (nx.courses.length && !(c.courses || []).some(y => nx.courses.includes(y))) return;
       c.catIds.push(nx.id);
       c.cp[nx.id] = { state:"open", by:null, vby:null, due:null, note:null };
       lg(c, me, (L === "de" ? "Prüfpunkt aus Katalog ergänzt: " : "Checkpoint added from catalogue: ") + nx[L], null, now());
@@ -2294,6 +2510,21 @@ function adminHTML() {
         <div class="fld"><label>${t("set_sl")}</label><select id="fnSL" ${dis}>${userOptions(SETTINGS.fn.sales_lead)}</select></div>
         <div class="fld" style="grid-column:1/-1"><div class="hint">${t("set_fn_h")}</div></div>
       </div>
+      <h2 style="font-size:16px;font-weight:600;margin:20px 0 10px">${t("ct_t")}</h2>
+      <div class="notice">${t("ct_h")}</div>
+      <div class="tblwrap"><table><thead><tr>
+        <th>${t("f_course")}</th><th>${t("d_cases")}</th><th>${t("a_cat")}</th>${edit ? `<th>${t("col_edit")}</th>` : ""}
+      </tr></thead><tbody>${COURSE_TYPES.slice().sort().map(x => {
+        const inCases = CASES.filter(c => (c.courses || []).includes(x)).length;
+        const inCat = CAT.filter(y => y.courses.includes(x)).length;
+        return `<tr><td class="tn">${esc(x)}</td><td class="co">${inCases}</td><td class="co">${inCat}</td>
+          ${edit ? `<td class="acts">${inCases + inCat === 0
+            ? `<button class="danger" data-ctdel="${esc(x)}">${t("cp_del")}</button>`
+            : `<span class="co">${t("ct_inuse")}</span>`}</td>` : ""}</tr>`; }).join("")}</tbody></table></div>
+      ${edit ? `<div class="setgrid" style="margin-top:12px"><div class="fld">
+        <label>${t("ct_add")}</label><input type="text" id="ctNew" placeholder="z. B. RNP AR">
+        </div><div class="fld" style="align-self:end">
+        <button class="btn-primary" id="ctAdd">+ ${t("ct_add")}</button></div></div>` : ""}
       <h2 style="font-size:16px;font-weight:600;margin:20px 0 10px">${t("set_esc")}</h2>
       <div class="setgrid">
         ${Object.keys(DEPTS).map(k => `<div class="fld"><label>${DEPTS[k]}</label>
@@ -2465,10 +2696,15 @@ function renderDrawer() {
       <div>
         <h2>${esc(trName(c))}</h2>
         <div class="meta"><span class="num">${c.no}</span><span class="type">${c.type}</span>
-          <span>${esc(coName(c))}</span><span>${esc(c.course)}</span><span>${fmtStart(c)}</span>${stateChip(caseState(c))}</div>
+          <span>${esc(coName(c))}</span><span>${esc(courseLabel(c))}</span><span>${fmtStart(c)}</span>${stateChip(caseState(c))}</div>
         <div class="meta">${ow}</div>
+        <div class="meta">
+          <button class="notecount" data-notes="trainee|${c.traineeId}">${t("notes_tr")} (${noteCount("trainee", c.traineeId)})</button>
+          <button class="notecount" data-notes="company|${c.companyId}">${t("notes_co")} (${noteCount("company", c.companyId)})</button>
+        </div>
       </div>
       <span class="hdacts" style="margin-left:auto">
+        <button class="btn-ghost" id="dedit">${t("edit")}</button>
         <button class="btn-ghost" data-exp="pdf|case">${t("exp_record")}</button>
         <button class="x" id="dx" aria-label="${t("cancel")}">×</button>
       </span>
@@ -2539,6 +2775,17 @@ function wireMain() {
   [["fnDT","director_training"],["fnHOT","head_of_training"],["fnSL","sales_lead"]].forEach(([id, k]) => {
     if (q(id)) q(id).onchange = e => { SETTINGS.fn[k] = e.target.value || null; toast(t("t_set")); render(); };
   });
+  if (q("ctAdd")) q("ctAdd").onclick = () => {
+    const v = (q("ctNew").value || "").trim();
+    if (v.length < 2) return toast(t("e_name"), true);
+    if (COURSE_TYPES.some(x => x.toLowerCase() === v.toLowerCase())) return toast(t("e_ctdup"), true);
+    COURSE_TYPES.push(v); toast(t("t_ctnew")); render();
+  };
+  document.querySelectorAll("[data-ctdel]").forEach(b => b.onclick = () => {
+    const i = COURSE_TYPES.indexOf(b.dataset.ctdel);
+    if (i > -1) COURSE_TYPES.splice(i, 1);
+    toast(t("t_ctdel")); render();
+  });
   document.querySelectorAll("[data-esc]").forEach(el => el.onchange = () => {
     SETTINGS.escalation[el.dataset.esc] = el.value || null; toast(t("t_set")); render();
   });
@@ -2569,6 +2816,10 @@ function wireMain() {
     doDecideException(c, c.exc.find(e => e.id === eid), false);
   });
   wireExports();
+  document.querySelectorAll("[data-notes]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const [sc, id] = b.dataset.notes.split("|"); openNotes(sc, id);
+  });
   document.querySelectorAll("[data-id]").forEach(el => el.onclick = () => {
     drawerCase = findCase(el.dataset.id); dtab = "gates"; chatScope = "case"; renderDrawer();
   });
@@ -2576,7 +2827,12 @@ function wireMain() {
 function wireDrawer() {
   const c = drawerCase;
   wireExports();
+  document.querySelectorAll("[data-notes]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const [sc, id] = b.dataset.notes.split("|"); openNotes(sc, id);
+  });
   document.getElementById("dx").onclick = closeDrawer;
+  document.getElementById("dedit").onclick = () => dialogEditCase(c);
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { dtab = b.dataset.tab; renderDrawer(); });
   document.querySelectorAll("[data-complete]").forEach(b => b.onclick = () => {
     const x = cat(b.dataset.complete);
@@ -2630,6 +2886,8 @@ document.getElementById("scrim").onclick = closeDrawer;
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
   if (document.getElementById("modal").classList.contains("on")) closeDialog();
+  else if (document.getElementById("print").classList.contains("on")) document.getElementById("print").classList.remove("on");
+  else if (notesCtx) closeNotes();
   else closeDrawer();
 });
 function setLang(l) {
@@ -2648,8 +2906,8 @@ function render() {
   document.getElementById("login").classList.toggle("on", !inApp);
   document.getElementById("app").style.display = inApp ? "" : "none";
   renderSandbar();
-  if (!inApp) { drawerCase = null; renderDrawer(); renderLogin(); return; }
-  renderTop(); renderNav(); renderMain(); renderDrawer();
+  if (!inApp) { drawerCase = null; notesCtx = null; renderNotes(); renderDrawer(); renderLogin(); return; }
+  renderTop(); renderNav(); renderMain(); renderDrawer(); renderNotes();
 }
 render();
 </script>
