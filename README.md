@@ -25,11 +25,17 @@ der Versionsstand in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 Backend. Er dient dazu, Oberfläche und Bedienung zu entscheiden, bevor sie gegen
 Supabase gebaut werden. Einfach im Browser öffnen.
 
-Enthalten sind Vorgangsakte mit den drei Gates, Gate-Sperre, Vier-Augen-Prinzip,
-Gate-3-Sperre des Abschlussnachweises, Ausnahmen mit Freigabe, Kommunikation auf
-drei Kontextebenen, Audit-Trail, Pool mit Liegedauer, Vorgangsbahn und
-Prüfpunkt-Katalog. Über die Auswahl **Angemeldet als** lassen sich die Rechte
-aller Rollen durchspielen.
+Enthalten sind: Vorgang, Trainee und Firma anlegen; Vorgangsakte mit den drei
+Gates, Gate-Sperre, Vier-Augen-Prinzip, Gate-3-Sperre des Abschlussnachweises,
+Ausnahmen mit Freigabe; Kommunikation auf den Ebenen Vorgang, Trainee und Firma;
+Audit-Trail, Pool mit Liegedauer, Vorgangsbahn, Stammdaten und Prüfpunkt-Katalog.
+Über die Auswahl **Angemeldet als** lassen sich die Rechte aller Rollen
+durchspielen.
+
+Die Ansicht ist für Desktop ausgelegt und nach unten reduziert: auf dem Tablet
+wandert die Navigation in eine Leiste unter die Kopfzeile, auf dem Handy tritt an
+die Stelle der Tabelle eine Kartenliste. Gates, Kommunikation und die Übernahme
+aus dem Pool bleiben dort vollständig bedienbar.
 
 Die Sperrlogik im Prototyp spiegelt `supabase/migrations/20260902000300_logic.sql`.
 Weichen beide voneinander ab, gilt die Datenbank. `AAA-Flow-Sandbox-v0.html` ist

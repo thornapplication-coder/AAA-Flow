@@ -3,6 +3,20 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 1.2.0 — 2026-09-03
+
+- Sandbox: Vorgang, Trainee und Firma lassen sich anlegen. Beim Anlegen eines
+  Vorgangs können Firma und Trainee direkt im Dialog neu erfasst werden; die
+  ATO-Zuständigkeit wird automatisch über das Muster gesetzt (Fallback Head of
+  Training), Sales kann nur Vorgänge zugeordneter Muster anlegen.
+- Sandbox: neue Ansicht Stammdaten mit Firmen und Trainees.
+- Sandbox: Kommunikation korrigiert — Trainee- und Firmen-Threads hängen jetzt
+  an Person und Firma statt am einzelnen Vorgang und sind damit über alle
+  Vorgänge derselben Person bzw. Firma sichtbar, mit Ungelesen-Zähler je Ebene.
+- Sandbox: Tablet- und Handy-Ansichten. Navigation als feste Leiste unter der
+  Kopfzeile, Kartenliste statt Tabelle auf dem Handy, Vorgangsakte über die
+  volle Breite, einklappbare Filterleiste.
+
 ## 1.1.0 — 2026-09-03
 
 - Sandbox `sandbox/AAA-Flow-Sandbox.html`: klickbarer Prototyp der Vorgangsakte

@@ -3,31 +3,24 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 /* ============================================================================
-   AAA Flow — Sandbox v1
-   Klickbarer Prototyp der Vorgangsakte. Keine Persistenz, Daten im Speicher.
-   Farben, Typografie und Chrome übernommen aus AAA-Flow-Sandbox-v0.html.
-   Prüfpunkt-Katalog, Rechte und Sperrlogik gespiegelt aus supabase/migrations.
+   AAA Flow — Sandbox v2
+   Klickbarer Prototyp. Keine Persistenz, Daten im Speicher; ein Neuladen
+   stellt den Ausgangszustand wieder her.
+   Farben, Typografie und Chrome aus AAA-Flow-Sandbox-v0.html.
+   Sperrlogik, Rechte und Prüfpunkt-Katalog gespiegelt aus supabase/migrations.
+   Desktop ist Leitplattform, Tablet und Handy sind reduziert (Spec Abschnitt 3).
    ========================================================================== */
 :root{
-  --navy-900:#0C1B2E;
-  --navy-800:#12283F;
-  --navy-700:#1B3A5A;
-  --navy-600:#26507A;
-  --navy-500:#3A6796;
-  --navy-400:#5B84B1;
-  --line:#DDE4EC;
-  --line-strong:#C3CFDD;
-  --paper:#F1F4F8;
-  --surface:#FFFFFF;
-  --surface-2:#FAFCFE;
-  --ink:#132132;
-  --ink-soft:#5A6B7F;
-  --ink-faint:#8A9AAC;
+  --navy-900:#0C1B2E; --navy-800:#12283F; --navy-700:#1B3A5A;
+  --navy-600:#26507A; --navy-500:#3A6796; --navy-400:#5B84B1;
+  --line:#DDE4EC; --line-strong:#C3CFDD;
+  --paper:#F1F4F8; --surface:#FFFFFF; --surface-2:#FAFCFE;
+  --ink:#132132; --ink-soft:#5A6B7F; --ink-faint:#8A9AAC;
   --open:#8FA3BC;
-  --work:#B87514;      --work-bg:#FDF3E2;
-  --done:#26714F;      --done-bg:#E6F2EC;
-  --late:#A83A2A;      --late-bg:#FBECE9;
-  --exc:#5C4B8A;       --exc-bg:#EFEBF7;
+  --work:#B87514; --work-bg:#FDF3E2;
+  --done:#26714F; --done-bg:#E6F2EC;
+  --late:#A83A2A; --late-bg:#FBECE9;
+  --exc:#5C4B8A;  --exc-bg:#EFEBF7;
   --focus:#4A90D9;
   --r:6px;
   --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
@@ -35,10 +28,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{
-  font-family:var(--sans);background:var(--paper);color:var(--ink);
-  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
-}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:none}
 button:disabled{cursor:not-allowed}
@@ -46,19 +36,19 @@ button:disabled{cursor:not-allowed}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* ---------- Chrome ---------- */
-.app{display:grid;grid-template-columns:212px 1fr;grid-template-rows:56px 1fr;height:100vh}
-.topbar{grid-column:1/-1;background:var(--navy-900);display:flex;align-items:center;gap:18px;padding:0 20px;color:#fff}
-.brand{display:flex;align-items:baseline;gap:9px;font-weight:600;letter-spacing:-.01em;font-size:16px}
+.app{display:grid;grid-template-columns:212px 1fr;grid-template-rows:56px auto 1fr;height:100vh}
+.topbar{grid-column:1/-1;background:var(--navy-900);display:flex;align-items:center;gap:14px;padding:0 16px;color:#fff}
+.brand{display:flex;align-items:baseline;gap:9px;font-weight:600;letter-spacing:-.01em;font-size:16px;white-space:nowrap}
 .brand span{color:var(--navy-400);font-weight:400;font-size:12px;letter-spacing:.04em}
 .topbar .spacer{flex:1}
-.ctl{display:flex;align-items:center;gap:8px}
+.ctl{display:flex;align-items:center;gap:8px;min-width:0}
 .ctl label{color:#9DB4CC;font-size:12px;white-space:nowrap}
-.ctl select{background:var(--navy-800);color:#fff;border:1px solid #24405F;border-radius:var(--r);padding:5px 8px;font-size:13px;max-width:260px}
-.lang{display:flex;border:1px solid #24405F;border-radius:var(--r);overflow:hidden}
+.ctl select{background:var(--navy-800);color:#fff;border:1px solid #24405F;border-radius:var(--r);padding:5px 8px;font-size:13px;max-width:min(280px,42vw)}
+.lang{display:flex;border:1px solid #24405F;border-radius:var(--r);overflow:hidden;flex:0 0 auto}
 .lang button{padding:5px 11px;font-size:12px;font-weight:600;color:#9DB4CC}
 .lang button.on{background:var(--navy-600);color:#fff}
 
-.side{background:var(--navy-800);padding:16px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.side{grid-column:1;grid-row:2/4;background:var(--navy-800);padding:16px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
 .side button{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--r);color:#A9C0D6;font-size:13.5px;text-align:left;width:100%}
 .side button:hover{background:#1A3552}
 .side button.on{background:var(--navy-600);color:#fff;font-weight:600}
@@ -68,14 +58,25 @@ button:disabled{cursor:not-allowed}
 .side .who{margin-top:auto;padding:12px;border-top:1px solid #1E3A57;color:#7E9AB6;font-size:11.5px;line-height:1.45}
 .side .who b{display:block;color:#C6D8E8;font-size:12.5px;font-weight:600}
 
-.main{overflow-y:auto;padding:22px 24px 60px}
+.workspace{grid-column:2;grid-row:3;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.mobnav{grid-column:2;grid-row:2;display:none;gap:6px;padding:9px 12px;background:var(--navy-800);overflow-x:auto}
+.mobnav button{color:#A9C0D6;font-size:13px;padding:6px 12px;border-radius:14px;white-space:nowrap;border:1px solid #24405F}
+.mobnav button.on{background:var(--navy-600);color:#fff;font-weight:600;border-color:var(--navy-600)}
+.mobnav .count{font-size:11px;margin-left:5px;font-variant-numeric:tabular-nums}
+.mobnav .count.alert{color:#F0A192;font-weight:700}
+
+.main{padding:22px 24px 60px;flex:1;min-width:0}
 .hd{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap}
 .hd h1{font-size:21px;font-weight:600;letter-spacing:-.015em;text-wrap:balance}
 .hd p{color:var(--ink-soft);font-size:13px;margin-top:3px;max-width:66ch}
+.btn-primary{background:var(--navy-600);color:#fff;padding:8px 15px;border-radius:var(--r);font-size:13.5px;font-weight:600;white-space:nowrap}
+.btn-primary:hover{background:var(--navy-700)}
+.btn-ghost{border:1px solid var(--line-strong);background:#fff;color:var(--navy-600);padding:7px 13px;border-radius:var(--r);font-size:13px;font-weight:600}
+.btn-ghost:hover{border-color:var(--navy-500);background:var(--surface-2)}
 
 /* ---------- Vorgangsbahn ---------- */
 .track{background:var(--navy-900);border-radius:8px;padding:16px 18px 14px;margin-bottom:20px;display:flex;align-items:stretch;overflow-x:auto}
-.stage{flex:1;min-width:106px;padding:0 4px}
+.stage{flex:1;min-width:104px;padding:0 4px}
 .stage button{width:100%;text-align:left;padding:8px 10px;border-radius:var(--r);display:block}
 .stage button:hover{background:rgba(255,255,255,.06)}
 .stage button.on{background:rgba(255,255,255,.11)}
@@ -102,11 +103,12 @@ button:disabled{cursor:not-allowed}
 
 /* ---------- Filter ---------- */
 .filters{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.filters input[type=search]{border:1px solid var(--line-strong);border-radius:var(--r);padding:7px 10px;min-width:230px}
+.filters input[type=search]{border:1px solid var(--line-strong);border-radius:var(--r);padding:7px 10px;min-width:230px;flex:1 1 230px;max-width:340px}
 .filters select{border:1px solid var(--line-strong);border-radius:var(--r);padding:7px 9px;background:#fff}
-.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);cursor:pointer}
-.filters .clear{color:var(--navy-600);font-size:13px;text-decoration:underline;padding:6px 2px}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);cursor:pointer;white-space:nowrap}
+.filters .clear,.filters .more{color:var(--navy-600);font-size:13px;text-decoration:underline;padding:6px 2px}
 .fcount{color:var(--ink-faint);font-size:12.5px;margin-left:auto;font-variant-numeric:tabular-nums}
+.filters .more{display:none}
 
 /* ---------- Tabelle ---------- */
 .tblwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
@@ -114,8 +116,8 @@ table{width:100%;border-collapse:collapse}
 th{text-align:left;font-size:11.5px;font-weight:600;color:var(--ink-soft);padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap}
 td{padding:11px 12px;border-bottom:1px solid #EDF1F6;vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tbody tr{cursor:pointer}
-tbody tr:hover{background:#F7FAFD}
+tbody tr[data-id]{cursor:pointer}
+tbody tr[data-id]:hover{background:#F7FAFD}
 .num{font-family:var(--mono);font-size:12px;color:var(--ink-soft);white-space:nowrap}
 .tn{font-weight:600}
 .co{color:var(--ink-soft);font-size:12.5px}
@@ -126,14 +128,24 @@ tbody tr:hover{background:#F7FAFD}
 .p-late{background:var(--late-bg);color:var(--late)}
 .p-pool{background:#E8F0FA;color:var(--navy-600)}
 .p-exc{background:var(--exc-bg);color:var(--exc)}
-.type{font-family:var(--mono);font-size:12px;background:#EEF2F7;padding:2px 6px;border-radius:3px}
+.type{font-family:var(--mono);font-size:12px;background:#EEF2F7;padding:2px 6px;border-radius:3px;white-space:nowrap}
 .prog{display:flex;align-items:center;gap:7px}
 .prog .bar{width:52px;height:5px;background:#E6ECF3;border-radius:3px;overflow:hidden}
 .prog .bar i{display:block;height:100%;background:var(--navy-600)}
 .prog span{font-size:11.5px;color:var(--ink-soft);font-family:var(--mono);font-variant-numeric:tabular-nums}
 .empty{padding:44px 20px;text-align:center;color:var(--ink-soft)}
 .empty b{display:block;color:var(--ink);margin-bottom:5px;font-size:15px}
-.wait{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--work)}
+
+/* ---------- Kartenliste (Handy) ---------- */
+.cards{display:none;gap:10px;flex-direction:column}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 14px;cursor:pointer}
+.card:active{background:#F7FAFD}
+.card .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h4{font-size:15px;font-weight:600;margin-top:5px}
+.card .sub{font-size:12.5px;color:var(--ink-soft);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.card .next{font-size:12.5px;color:var(--ink-soft);margin-top:7px;padding-top:7px;border-top:1px solid #F0F4F8}
+.card .next b{color:var(--ink);font-weight:600}
+.card .foot{display:flex;align-items:center;gap:10px;margin-top:9px;flex-wrap:wrap}
 
 /* ---------- Drawer ---------- */
 .scrim{position:fixed;inset:0;background:rgba(12,27,46,.42);opacity:0;pointer-events:none;transition:opacity .16s}
@@ -143,22 +155,22 @@ tbody tr:hover{background:#F7FAFD}
 .dhd{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:flex-start}
 .dhd h2{font-size:17px;font-weight:600}
 .dhd .meta{color:var(--ink-soft);font-size:12.5px;margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.dhd .x{font-size:22px;color:var(--ink-faint);line-height:1;padding:2px 6px;margin-left:auto}
-.tabs{display:flex;gap:2px;padding:0 14px;border-bottom:1px solid var(--line);background:var(--surface-2)}
-.tabs button{padding:11px 13px;font-size:13.5px;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px}
+.dhd .x{font-size:22px;color:var(--ink-faint);line-height:1;padding:2px 8px;margin-left:auto}
+.tabs{display:flex;gap:2px;padding:0 14px;border-bottom:1px solid var(--line);background:var(--surface-2);overflow-x:auto}
+.tabs button{padding:11px 13px;font-size:13.5px;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tabs button.on{color:var(--navy-700);border-bottom-color:var(--navy-600);font-weight:600}
 .dbody{flex:1;overflow-y:auto;padding:18px 20px 40px}
 
 /* ---------- Gate-Panel ---------- */
 .gate{border:1px solid var(--line);border-radius:8px;margin-bottom:14px;overflow:hidden}
 .gate>header{padding:11px 14px;background:var(--surface-2);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.gate>header h3{font-size:14px;font-weight:600;flex:1;min-width:200px}
+.gate>header h3{font-size:14px;font-weight:600;flex:1;min-width:180px}
 .gate>header .hint{font-size:11.5px;color:var(--ink-faint)}
+.gate>header .fold{font-size:11.5px;color:var(--navy-600);text-decoration:underline;white-space:nowrap}
+.gate.folded>header{border-bottom:none}
 .gate.locked .cp{opacity:.55}
 .gate.released{border-color:#BFDBCB}
 .gate.released>header{background:var(--done-bg);border-bottom-color:#BFDBCB}
-.gate>header .fold{font-size:11.5px;color:var(--navy-600);text-decoration:underline;white-space:nowrap}
-.gate.folded>header{border-bottom:none}
 
 .cp{display:flex;align-items:flex-start;gap:11px;padding:10px 14px;border-bottom:1px solid #F0F4F8}
 .cp:last-of-type{border-bottom:none}
@@ -172,15 +184,15 @@ tbody tr:hover{background:#F7FAFD}
 .cp.done .txt>.lbl{color:var(--ink-soft)}
 .cp.excepted .txt>.lbl{text-decoration:line-through;text-decoration-color:var(--exc);color:var(--ink-soft)}
 .cp .lbl{display:block}
-.cp .opt{color:var(--ink-faint);font-weight:400;font-size:11.5px}
+.cp .opt{color:var(--ink-faint);font-size:11.5px}
 .cp .sub{font-size:11.5px;color:var(--ink-faint);margin-top:2px;display:flex;gap:4px 8px;flex-wrap:wrap;align-items:center}
 .cp .sub>span:not(:last-child)::after{content:"·";margin-left:8px;color:var(--line-strong)}
 .cp .sub .due.late{color:var(--late);font-weight:600}
 .cp .four{font-family:var(--mono);font-size:10.5px;background:#EEF2F7;color:var(--navy-600);padding:0 4px;border-radius:3px;font-weight:600}
-.cp .why{font-size:11.5px;margin-top:4px;color:var(--late);display:flex;gap:5px;align-items:flex-start}
+.cp .why{font-size:11.5px;margin-top:4px;color:var(--late);display:block}
 .cp .why.neutral{color:var(--ink-faint)}
 .cp .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.cp .acts button{font-size:11.5px;border:1px solid var(--line-strong);border-radius:4px;padding:2px 8px;color:var(--navy-600);background:#fff}
+.cp .acts button{font-size:11.5px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 9px;color:var(--navy-600);background:#fff}
 .cp .acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 .cp .acts button.warn{color:var(--work);border-color:#E8CDA0;background:var(--work-bg)}
 .cp .state{flex:0 0 auto;margin-top:1px}
@@ -214,32 +226,39 @@ tbody tr:hover{background:#F7FAFD}
 .msg .body{font-size:13.5px;margin-top:3px;overflow-wrap:anywhere}
 .msg .body .tag{background:#EEF2F7;border-radius:3px;padding:1px 5px;font-size:12px;color:var(--navy-600);font-weight:600}
 .msg .ref{display:inline-flex;align-items:center;gap:5px;margin-top:5px;font-size:11.5px;color:var(--navy-600);background:#EEF2F7;border-radius:4px;padding:2px 7px}
-.msg .edited{font-size:11px;color:var(--ink-faint);font-style:italic}
+.msg .case{font-size:11px;color:var(--ink-faint);font-family:var(--mono)}
+.msg .edited{font-style:italic}
 .msg .edit{font-size:11.5px;color:var(--navy-600);text-decoration:underline;margin-top:4px}
 .composer{border:1px solid var(--line-strong);border-radius:8px;margin-top:14px;overflow:hidden}
 .composer textarea{width:100%;border:none;padding:11px 12px;resize:vertical;min-height:66px;font-size:13.5px;display:block}
 .composer footer{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface-2);border-top:1px solid var(--line);flex-wrap:wrap}
 .composer .send{background:var(--navy-600);color:#fff;padding:6px 15px;border-radius:var(--r);font-size:13px;font-weight:600;margin-left:auto}
-.composer .keep{font-size:11.5px;color:var(--ink-faint);max-width:46ch}
-.composer select{border:1px solid var(--line-strong);border-radius:4px;padding:4px 6px;font-size:12px;background:#fff}
+.composer .keep{font-size:11.5px;color:var(--ink-faint);max-width:44ch}
+.composer select{border:1px solid var(--line-strong);border-radius:4px;padding:4px 6px;font-size:12px;background:#fff;max-width:100%}
 
 /* ---------- Audit ---------- */
 .log{font-size:12.5px}
 .log .e{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #F0F4F8}
-.log .t{font-family:var(--mono);color:var(--ink-faint);flex:0 0 96px;font-size:11.5px}
+.log .t{font-family:var(--mono);color:var(--ink-faint);flex:0 0 92px;font-size:11.5px}
 .log b{font-weight:600}
 .log .rsn{display:block;color:var(--ink-soft);font-style:italic;margin-top:2px}
 
-/* ---------- Modal ---------- */
-.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(12,27,46,.5);z-index:20;padding:20px}
+/* ---------- Dialog ---------- */
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(12,27,46,.5);z-index:20;padding:16px}
 .modal.on{display:flex}
-.modal .card{background:var(--surface);border-radius:9px;width:min(480px,100%);padding:20px;box-shadow:0 20px 60px rgba(12,27,46,.3)}
+.modal .card{background:var(--surface);border-radius:9px;width:min(520px,100%);max-height:92vh;overflow-y:auto;padding:20px;box-shadow:0 20px 60px rgba(12,27,46,.3);cursor:default}
 .modal h3{font-size:16px;font-weight:600;margin-bottom:6px}
-.modal p{font-size:12.5px;color:var(--ink-soft);margin-bottom:12px}
-.modal textarea{width:100%;border:1px solid var(--line-strong);border-radius:var(--r);padding:9px 11px;min-height:88px;font-size:13.5px;resize:vertical}
-.modal .err{color:var(--late);font-size:12px;margin-top:6px;min-height:16px}
-.modal .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
-.modal .btns button{padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:600;border:1px solid var(--line-strong)}
+.modal .lead{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld{grid-column:1/-1}
+.fld.half{grid-column:auto}
+.fld label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:4px}
+.fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line-strong);border-radius:var(--r);padding:8px 10px;font-size:13.5px;background:#fff}
+.fld textarea{min-height:84px;resize:vertical}
+.fld .hint{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
+.modal .err{color:var(--late);font-size:12px;margin-top:8px;min-height:16px}
+.modal .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.modal .btns button{padding:8px 15px;border-radius:var(--r);font-size:13px;font-weight:600;border:1px solid var(--line-strong)}
 .modal .btns .go{background:var(--navy-600);color:#fff;border-color:var(--navy-600)}
 .modal .btns .go:hover{background:var(--navy-700)}
 
@@ -248,24 +267,47 @@ tbody tr:hover{background:#F7FAFD}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .toast.bad{background:#7C2D20}
 
-/* ---------- Ausnahmen-Liste ---------- */
+/* ---------- Ausnahmen, Stammdaten ---------- */
 .exlist{display:grid;gap:10px}
 .excard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 15px;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
-.excard .m{flex:1;min-width:240px}
+.excard .m{flex:1;min-width:220px}
 .excard .rsn{font-size:13px;margin-top:5px}
 .excard .sub{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
 .excard .acts{display:flex;gap:7px}
 .excard .acts button{padding:6px 12px;border-radius:var(--r);font-size:12.5px;font-weight:600;border:1px solid var(--line-strong)}
 .excard .acts .ok{background:var(--navy-600);color:#fff;border-color:var(--navy-600)}
+.panel{margin-bottom:20px}
+.panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.panel>header h2{font-size:16px;font-weight:600}
 
-.adm{display:grid;gap:12px}
-.admtbl th:first-child,.admtbl td:first-child{width:34%}
-
-@media(max-width:1000px){
+/* ---------- Tablet ---------- */
+@media(max-width:1100px){
   .app{grid-template-columns:1fr}
   .side{display:none}
-  .main{padding:16px 14px 50px}
+  .mobnav{display:flex;grid-column:1}
+  .workspace{grid-column:1}
+  .main{padding:16px 16px 60px}
   .ctl label{display:none}
+}
+/* ---------- Handy: Kartenliste statt Tabelle ---------- */
+@media(max-width:760px){
+  .topbar{gap:10px;padding:0 12px}
+  .brand span{display:none}
+  .main{padding:14px 12px 60px}
+  .tblwrap.aslist{display:none}
+  .cards{display:flex}
+  .drawer{width:100vw}
+  .dhd,.dbody{padding-left:14px;padding-right:14px}
+  .filters{padding:10px 12px}
+  .filters input[type=search]{max-width:none;min-width:0}
+  .filters .more{display:block}
+  .filters.compact select,.filters.compact .chk,.filters.compact .clear{display:none}
+  .fcount{margin-left:0}
+  .fld.half{grid-column:1/-1}
+  .kpis{grid-template-columns:1fr 1fr}
+  .log .t{flex:0 0 74px}
+  .cp .sub{gap:2px 12px}
+  .cp .sub>span:not(:last-child)::after{content:none}
 }
 </style>
 
@@ -283,7 +325,10 @@ tbody tr:hover{background:#F7FAFD}
     </div>
   </div>
   <nav class="side" id="side"></nav>
-  <main class="main" id="main"></main>
+  <nav class="mobnav" id="mobnav"></nav>
+  <div class="workspace">
+    <main class="main" id="main"></main>
+  </div>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -292,8 +337,8 @@ tbody tr:hover{background:#F7FAFD}
 <div class="modal" id="modal">
   <div class="card">
     <h3 id="mTitle"></h3>
-    <p id="mText"></p>
-    <textarea id="mInput"></textarea>
+    <p class="lead" id="mText"></p>
+    <div class="fields" id="mBody"></div>
     <div class="err" id="mErr"></div>
     <div class="btns">
       <button id="mCancel"></button>
@@ -306,7 +351,7 @@ tbody tr:hover{background:#F7FAFD}
 
 <script>
 /* ============================================================================
-   AAA Flow — Sandbox v1
+   AAA Flow — Sandbox v2
    Die Sperrlogik unten spiegelt supabase/migrations/20260902000300_logic.sql.
    Weicht der Prototyp von der Datenbank ab, gilt die Datenbank.
    ========================================================================== */
@@ -316,12 +361,14 @@ const I = {
 de:{
   sub:"Sandbox — Demodaten", loggedIn:"Angemeldet als",
   nav_dash:"Dashboard", nav_pool:"Pool", nav_mine:"Meine Vorgänge", nav_all:"Alle Vorgänge",
-  nav_exc:"Ausnahmen", nav_admin:"Admin", grp_work:"Arbeit", grp_org:"Organisation",
+  nav_exc:"Ausnahmen", nav_data:"Stammdaten", nav_admin:"Prüfpunkte",
+  grp_work:"Arbeit", grp_org:"Organisation",
   dash_t:"Dashboard", dash_s:"Bestand, Engpässe und Fristen über alle Abteilungen.",
   pool_t:"Pool", pool_s:"Nicht zugewiesene Vorgänge Ihrer Abteilung. Übernehmen per Klick.",
   mine_t:"Meine Vorgänge", mine_s:"Vorgänge, für die Sie zuständig sind.",
   all_t:"Alle Vorgänge", all_s:"Vollständige Liste im Rahmen Ihrer Sichtbarkeit.",
   exc_t:"Ausnahmen", exc_s:"Beantragte und entschiedene Fristabweichungen.",
+  data_t:"Stammdaten", data_s:"Firmen und Trainees. Beide lassen sich auch beim Anlegen eines Vorgangs neu erfassen.",
   admin_t:"Prüfpunkt-Katalog", admin_s:"Pflicht, Frist, Vier-Augen-Anforderung und Nachweis je Prüfpunkt.",
   st_enquiry:"Anfrage", st_booked:"Gebucht", st_released:"Freigegeben", st_in_progress:"In Durchführung",
   st_completed:"Abgeschlossen", st_discarded:"Verworfen",
@@ -332,16 +379,17 @@ de:{
   k_exc:"Ausnahmen (30 Tage)", k_closed:"Abgeschlossen (30 Tage)", k_g3:"Gate-3-Warnungen",
   f_search:"Trainee, Firma, Vorgangsnummer …", f_type:"Alle Muster", f_status:"Alle Status",
   f_dept:"Alle Abteilungen", f_owner:"Alle Zuständigen", f_late:"Nur überfällig", f_pool:"Nur im Pool",
-  f_clear:"Filter zurücksetzen", results:"Treffer",
+  f_clear:"Filter zurücksetzen", f_more:"Weitere Filter", f_less:"Filter ausblenden", results:"Treffer",
   c_no:"Vorgang", c_trainee:"Trainee", c_co:"Firma", c_type:"Muster", c_start:"Kursbeginn",
   c_status:"Status", c_owner:"Zuständig", c_prog:"Fortschritt", c_next:"Nächste Aufgabe",
-  c_pool:"Im Pool seit", c_days:"AT",
+  c_pool:"Im Pool seit", c_days:"AT", stale:"Liegenbleiber", inpool:"seit {n} Arbeitstagen im Pool",
   tab_gates:"Gates", tab_chat:"Kommunikation", tab_log:"Audit-Trail",
   take:"Übernehmen", release:"Gate freigeben", released:"Freigegeben von",
   verify:"Kontrollieren", reset:"Zurücksetzen", exception:"Ausnahme beantragen",
   need:"offene Pflichtpunkte", need1:"offener Pflichtpunkt", allDone:"Alle Pflichtpunkte erledigt",
   accepts:"Abnahme durch", deadline:"Frist", evidence:"Nachweis", fourEyes:"4-Augen",
-  by:"erledigt von", verifiedBy:"kontrolliert von",
+  by:"erledigt von", verifiedBy:"kontrolliert von", optional:"optional",
+  fold_open:"Prüfpunkte einblenden", fold_close:"Prüfpunkte ausblenden",
   lock_prev:"Gate {n} ist noch nicht freigegeben",
   lock_dept:"Nur {d} darf diesen Prüfpunkt erledigen",
   lock_notmine:"Sie sind für {d} nicht zuständig — erst übernehmen",
@@ -354,45 +402,70 @@ de:{
   lock_reldate:"Gate 1 erfordert ein fixiertes Kursdatum",
   lock_relend:"Gate 3 erst nach Kursende",
   lock_relopen:"{n} Pflichtpunkt(e) offen",
-  ctx_case:"Dieser Vorgang", ctx_trainee:"Trainee", ctx_co:"Firma",
+  ctx_case:"Dieser Vorgang", ctx_trainee:"Trainee", ctx_company:"Firma",
   ph:"Nachricht an alle beteiligten Abteilungen …", send:"Senden", refTo:"Bezug:", noRef:"ohne Bezug",
   keep:"Nachrichten sind Teil der Vorgangsakte und können nicht gelöscht werden. Bearbeiten erzeugt einen Vermerk.",
-  edited:"bearbeitet", edit:"Bearbeiten",
+  scope_trainee:"Dieser Strang folgt dem Trainee über alle Kurse hinweg.",
+  scope_company:"Dieser Strang gehört zur Firma und ist bei allen Vorgängen dieser Firma sichtbar.",
+  edited:"bearbeitet", edit:"Bearbeiten", fromCase:"aus Vorgang",
   empty_t:"Nichts gefunden", empty_s:"Passen Sie die Filter an oder setzen Sie sie zurück.",
   pool_empty_t:"Pool ist leer", pool_empty_s:"Alle sichtbaren Vorgänge sind zugewiesen.",
   exc_empty_t:"Keine Ausnahmen", exc_empty_s:"Es liegt kein Antrag vor.",
   notice_pool:"Wird ein Vorgang nicht innerhalb von 2 Arbeitstagen übernommen, geht er automatisch an die Teamleitung zur Zuweisung.",
   notice_vis:"Sales sieht ausschließlich Vorgänge der zugeordneten Muster. Training Admin und ATO sehen alle Vorgänge, dürfen aber nur eigene Prüfpunkte abhaken.",
   notice_g3:"Der Kursabschlussnachweis bleibt gesperrt, solange Pflicht-Records fehlen.",
-  m_exc_t:"Ausnahme beantragen", m_exc_p:"Der Grund ist Pflicht und wird im Dashboard nach Abteilung, Muster und Prüfpunkt ausgewertet. Freigabe ausschließlich durch Director Training oder Head of Training.",
-  m_exc_e:"Bitte einen aussagekräftigen Grund angeben (mindestens 10 Zeichen).",
-  m_res_t:"Prüfpunkt zurücksetzen", m_res_p:"Das Zurücksetzen erzeugt einen Eintrag im Audit-Trail. Die Begründung ist Pflicht.",
-  m_res_e:"Bitte eine Begründung angeben (mindestens 5 Zeichen).",
-  m_edit_t:"Nachricht bearbeiten", m_edit_p:"Die bisherige Fassung bleibt in der Historie erhalten, die Nachricht wird als bearbeitet gekennzeichnet.",
-  m_edit_e:"Die Nachricht darf nicht leer sein.",
-  cancel:"Abbrechen", ok:"Bestätigen", request:"Beantragen", save:"Speichern",
-  fold_open:"Prüfpunkte einblenden", fold_close:"Prüfpunkte ausblenden",
+  /* Anlegen */
+  new_case:"Neuer Vorgang", new_co:"Neue Firma", new_tr:"Neuer Trainee",
+  nc_t:"Neuen Vorgang anlegen",
+  nc_p:"Ein Vorgang gilt für genau einen Trainee. Ein Kurs mit sechs Teilnehmern erzeugt sechs Vorgänge.",
+  f_company:"Firma", f_trainee:"Trainee", f_newco:"Name der Firma", f_newtr:"Name des Trainee",
+  f_dob:"Geburtsdatum", f_email:"E-Mail (optional)", f_aircraft:"Muster", f_course:"Kurstyp",
+  f_enquiry:"Anfragedatum", f_cstart:"Kursbeginn", f_cend:"Kursende",
+  opt_newco:"+ Neue Firma anlegen …", opt_newtr:"+ Neuen Trainee anlegen …", opt_pick:"— bitte wählen —",
+  hint_start:"Ohne Kursdatum laufen keine Gate-Fristen. Nachtragbar, sobald der Termin steht.",
+  hint_types:"Sales kann nur Vorgänge der zugeordneten Muster anlegen.",
+  e_company:"Bitte eine Firma wählen oder anlegen.", e_trainee:"Bitte einen Trainee wählen oder anlegen.",
+  e_name:"Bitte einen Namen angeben (mindestens 2 Zeichen).", e_aircraft:"Bitte ein Muster wählen.",
+  e_course:"Bitte einen Kurstyp angeben.", e_dates:"Das Kursende darf nicht vor dem Kursbeginn liegen.",
+  e_endonly:"Ein Kursende ohne Kursbeginn ist nicht möglich.",
+  e_conameDup:"Eine Firma mit diesem Namen existiert bereits.",
+  nco_t:"Neue Firma anlegen", nco_p:"Firmen sind eigene Stammdaten, weil Kommunikation und Zahlungsthemen auf Firmenebene laufen.",
+  ntr_t:"Neuen Trainee anlegen", ntr_p:"Der Trainee ist eine eigene Stammdatensatz, damit sein Kommunikationsstrang über mehrere Kurse hinweg besteht.",
+  d_co:"Firmen", d_tr:"Trainees", d_cases:"Vorgänge", d_none:"Noch keine Einträge.",
+  /* Toasts */
+  cancel:"Abbrechen", ok:"Bestätigen", request:"Beantragen", save:"Speichern", create:"Anlegen",
   ex_approve:"Freigeben", ex_reject:"Ablehnen", ex_requested:"Beantragt", ex_approved:"Freigegeben", ex_rejected:"Abgelehnt",
   ex_by:"beantragt von", ex_dec:"entschieden von", ex_only:"Freigabe nur durch Director Training oder Head of Training.",
+  m_exc_t:"Ausnahme beantragen", m_exc_p:"Der Grund ist Pflicht und wird im Dashboard nach Abteilung, Muster und Prüfpunkt ausgewertet. Freigabe ausschließlich durch Director Training oder Head of Training.",
+  m_exc_e:"Bitte einen aussagekräftigen Grund angeben (mindestens 10 Zeichen).", m_reason:"Grund",
+  m_res_t:"Prüfpunkt zurücksetzen", m_res_p:"Das Zurücksetzen erzeugt einen Eintrag im Audit-Trail. Die Begründung ist Pflicht.",
+  m_res_e:"Bitte eine Begründung angeben (mindestens 5 Zeichen).",
+  m_edit_t:"Nachricht bearbeiten", m_edit_p:"Die bisherige Fassung bleibt in der Historie, die Nachricht wird als bearbeitet gekennzeichnet.",
+  m_edit_e:"Die Nachricht darf nicht leer sein.", m_msg:"Nachricht",
   t_taken:"Vorgang übernommen.", t_released:"Gate {n} freigegeben.", t_done:"Prüfpunkt erledigt.",
   t_wait:"Erledigt — wartet auf Kontrolle durch eine zweite Person.", t_verified:"Prüfpunkt kontrolliert.",
   t_reset:"Prüfpunkt zurückgesetzt.", t_exc:"Ausnahme beantragt.", t_excok:"Ausnahme freigegeben.",
   t_excno:"Ausnahme abgelehnt.", t_msg:"Nachricht gesendet.", t_edited:"Nachricht bearbeitet.",
-  days:"Tage", today:"heute", in_:"in", ago:"her",
+  t_case:"Vorgang {n} angelegt.", t_co:"Firma angelegt.", t_tr:"Trainee angelegt.",
+  t_nocreate:"Vorgänge legen Sales und Training Admin an.",
+  days:"Tage", today:"heute", in_:"in", ago:"her", none:"—",
   cat_gate:"Gate", cat_lb:"Prüfpunkt", cat_dept:"Abteilung", cat_m:"Pflicht", cat_4:"4-Augen",
-  cat_dl:"Frist", cat_ev:"Nachweis", yes:"ja", no:"—",
+  cat_dl:"Frist", cat_ev:"Nachweis", yes:"ja", g3lock:"Gate-3-Sperre",
   anchor_course_start:"AT vor Kursbeginn", anchor_enquiry_date:"AT nach Anfrage", anchor_course_end:"AT nach Kursende",
-  admin_note:"Im Prototyp nur lesend. In der Zielversion im Admin-Panel änderbar: Pflicht/optional, Frist, Vier-Augen-Anforderung, Nachweis und Musterfilter je Prüfpunkt."
+  admin_note:"Im Prototyp nur lesend. In der Zielversion im Admin-Panel änderbar: Pflicht/optional, Frist, Vier-Augen-Anforderung, Nachweis und Musterfilter je Prüfpunkt.",
+  sandbox_note:"Sandbox mit Demodaten. Änderungen bleiben nur bis zum Neuladen der Seite erhalten."
 },
 en:{
   sub:"Sandbox — demo data", loggedIn:"Signed in as",
   nav_dash:"Dashboard", nav_pool:"Pool", nav_mine:"My cases", nav_all:"All cases",
-  nav_exc:"Exceptions", nav_admin:"Admin", grp_work:"Work", grp_org:"Organisation",
+  nav_exc:"Exceptions", nav_data:"Master data", nav_admin:"Checkpoints",
+  grp_work:"Work", grp_org:"Organisation",
   dash_t:"Dashboard", dash_s:"Volume, bottlenecks and deadlines across all departments.",
   pool_t:"Pool", pool_s:"Unassigned cases in your department. Click to take one.",
   mine_t:"My cases", mine_s:"Cases you are responsible for.",
   all_t:"All cases", all_s:"Full list within your visibility.",
   exc_t:"Exceptions", exc_s:"Requested and decided deadline deviations.",
+  data_t:"Master data", data_s:"Companies and trainees. Both can also be created while adding a case.",
   admin_t:"Checkpoint catalogue", admin_s:"Mandatory flag, deadline, four-eyes requirement and evidence per checkpoint.",
   st_enquiry:"Enquiry", st_booked:"Booked", st_released:"Released", st_in_progress:"In training",
   st_completed:"Closed", st_discarded:"Cancelled",
@@ -403,16 +476,17 @@ en:{
   k_exc:"Exceptions (30 days)", k_closed:"Closed (30 days)", k_g3:"Gate 3 warnings",
   f_search:"Trainee, company, case number …", f_type:"All types", f_status:"All statuses",
   f_dept:"All departments", f_owner:"All owners", f_late:"Overdue only", f_pool:"In pool only",
-  f_clear:"Clear filters", results:"results",
+  f_clear:"Clear filters", f_more:"More filters", f_less:"Hide filters", results:"results",
   c_no:"Case", c_trainee:"Trainee", c_co:"Company", c_type:"Type", c_start:"Course start",
   c_status:"Status", c_owner:"Owner", c_prog:"Progress", c_next:"Next task",
-  c_pool:"In pool since", c_days:"bd",
+  c_pool:"In pool since", c_days:"bd", stale:"Stale", inpool:"in pool for {n} working days",
   tab_gates:"Gates", tab_chat:"Communication", tab_log:"Audit trail",
   take:"Take", release:"Release gate", released:"Released by",
   verify:"Check", reset:"Reset", exception:"Request exception",
   need:"mandatory items open", need1:"mandatory item open", allDone:"All mandatory items complete",
   accepts:"Accepted by", deadline:"Due", evidence:"Evidence", fourEyes:"4-eyes",
-  by:"completed by", verifiedBy:"checked by",
+  by:"completed by", verifiedBy:"checked by", optional:"optional",
+  fold_open:"Show checkpoints", fold_close:"Hide checkpoints",
   lock_prev:"Gate {n} has not been released yet",
   lock_dept:"Only {d} may complete this item",
   lock_notmine:"You are not responsible for {d} — take the case first",
@@ -425,46 +499,65 @@ en:{
   lock_reldate:"Gate 1 requires a confirmed course date",
   lock_relend:"Gate 3 only after the course has ended",
   lock_relopen:"{n} mandatory item(s) open",
-  ctx_case:"This case", ctx_trainee:"Trainee", ctx_co:"Company",
+  ctx_case:"This case", ctx_trainee:"Trainee", ctx_company:"Company",
   ph:"Message to all departments involved …", send:"Send", refTo:"Ref:", noRef:"no reference",
   keep:"Messages are part of the case record and cannot be deleted. Editing leaves a note.",
-  edited:"edited", edit:"Edit",
+  scope_trainee:"This thread follows the trainee across all their courses.",
+  scope_company:"This thread belongs to the company and is visible on all of its cases.",
+  edited:"edited", edit:"Edit", fromCase:"from case",
   empty_t:"Nothing found", empty_s:"Adjust the filters or clear them.",
   pool_empty_t:"Pool is empty", pool_empty_s:"All visible cases are assigned.",
   exc_empty_t:"No exceptions", exc_empty_s:"There is no request on file.",
   notice_pool:"A case not taken within 2 working days is passed to the team lead for assignment.",
   notice_vis:"Sales sees only cases for their assigned types. Training Admin and ATO see all cases but may only tick their own items.",
   notice_g3:"The course completion certificate stays locked while mandatory records are missing.",
+  new_case:"New case", new_co:"New company", new_tr:"New trainee",
+  nc_t:"Create a case",
+  nc_p:"One case covers exactly one trainee. A course with six participants creates six cases.",
+  f_company:"Company", f_trainee:"Trainee", f_newco:"Company name", f_newtr:"Trainee name",
+  f_dob:"Date of birth", f_email:"Email (optional)", f_aircraft:"Aircraft type", f_course:"Course type",
+  f_enquiry:"Enquiry date", f_cstart:"Course start", f_cend:"Course end",
+  opt_newco:"+ Create new company …", opt_newtr:"+ Create new trainee …", opt_pick:"— please choose —",
+  hint_start:"Without a course date no gate deadlines run. Can be added once the date is set.",
+  hint_types:"Sales can only create cases for their assigned aircraft types.",
+  e_company:"Please choose or create a company.", e_trainee:"Please choose or create a trainee.",
+  e_name:"Please enter a name (at least 2 characters).", e_aircraft:"Please choose an aircraft type.",
+  e_course:"Please enter a course type.", e_dates:"Course end cannot be before course start.",
+  e_endonly:"A course end without a course start is not possible.",
+  e_conameDup:"A company with this name already exists.",
+  nco_t:"Create a company", nco_p:"Companies are their own master data because commercial and payment topics live at company level.",
+  ntr_t:"Create a trainee", ntr_p:"The trainee is separate master data so their communication thread spans several courses.",
+  d_co:"Companies", d_tr:"Trainees", d_cases:"Cases", d_none:"No entries yet.",
+  cancel:"Cancel", ok:"Confirm", request:"Request", save:"Save", create:"Create",
+  ex_approve:"Approve", ex_reject:"Reject", ex_requested:"Requested", ex_approved:"Approved", ex_rejected:"Rejected",
+  ex_by:"requested by", ex_dec:"decided by", ex_only:"Approval by Director Training or Head of Training only.",
   m_exc_t:"Request exception", m_exc_p:"The reason is mandatory and is reported by department, aircraft type and checkpoint. Approval by Director Training or Head of Training only.",
-  m_exc_e:"Please give a meaningful reason (at least 10 characters).",
+  m_exc_e:"Please give a meaningful reason (at least 10 characters).", m_reason:"Reason",
   m_res_t:"Reset checkpoint", m_res_p:"Resetting creates an audit trail entry. The reason is mandatory.",
   m_res_e:"Please give a reason (at least 5 characters).",
   m_edit_t:"Edit message", m_edit_p:"The previous version is kept in the history and the message is marked as edited.",
-  m_edit_e:"The message must not be empty.",
-  cancel:"Cancel", ok:"Confirm", request:"Request", save:"Save",
-  fold_open:"Show checkpoints", fold_close:"Hide checkpoints",
-  ex_approve:"Approve", ex_reject:"Reject", ex_requested:"Requested", ex_approved:"Approved", ex_rejected:"Rejected",
-  ex_by:"requested by", ex_dec:"decided by", ex_only:"Approval by Director Training or Head of Training only.",
+  m_edit_e:"The message must not be empty.", m_msg:"Message",
   t_taken:"Case taken.", t_released:"Gate {n} released.", t_done:"Checkpoint completed.",
   t_wait:"Completed — awaiting check by a second person.", t_verified:"Checkpoint checked.",
   t_reset:"Checkpoint reset.", t_exc:"Exception requested.", t_excok:"Exception approved.",
   t_excno:"Exception rejected.", t_msg:"Message sent.", t_edited:"Message edited.",
-  days:"days", today:"today", in_:"in", ago:"ago",
+  t_case:"Case {n} created.", t_co:"Company created.", t_tr:"Trainee created.",
+  t_nocreate:"Cases are created by Sales and Training Admin.",
+  days:"days", today:"today", in_:"in", ago:"ago", none:"—",
   cat_gate:"Gate", cat_lb:"Checkpoint", cat_dept:"Department", cat_m:"Mandatory", cat_4:"4-eyes",
-  cat_dl:"Due", cat_ev:"Evidence", yes:"yes", no:"—",
+  cat_dl:"Due", cat_ev:"Evidence", yes:"yes", g3lock:"Gate 3 lock",
   anchor_course_start:"bd before course start", anchor_enquiry_date:"bd after enquiry", anchor_course_end:"bd after course end",
-  admin_note:"Read-only in the prototype. In the target version editable in the admin panel: mandatory/optional, deadline, four-eyes requirement, evidence and type filter per checkpoint."
+  admin_note:"Read-only in the prototype. In the target version editable in the admin panel: mandatory/optional, deadline, four-eyes requirement, evidence and type filter per checkpoint.",
+  sandbox_note:"Sandbox with demo data. Changes are kept only until the page is reloaded."
 }};
 let L = "de";
-const t = (k, v) => {
-  let s = I[L][k] || k;
-  if (v) for (const key in v) s = s.replace("{" + key + "}", v[key]);
-  return s;
-};
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const t = (k, v) => { let s = I[L][k] || k; if (v) for (const n in v) s = s.replace("{" + n + "}", v[n]); return s; };
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const now = () => L === "de" ? "gerade" : "just now";
 
 /* ---------- Stammdaten ---------- */
 const TYPES = ["ATR","C525","CL350","CL650","M2","Phenom","XLS"];
+const COURSE_TYPES = ["Differences","Recurrent / OPC","Refresher","Type Rating Initial"];
 const DEPTS = { sales:"Sales", training_admin:"Training Admin", ato:"ATO" };
 
 const USERS = [
@@ -482,14 +575,44 @@ const USERS = [
   { id:"u12", name:"Robert Zach",    dept:"ato",            role:"staff",      types:["CL650"] },
   { id:"u13", name:"Iris Halanda",   dept:"ato",            role:"staff",      types:["ATR"] }
 ];
-const user = id => USERS.find(u => u.id === id);
+const user = id => USERS.find(u => u.id === id) || { name:"?", dept:"training_admin", role:"staff", types:[] };
 const initials = n => n.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
 const isAdmin = u => u.role === "superadmin" || u.role === "admin";
 const canDecideExceptions = u => u.role === "superadmin" || u.fn === "director_training" || u.fn === "head_of_training";
+const canCreateCase = u => isAdmin(u) || u.role === "teamleader" || u.dept === "sales" || u.dept === "training_admin";
+/* alphabetisch, wie in der Spec für alle Listen und Dropdowns gefordert */
+const byName = (a,b) => a.name.localeCompare(b.name, L === "de" ? "de" : "en");
 
-/* ---------- Prüfpunkt-Katalog (Spiegel von supabase/seed.sql) ----------
-   d = Abteilung, m = Pflicht, f = Vier-Augen, days/anchor = Frist,
-   needsGate = Gate-3-Sperre (erst wenn alle übrigen Pflichtpunkte erledigt).  */
+let idSeq = 100;
+const nid = p => p + (++idSeq);
+
+const COMPANIES = [
+  { id:"co1", name:"Alpenwind Charter" },
+  { id:"co2", name:"Danube Executive AG" },
+  { id:"co3", name:"Glacier Air GmbH" },
+  { id:"co4", name:"Marchfeld Air" },
+  { id:"co5", name:"Nordstern Aviation" }
+];
+const TRAINEES = [
+  { id:"tr1",  name:"Anna Brenner",      dob:"1985-04-12", co:"co3" },
+  { id:"tr2",  name:"Michael Feldkirch", dob:"1979-08-30", co:"co3" },
+  { id:"tr3",  name:"Lukas Steiner",     dob:"1991-02-17", co:"co3" },
+  { id:"tr4",  name:"Sabine Ortner",     dob:"1983-11-05", co:"co2" },
+  { id:"tr5",  name:"Clemens Reiter",    dob:"1976-06-21", co:"co2" },
+  { id:"tr6",  name:"Renate Kolar",      dob:"1988-09-09", co:"co2" },
+  { id:"tr7",  name:"Julia Lindner",     dob:"1990-01-30", co:"co1" },
+  { id:"tr8",  name:"Hannes Prager",     dob:"1972-03-14", co:"co1" },
+  { id:"tr9",  name:"Paul Haslinger",    dob:"1986-12-02", co:"co5" },
+  { id:"tr10", name:"Franz Aigner",      dob:"1969-07-25", co:"co5" },
+  { id:"tr11", name:"Thomas Wagner",     dob:"1981-05-19", co:"co4" },
+  { id:"tr12", name:"Eva Novotny",       dob:"1993-10-08", co:"co4" }
+];
+const company = id => COMPANIES.find(c => c.id === id) || { name:"?" };
+const trainee = id => TRAINEES.find(x => x.id === id) || { name:"?" };
+const coName = c => company(c.companyId).name;
+const trName = c => trainee(c.traineeId).name;
+
+/* ---------- Prüfpunkt-Katalog (Spiegel von supabase/seed.sql) ---------- */
 const CAT = [
   { id:"g1_offer_sent",     g:1, d:"sales", m:0, f:0, days:3,  a:"enquiry_date", ev:"Angebot",
     de:"Angebot an Kunden versandt", en:"Offer sent to customer" },
@@ -552,7 +675,7 @@ const cat = id => CAT.find(c => c.id === id);
 /* Ein Gate gibt frei, wer die Arbeit empfängt (Spec Abschnitt 7). */
 const GATE_RECEIVER = { 1:"training_admin", 2:"ato", 3:"training_admin" };
 
-/* ---------- Arbeitstage ---------- */
+/* ---------- Datum und Arbeitstage ---------- */
 const iso = d => d.toISOString().slice(0,10);
 const D = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
 function addBusinessDays(dateStr, days) {
@@ -562,11 +685,9 @@ function addBusinessDays(dateStr, days) {
   return iso(d);
 }
 const daysTo = s => Math.round((new Date(s) - new Date(iso(new Date()))) / 864e5);
-function fmtDate(s) {
-  return new Date(s).toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { day:"2-digit", month:"short" });
-}
+const fmtDate = s => s ? new Date(s).toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { day:"2-digit", month:"short" }) : t("none");
 function fmtStart(c) {
-  if (!c.course_start) return "—";
+  if (!c.course_start) return t("none");
   const n = daysTo(c.course_start), s = fmtDate(c.course_start);
   if (n === 0) return s + " · " + t("today");
   return s + " · " + (n > 0 ? t("in_") + " " + n + " " + t("days") : Math.abs(n) + " " + t("days") + " " + t("ago"));
@@ -574,21 +695,28 @@ function fmtStart(c) {
 
 /* ---------- Vorgänge ---------- */
 let SEQ = 1240;
-function mk(o) {
+function blankCase(o) {
   const c = Object.assign({
-    id: "case" + (++SEQ), no: "AF-2026-" + (SEQ), cp: {}, chat: [], log: [], exc: [],
-    owner: { sales:null, training_admin:null, ato:null }, poolSince: {}, status:"enquiry"
+    id:"case" + (++SEQ), no:"AF-2026-" + SEQ, cp:{}, log:[], exc:[],
+    owner:{ sales:null, training_admin:null, ato:null }, poolSince:{}, status:"enquiry",
+    course_start:null, course_end:null
   }, o);
   CAT.forEach(x => {
     const done = (o.done || []).includes(x.id);
     const wait = (o.wait || []).includes(x.id);
     c.cp[x.id] = {
       state: done ? "verified" : wait ? "completed" : "open",
-      by: (done || wait) ? (o.byMap && o.byMap[x.id]) || c.owner[x.d] || "u3" : null,
-      vby: done && x.f ? (o.vbyMap && o.vbyMap[x.id]) || "u3" : null,
+      by: (done || wait) ? ((o.byMap && o.byMap[x.id]) || c.owner[x.d] || "u3") : null,
+      vby: done && x.f ? ((o.vbyMap && o.vbyMap[x.id]) || "u3") : null,
       due: null
     };
   });
+  c.gate = { 1:{ released:false, by:null, at:null }, 2:{ released:false, by:null, at:null }, 3:{ released:false, by:null, at:null } };
+  if (o.gates) for (const g in o.gates) c.gate[g] = { released:true, by:o.gates[g].by, at:o.gates[g].at };
+  ["sales","training_admin","ato"].forEach(d => {
+    if (!c.owner[d]) c.poolSince[d] = (o.poolDays && o.poolDays[d] != null) ? o.poolDays[d] : 0;
+  });
+  recomputeDue(c);
   return c;
 }
 function recomputeDue(c) {
@@ -597,165 +725,142 @@ function recomputeDue(c) {
     c.cp[x.id].due = anchor ? addBusinessDays(anchor, x.a === "course_start" ? -x.days : x.days) : null;
   });
 }
+const allG12 = CAT.filter(x => x.g < 3).map(x => x.id);
+const V6 = { g1_licence:"u6", g1_medical:"u6", g1_prerequisites:"u6" };
 
 const CASES = [
-  /* Gate 1 in Arbeit, ein Punkt wartet auf Vier-Augen-Kontrolle */
-  mk({ trainee:"Anna Brenner", co:"Glacier Air GmbH", type:"CL650", course:"Type Rating Initial",
-       enquiry_date:D(-24), course_start:D(19), course_end:D(31), status:"enquiry",
-       owner:{ sales:"u7", training_admin:"u4", ato:"u12" },
-       done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_language","g1_course_defined","g1_billing"],
-       wait:["g1_licence"], byMap:{ g1_licence:"u7" },
-       instructor:"R. Zach", fstd:"FFS-2 · 08:00" }),
+  blankCase({ traineeId:"tr1", companyId:"co3", type:"CL650", course:"Type Rating Initial",
+    enquiry_date:D(-24), course_start:D(19), course_end:D(31),
+    owner:{ sales:"u7", training_admin:"u4", ato:"u12" },
+    done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_language","g1_course_defined","g1_billing"],
+    wait:["g1_licence"], byMap:{ g1_licence:"u7" } }),
 
-  /* Gate 1, Medical überfällig — Kommunikation dazu im Trainee-Thread */
-  mk({ trainee:"Michael Feldkirch", co:"Glacier Air GmbH", type:"CL650", course:"Type Rating Initial",
-       enquiry_date:D(-26), course_start:D(11), course_end:D(23), status:"enquiry",
-       owner:{ sales:"u7", training_admin:"u4", ato:"u12" },
-       done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_licence","g1_language","g1_course_defined","g1_billing"],
-       vbyMap:{ g1_licence:"u6" }, byMap:{ g1_licence:"u7" } }),
+  blankCase({ traineeId:"tr2", companyId:"co3", type:"CL650", course:"Type Rating Initial",
+    enquiry_date:D(-26), course_start:D(11), course_end:D(23),
+    owner:{ sales:"u7", training_admin:"u4", ato:"u12" },
+    done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_licence","g1_language","g1_course_defined","g1_billing"],
+    byMap:{ g1_licence:"u7" }, vbyMap:{ g1_licence:"u6" } }),
 
-  /* Gate 2 offen, FSTD-Slot mit freigegebener Ausnahme (Kurzfristbuchung) */
-  mk({ trainee:"Sabine Ortner", co:"Danube Executive AG", type:"XLS", course:"Recurrent / OPC",
-       enquiry_date:D(-14), course_start:D(6), course_end:D(8), status:"booked",
-       owner:{ sales:"u7", training_admin:"u5", ato:"u10" },
-       done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_licence","g1_medical","g1_language",
-             "g1_prerequisites","g1_course_defined","g1_billing","g2_course_date","g2_course_file"],
-       vbyMap:{ g1_licence:"u6", g1_medical:"u6", g1_prerequisites:"u6" },
-       byMap:{ g1_licence:"u7", g1_medical:"u7", g1_prerequisites:"u7" },
-       gates:{ 1:{ by:"u5", at:D(-9) } } }),
+  blankCase({ traineeId:"tr4", companyId:"co2", type:"XLS", course:"Recurrent / OPC",
+    enquiry_date:D(-14), course_start:D(6), course_end:D(8), status:"booked",
+    owner:{ sales:"u7", training_admin:"u5", ato:"u10" },
+    done:CAT.filter(x => x.g === 1).map(x => x.id).concat(["g2_course_date","g2_course_file"]),
+    byMap:Object.assign({}, V6, { g1_licence:"u7", g1_medical:"u7", g1_prerequisites:"u7" }), vbyMap:V6,
+    gates:{ 1:{ by:"u5", at:D(-9) } } }),
 
-  /* Im Pool, Liegenbleiber (4 AT) */
-  mk({ trainee:"Julia Lindner", co:"Alpenwind Charter", type:"C525", course:"Type Rating Initial",
-       enquiry_date:D(-6), course_start:D(33), course_end:D(47), status:"enquiry",
-       owner:{ sales:null, training_admin:null, ato:"u9" },
-       done:["g1_customer_order"], byMap:{ g1_customer_order:"u8" }, poolDays:{ sales:4, training_admin:4 } }),
+  blankCase({ traineeId:"tr7", companyId:"co1", type:"C525", course:"Type Rating Initial",
+    enquiry_date:D(-6), course_start:D(33), course_end:D(47),
+    owner:{ sales:null, training_admin:null, ato:"u9" },
+    done:["g1_customer_order"], byMap:{ g1_customer_order:"u8" }, poolDays:{ sales:4, training_admin:4 } }),
 
-  /* Im Pool bei Training Admin, Sales bereits weit */
-  mk({ trainee:"Paul Haslinger", co:"Nordstern Aviation", type:"Phenom", course:"Differences",
-       enquiry_date:D(-11), course_start:D(12), course_end:D(15), status:"enquiry",
-       owner:{ sales:"u8", training_admin:null, ato:"u2" },
-       done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_billing","g1_course_defined"],
-       poolDays:{ training_admin:1 } }),
+  blankCase({ traineeId:"tr9", companyId:"co5", type:"Phenom", course:"Differences",
+    enquiry_date:D(-11), course_start:D(12), course_end:D(15),
+    owner:{ sales:"u8", training_admin:null, ato:"u2" },
+    done:["g1_offer_sent","g1_customer_order","g1_trainee_data","g1_billing","g1_course_defined"],
+    poolDays:{ training_admin:1 } }),
 
-  /* In Durchführung */
-  mk({ trainee:"Clemens Reiter", co:"Danube Executive AG", type:"CL350", course:"Recurrent / OPC",
-       enquiry_date:D(-40), course_start:D(-4), course_end:D(-1), status:"in_progress",
-       owner:{ sales:"u7", training_admin:"u4", ato:"u11" },
-       done:CAT.filter(x => x.g < 3).map(x => x.id).concat(["g3_attendance"]),
-       vbyMap:{ g1_licence:"u6", g1_medical:"u6", g1_prerequisites:"u6", g2_instructor:"u2", g2_training_docs:"u3" },
-       byMap:{ g2_instructor:"u11", g2_training_docs:"u4" },
-       gates:{ 1:{ by:"u4", at:D(-30) }, 2:{ by:"u11", at:D(-12) } },
-       instructor:"D. Müller", fstd:"FFS-1 · 13:00" }),
+  blankCase({ traineeId:"tr5", companyId:"co2", type:"CL350", course:"Recurrent / OPC",
+    enquiry_date:D(-40), course_start:D(-4), course_end:D(-1), status:"in_progress",
+    owner:{ sales:"u7", training_admin:"u4", ato:"u11" },
+    done:allG12.concat(["g3_attendance"]),
+    byMap:{ g2_instructor:"u11", g2_training_docs:"u4" },
+    vbyMap:Object.assign({}, V6, { g2_instructor:"u2", g2_training_docs:"u3" }),
+    gates:{ 1:{ by:"u4", at:D(-30) }, 2:{ by:"u11", at:D(-12) } } }),
 
-  /* GATE-3-SPERRE: Kurs beendet, Grading Sheets fehlen — Zertifikat gesperrt */
-  mk({ trainee:"Thomas Wagner", co:"Marchfeld Air", type:"ATR", course:"Type Rating Initial",
-       enquiry_date:D(-70), course_start:D(-21), course_end:D(-9), status:"in_progress",
-       owner:{ sales:"u8", training_admin:"u5", ato:"u13" },
-       done:CAT.filter(x => x.g < 3).map(x => x.id).concat(["g3_attendance","g3_deferred_items","g3_exam_result"]),
-       vbyMap:{ g1_licence:"u6", g1_medical:"u6", g1_prerequisites:"u6", g2_instructor:"u2",
-                g2_training_docs:"u3", g3_exam_result:"u2" },
-       byMap:{ g2_instructor:"u13", g2_training_docs:"u5", g3_exam_result:"u13" },
-       gates:{ 1:{ by:"u5", at:D(-60) }, 2:{ by:"u13", at:D(-30) } },
-       instructor:"I. Halanda", fstd:"FFS-3 · 06:00" }),
+  /* Gate-3-Sperre: Kurs beendet, Grading Sheets fehlen, Zertifikat gesperrt */
+  blankCase({ traineeId:"tr11", companyId:"co4", type:"ATR", course:"Type Rating Initial",
+    enquiry_date:D(-70), course_start:D(-21), course_end:D(-9), status:"in_progress",
+    owner:{ sales:"u8", training_admin:"u5", ato:"u13" },
+    done:allG12.concat(["g3_attendance","g3_deferred_items","g3_exam_result"]),
+    byMap:{ g2_instructor:"u13", g2_training_docs:"u5", g3_exam_result:"u13" },
+    vbyMap:Object.assign({}, V6, { g2_instructor:"u2", g2_training_docs:"u3", g3_exam_result:"u2" }),
+    gates:{ 1:{ by:"u5", at:D(-60) }, 2:{ by:"u13", at:D(-30) } } }),
 
-  /* Gate 3 vollständig bis auf die Abnahme */
-  mk({ trainee:"Eva Novotny", co:"Marchfeld Air", type:"ATR", course:"Type Rating Initial",
-       enquiry_date:D(-70), course_start:D(-21), course_end:D(-9), status:"in_progress",
-       owner:{ sales:"u8", training_admin:"u5", ato:"u13" },
-       done:CAT.filter(x => x.g < 3).map(x => x.id)
-              .concat(["g3_attendance","g3_grading_sheets","g3_deferred_items","g3_exam_result","g3_records_filed"]),
-       vbyMap:{ g1_licence:"u6", g1_medical:"u6", g1_prerequisites:"u6", g2_instructor:"u2",
-                g2_training_docs:"u3", g3_grading_sheets:"u2", g3_exam_result:"u2", g3_records_filed:"u3" },
-       byMap:{ g2_instructor:"u13", g2_training_docs:"u5", g3_grading_sheets:"u13",
-               g3_exam_result:"u13", g3_records_filed:"u5" },
-       gates:{ 1:{ by:"u5", at:D(-60) }, 2:{ by:"u13", at:D(-30) } },
-       instructor:"I. Halanda" }),
+  blankCase({ traineeId:"tr12", companyId:"co4", type:"ATR", course:"Type Rating Initial",
+    enquiry_date:D(-70), course_start:D(-21), course_end:D(-9), status:"in_progress",
+    owner:{ sales:"u8", training_admin:"u5", ato:"u13" },
+    done:allG12.concat(["g3_attendance","g3_grading_sheets","g3_deferred_items","g3_exam_result","g3_records_filed"]),
+    byMap:{ g2_instructor:"u13", g2_training_docs:"u5", g3_grading_sheets:"u13", g3_exam_result:"u13", g3_records_filed:"u5" },
+    vbyMap:Object.assign({}, V6, { g2_instructor:"u2", g2_training_docs:"u3", g3_grading_sheets:"u2", g3_exam_result:"u2", g3_records_filed:"u3" }),
+    gates:{ 1:{ by:"u5", at:D(-60) }, 2:{ by:"u13", at:D(-30) } } }),
 
-  /* Abgeschlossen */
-  mk({ trainee:"Franz Aigner", co:"Nordstern Aviation", type:"M2", course:"Recurrent / OPC",
-       enquiry_date:D(-90), course_start:D(-38), course_end:D(-36), status:"completed",
-       owner:{ sales:"u8", training_admin:"u4", ato:"u9" },
-       done:CAT.map(x => x.id),
-       vbyMap:{ g1_licence:"u6", g1_medical:"u6", g1_prerequisites:"u6", g2_instructor:"u2",
-                g2_training_docs:"u3", g3_grading_sheets:"u2", g3_exam_result:"u2", g3_records_filed:"u3" },
-       gates:{ 1:{ by:"u4", at:D(-70) }, 2:{ by:"u9", at:D(-45) }, 3:{ by:"u4", at:D(-30) } }}),
+  blankCase({ traineeId:"tr10", companyId:"co5", type:"M2", course:"Recurrent / OPC",
+    enquiry_date:D(-90), course_start:D(-38), course_end:D(-36), status:"completed",
+    owner:{ sales:"u8", training_admin:"u4", ato:"u9" },
+    done:CAT.map(x => x.id),
+    vbyMap:Object.assign({}, V6, { g2_instructor:"u2", g2_training_docs:"u3", g3_grading_sheets:"u2", g3_exam_result:"u2", g3_records_filed:"u3" }),
+    gates:{ 1:{ by:"u4", at:D(-70) }, 2:{ by:"u9", at:D(-45) }, 3:{ by:"u4", at:D(-30) } } }),
 
-  /* Anfrage, komplett im Pool */
-  mk({ trainee:"Lukas Steiner", co:"Glacier Air GmbH", type:"XLS", course:"Recurrent / OPC",
-       enquiry_date:D(-3), course_start:D(27), course_end:D(29), status:"enquiry",
-       owner:{ sales:null, training_admin:null, ato:"u10" },
-       done:[], poolDays:{ sales:2, training_admin:2 } }),
+  blankCase({ traineeId:"tr3", companyId:"co3", type:"XLS", course:"Recurrent / OPC",
+    enquiry_date:D(-3), course_start:D(27), course_end:D(29),
+    owner:{ sales:null, training_admin:null, ato:"u10" },
+    done:[], poolDays:{ sales:2, training_admin:2 } }),
 
-  /* Gate 2, FSTD-Slot überfällig */
-  mk({ trainee:"Hannes Prager", co:"Alpenwind Charter", type:"C525", course:"Recurrent / OPC",
-       enquiry_date:D(-30), course_start:D(9), course_end:D(11), status:"booked",
-       owner:{ sales:"u8", training_admin:"u5", ato:"u9" },
-       done:CAT.filter(x => x.g === 1).map(x => x.id).concat(["g2_course_date","g2_course_file","g2_forms"]),
-       vbyMap:{ g1_licence:"u6", g1_medical:"u6", g1_prerequisites:"u6" },
-       gates:{ 1:{ by:"u5", at:D(-18) } } }),
+  blankCase({ traineeId:"tr8", companyId:"co1", type:"C525", course:"Recurrent / OPC",
+    enquiry_date:D(-30), course_start:D(9), course_end:D(11), status:"booked",
+    owner:{ sales:"u8", training_admin:"u5", ato:"u9" },
+    done:CAT.filter(x => x.g === 1).map(x => x.id).concat(["g2_course_date","g2_course_file","g2_forms"]),
+    vbyMap:V6, gates:{ 1:{ by:"u5", at:D(-18) } } }),
 
-  mk({ trainee:"Renate Kolar", co:"Danube Executive AG", type:"CL350", course:"Type Rating Initial",
-       enquiry_date:D(-2), course_start:null, course_end:null, status:"enquiry",
-       owner:{ sales:"u7", training_admin:null, ato:"u11" },
-       done:["g1_customer_order","g1_trainee_data"], poolDays:{ training_admin:0 } })
+  blankCase({ traineeId:"tr6", companyId:"co2", type:"CL350", course:"Type Rating Initial",
+    enquiry_date:D(-2), owner:{ sales:"u7", training_admin:null, ato:"u11" },
+    done:["g1_customer_order","g1_trainee_data"], poolDays:{ training_admin:0 } })
 ];
+const findCase = id => CASES.find(c => c.id === id);
 
-/* Gates, Fristen und Pool-Zeiten materialisieren */
-CASES.forEach(c => {
-  c.gate = { 1:{ released:false, by:null, at:null }, 2:{ released:false, by:null, at:null }, 3:{ released:false, by:null, at:null } };
-  if (c.gates) for (const g in c.gates) c.gate[g] = { released:true, by:c.gates[g].by, at:c.gates[g].at };
-  recomputeDue(c);
-  ["sales","training_admin","ato"].forEach(d => {
-    if (!c.owner[d]) c.poolSince[d] = (c.poolDays && c.poolDays[d] != null) ? c.poolDays[d] : 0;
-  });
-});
-
-/* Ausnahmen */
-function addExc(c, cpId, reason, by, status, decBy) {
-  c.exc.push({ id:"e" + Math.random().toString(36).slice(2,7), cp:cpId, gate:cat(cpId).g,
-    reason, by, at:"vor 2 Tagen", status, decBy: decBy || null, decAt: decBy ? "vor 1 Tag" : null });
+/* ---------- Ausnahmen ---------- */
+function addExc(c, cpId, reason, by, status, decBy, at) {
+  c.exc.push({ id:nid("e"), cp:cpId, gate:cat(cpId).g, reason, by, at:at || "vor 2 Tagen",
+    status, decBy:decBy || null, decAt:decBy ? "vor 1 Tag" : null });
 }
 addExc(CASES[2], "g2_fstd_slot", "Kurzfristbuchung: der Simulator-Slot wird vom Betreiber erst am Vortag bestätigt. Ersatzslot ist reserviert.", "u5", "approved", "u2");
 addExc(CASES[10], "g2_fstd_slot", "Slot-Umbuchung wegen Simulatorwartung, Bestätigung des Betreibers steht aus.", "u5", "requested");
 
-/* Kommunikation */
-function msg(c, scope, uid, txt, when, ref) {
-  c.chat.push({ id:"m" + Math.random().toString(36).slice(2,7), scope, uid, txt, when, ref:ref || null, edited:false, history:[] });
+/* ---------- Kommunikation ----------
+   Threads hängen an Vorgang, Trainee oder Firma — nicht am Vorgang allein.
+   Der Firmen-Thread ist damit bei jedem Vorgang derselben Firma sichtbar,
+   der Trainee-Thread über alle Kurse dieser Person hinweg (Spec 5a).       */
+const THREADS = {};
+const key = (scope, id) => scope + ":" + id;
+function thread(scope, id) { return THREADS[key(scope,id)] || (THREADS[key(scope,id)] = []); }
+function msg(scope, id, uid, txt, when, ref, caseId) {
+  thread(scope, id).push({ id:nid("m"), uid, txt, when, ref:ref || null, caseId:caseId || null,
+    edited:false, history:[], seen:[uid] });
 }
-msg(CASES[0], "company", "u7", "Rechnung für <b class='tag'>Glacier Air GmbH</b> ist seit 14 Tagen offen. Zweite Mahnung ist raus. Bitte bei Gate 2 berücksichtigen.", "vor 2 Std");
-msg(CASES[0], "company", "u3", "Danke. Wir planen weiter, halten aber die Joining Instructions zurück bis Zahlungseingang.", "vor 1 Std");
-msg(CASES[0], "case", "u4", "Instruktor für CL650 am 19. noch offen — Zach ist in dem Zeitraum auf Recurrent. Alternative?", "vor 40 Min");
-msg(CASES[0], "case", "u2", "Ich schaue heute Nachmittag, ob wir tauschen können. Sonst verschieben wir den Slot um zwei Tage.", "vor 22 Min");
-msg(CASES[1], "trainee", "u7", "Medical von M. Feldkirch läuft vier Tage vor Kursende ab. Kunde ist informiert, neues Attest ist zugesagt.", "vor 3 Std", "g1_medical");
-msg(CASES[1], "trainee", "u5", "Ohne gültiges Medical am letzten Kurstag nehme ich Gate 1 nicht ab. Bitte Nachweis vor dem " + fmtDate(D(4)) + ".", "vor 2 Std", "g1_medical");
-msg(CASES[4], "case", "u8", "<b class='tag'>Nordstern Aviation</b> fragt, ob wir zwei Wochen früher können. Slot verfügbar?", "vor 1 Tag");
-msg(CASES[4], "case", "u3", "Nur wenn die Dokumente diese Woche kommen. Aktuell fehlen Medical, Sprachvermerk und die Voraussetzungsprüfung.", "vor 1 Tag");
-msg(CASES[6], "case", "u13", "Grading Sheets von T. Wagner liegen noch beim Prüfer. Erinnerung ist raus.", "vor 5 Std", "g3_grading_sheets");
-msg(CASES[6], "case", "u5", "Kurs ist seit zwölf Tagen beendet, das Zertifikat hängt daran. Bitte bis Freitag.", "vor 3 Std", "g3_certificate");
-CASES[6].chat[1].edited = true;
-CASES[6].chat[1].history.push({ body:"Kurs ist seit zwölf Tagen beendet. Bitte bis Freitag.", by:"u5", at:"vor 2 Std" });
+msg("company","co3","u7","Rechnung für <b class='tag'>Glacier Air GmbH</b> ist seit 14 Tagen offen. Zweite Mahnung ist raus. Bitte bei Gate 2 berücksichtigen.","vor 2 Std",null,CASES[0].id);
+msg("company","co3","u3","Danke. Wir planen weiter, halten aber die Joining Instructions zurück bis Zahlungseingang.","vor 1 Std",null,CASES[0].id);
+msg("case",CASES[0].id,"u4","Instruktor für CL650 am 19. noch offen — Zach ist in dem Zeitraum auf Recurrent. Alternative?","vor 40 Min");
+msg("case",CASES[0].id,"u2","Ich schaue heute Nachmittag, ob wir tauschen können. Sonst verschieben wir den Slot um zwei Tage.","vor 22 Min");
+msg("trainee","tr2","u7","Medical läuft vier Tage vor Kursende ab. Kunde ist informiert, neues Attest ist zugesagt.","vor 3 Std","g1_medical",CASES[1].id);
+msg("trainee","tr2","u5","Ohne gültiges Medical am letzten Kurstag nehme ich Gate 1 nicht ab. Bitte Nachweis vor dem " + fmtDate(D(4)) + ".","vor 2 Std","g1_medical",CASES[1].id);
+msg("case",CASES[4].id,"u8","<b class='tag'>Nordstern Aviation</b> fragt, ob wir zwei Wochen früher können. Slot verfügbar?","vor 1 Tag");
+msg("case",CASES[4].id,"u3","Nur wenn die Dokumente diese Woche kommen. Aktuell fehlen Medical, Sprachvermerk und die Voraussetzungsprüfung.","vor 1 Tag");
+msg("case",CASES[6].id,"u13","Grading Sheets liegen noch beim Prüfer. Erinnerung ist raus.","vor 5 Std","g3_grading_sheets");
+msg("case",CASES[6].id,"u5","Kurs ist seit zwölf Tagen beendet, das Zertifikat hängt daran. Bitte bis Freitag.","vor 3 Std","g3_certificate");
+{
+  const m = thread("case", CASES[6].id)[1];
+  m.edited = true;
+  m.history.push({ body:"Kurs ist seit zwölf Tagen beendet. Bitte bis Freitag.", by:"u5", at:"vor 2 Std" });
+}
 
-/* Audit-Trail */
-function lg(c, who, txt, reason, when) {
-  c.log.unshift({ when: when || "—", who, txt, reason: reason || null });
-}
+/* ---------- Audit-Trail ---------- */
+function lg(c, who, txt, reason, when) { c.log.unshift({ when:when || "—", who, txt, reason:reason || null }); }
 CASES.forEach(c => {
-  lg(c, "system", L === "de" ? "Vorgang angelegt (Trigger: Kundenanfrage)" : "Case created (trigger: customer enquiry)");
-  ["sales","training_admin"].forEach(d => {
-    if (c.owner[d]) lg(c, c.owner[d], (L === "de" ? "Vorgang aus dem Pool übernommen — " : "Case taken from pool — ") + DEPTS[d]);
-  });
-  if (c.owner.ato) lg(c, c.owner.ato, L === "de" ? "Zuständigkeit ATO automatisch über das Muster" : "ATO responsibility assigned automatically by aircraft type");
-  [1,2,3].forEach(g => { if (c.gate[g].released) lg(c, c.gate[g].by, "Gate " + g + (L === "de" ? " freigegeben" : " released"), null, fmtDate(c.gate[g].at)); });
+  lg(c, "system", "Vorgang angelegt (Trigger: Kundenanfrage)");
+  ["sales","training_admin"].forEach(d => { if (c.owner[d]) lg(c, c.owner[d], "Vorgang aus dem Pool übernommen — " + DEPTS[d]); });
+  if (c.owner.ato) lg(c, c.owner.ato, "Zuständigkeit ATO automatisch über das Muster");
+  [1,2,3].forEach(g => { if (c.gate[g].released) lg(c, c.gate[g].by, "Gate " + g + " freigegeben", null, fmtDate(c.gate[g].at)); });
   c.exc.forEach(e => {
-    lg(c, e.by, (L === "de" ? "Ausnahme beantragt — " : "Exception requested — ") + cat(e.cp)[L], e.reason);
-    if (e.decBy) lg(c, e.decBy, (L === "de" ? "Ausnahme freigegeben — " : "Exception approved — ") + cat(e.cp)[L]);
+    lg(c, e.by, "Ausnahme beantragt — " + cat(e.cp).de, e.reason);
+    if (e.decBy) lg(c, e.decBy, "Ausnahme freigegeben — " + cat(e.cp).de);
   });
 });
 
 /* ---------- State ---------- */
 let me = "u5", view = "dash", drawerCase = null, chatScope = "case", dtab = "gates";
 let F = { q:"", type:"", status:"", dept:"", owner:"", late:false, pool:false };
-const expanded = new Set();   // aufgeklappte, bereits freigegebene Gates
+let filtersOpen = false;
+const expanded = new Set();       // aufgeklappte, bereits freigegebene Gates
 const M = () => user(me);
 
 /* ---------- Sichtbarkeit und Zuständigkeit ---------- */
@@ -769,16 +874,16 @@ function canView(c) {
 const visibleCases = () => CASES.filter(canView);
 const isResponsible = (c, dept) => c.owner[dept] === me;
 const isMine = c => Object.values(c.owner).includes(me);
-const inMyPool = c => M().dept !== "dir" && !c.owner[M().dept] && canView(c);
+const inMyPool = c => !c.owner[M().dept] && canView(c);
+const myTypes = () => { const u = M(); return (isAdmin(u) || u.dept !== "sales" || u.role === "teamleader" || u.fn === "sales_lead") ? TYPES : u.types; };
 
 /* ---------- Ableitungen ---------- */
 const approvedExc = (c, cpId) => c.exc.some(e => e.cp === cpId && e.status === "approved");
-const pendingExc = (c, cpId) => c.exc.some(e => e.cp === cpId && e.status === "requested");
+const pendingExc  = (c, cpId) => c.exc.some(e => e.cp === cpId && e.status === "requested");
 const cpDone = (c, x) => c.cp[x.id].state === "verified" || approvedExc(c, x.id);
 const cpOverdue = (c, x) => c.cp[x.id].state !== "verified" && c.cp[x.id].due
   && daysTo(c.cp[x.id].due) < 0 && !approvedExc(c, x.id) && c.status !== "completed";
-const openMandatory = (c, g, exclude) =>
-  CAT.filter(x => x.g === g && x.m && x.id !== exclude && !cpDone(c, x));
+const openMandatory = (c, g, exclude) => CAT.filter(x => x.g === g && x.m && x.id !== exclude && !cpDone(c, x));
 
 function gateState(c, g) {
   if (c.gate[g].released) return "done";
@@ -795,30 +900,29 @@ function caseState(c) {
   return "open";
 }
 const isLate = c => caseState(c) === "overdue";
-function currentGate(c) {
-  if (c.status === "completed" || c.status === "discarded") return null;
-  return c.gate[1].released ? (c.gate[2].released ? 3 : 2) : 1;
-}
+const currentGate = c => (c.status === "completed" || c.status === "discarded") ? null
+  : c.gate[1].released ? (c.gate[2].released ? 3 : 2) : 1;
 function nextTask(c) {
   const g = currentGate(c); if (!g) return null;
-  const items = openMandatory(c, g).sort((a,b) => {
+  return openMandatory(c, g).sort((a,b) => {
     const da = c.cp[a.id].due, db = c.cp[b.id].due;
-    if (da && db) return da < db ? -1 : 1;
+    if (da && db) return da < db ? -1 : da > db ? 1 : 0;
     return da ? -1 : db ? 1 : 0;
-  });
-  return items[0] || null;
+  })[0] || null;
 }
-function progress(c) {
+const progress = c => {
   const m = CAT.filter(x => x.m);
   return Math.round(m.filter(x => cpDone(c, x)).length / m.length * 100);
-}
+};
+/* Ungelesene Nachrichten je Kontextebene */
+const unread = (scope, id) => thread(scope, id).filter(m => m.uid !== me && !m.seen.includes(me)).length;
+const markRead = (scope, id) => thread(scope, id).forEach(m => { if (!m.seen.includes(me)) m.seen.push(me); });
 
-/* ---------- Regeln: erledigen, kontrollieren, freigeben ---------- */
+/* ---------- Regeln ---------- */
 function canComplete(c, x) {
   const u = M(), s = c.cp[x.id];
   if (c.status === "completed" || c.status === "discarded") return { ok:false, why:t("lock_closed") };
-  if (s.state !== "open") return { ok:false };
-  if (approvedExc(c, x.id)) return { ok:false };
+  if (s.state !== "open" || approvedExc(c, x.id)) return { ok:false };
   if (x.g > 1 && !c.gate[x.g - 1].released) return { ok:false, why:t("lock_prev", { n:x.g - 1 }) };
   if (!isAdmin(u)) {
     if (u.dept !== x.d) return { ok:false, why:t("lock_dept", { d:DEPTS[x.d] }) };
@@ -844,8 +948,7 @@ function canReset(c, x) {
 }
 function canRequestException(c, x) {
   const u = M();
-  if (cpDone(c, x) || pendingExc(c, x.id)) return false;
-  if (c.gate[x.g].released) return false;
+  if (cpDone(c, x) || pendingExc(c, x.id) || c.gate[x.g].released) return false;
   return isAdmin(u) || (u.dept === x.d && (isResponsible(c, x.d) || u.role === "teamleader"));
 }
 function canRelease(c, g) {
@@ -874,23 +977,20 @@ function doComplete(c, x) {
   if (!r.ok) return toast(r.why || t("lock_closed"), true);
   const s = c.cp[x.id];
   s.by = me;
-  if (x.f) { s.state = "completed"; toast(t("t_wait")); }
-  else { s.state = "verified"; toast(t("t_done")); }
-  lg(c, me, (L === "de" ? "Prüfpunkt erledigt: " : "Checkpoint completed: ") + x[L], null, L === "de" ? "gerade" : "just now");
+  if (x.f) { s.state = "completed"; toast(t("t_wait")); } else { s.state = "verified"; toast(t("t_done")); }
+  lg(c, me, (L === "de" ? "Prüfpunkt erledigt: " : "Checkpoint completed: ") + x[L], null, now());
   render();
 }
 function doVerify(c, x) {
   const r = canVerify(c, x);
   if (!r.ok) return toast(r.why || "", true);
-  const s = c.cp[x.id];
-  s.state = "verified"; s.vby = me;
-  lg(c, me, (L === "de" ? "Prüfpunkt kontrolliert: " : "Checkpoint checked: ") + x[L], null, L === "de" ? "gerade" : "just now");
+  c.cp[x.id].state = "verified"; c.cp[x.id].vby = me;
+  lg(c, me, (L === "de" ? "Prüfpunkt kontrolliert: " : "Checkpoint checked: ") + x[L], null, now());
   toast(t("t_verified")); render();
 }
 function doReset(c, x, reason) {
-  const s = c.cp[x.id];
-  s.state = "open"; s.by = null; s.vby = null;
-  lg(c, me, (L === "de" ? "Prüfpunkt zurückgesetzt: " : "Checkpoint reset: ") + x[L], reason, L === "de" ? "gerade" : "just now");
+  Object.assign(c.cp[x.id], { state:"open", by:null, vby:null });
+  lg(c, me, (L === "de" ? "Prüfpunkt zurückgesetzt: " : "Checkpoint reset: ") + x[L], reason, now());
   toast(t("t_reset")); render();
 }
 function doRelease(c, g) {
@@ -898,28 +998,56 @@ function doRelease(c, g) {
   if (!r.ok) return toast(r.why || "", true);
   c.gate[g] = { released:true, by:me, at:iso(new Date()) };
   syncStatus(c);
-  lg(c, me, "Gate " + g + (L === "de" ? " freigegeben" : " released"), null, L === "de" ? "gerade" : "just now");
+  lg(c, me, "Gate " + g + (L === "de" ? " freigegeben" : " released"), null, now());
   toast(t("t_released", { n:g })); render();
 }
 function doTake(c) {
   const d = M().dept;
   c.owner[d] = me; delete c.poolSince[d];
-  lg(c, me, (L === "de" ? "Vorgang aus dem Pool übernommen — " : "Case taken from pool — ") + DEPTS[d], null, L === "de" ? "gerade" : "just now");
+  lg(c, me, (L === "de" ? "Vorgang aus dem Pool übernommen — " : "Case taken from pool — ") + DEPTS[d], null, now());
   toast(t("t_taken")); render();
 }
 function doRequestException(c, x, reason) {
-  addExc(c, x.id, reason, me, "requested");
-  c.exc[c.exc.length - 1].at = L === "de" ? "gerade" : "just now";
-  lg(c, me, (L === "de" ? "Ausnahme beantragt — " : "Exception requested — ") + x[L], reason, L === "de" ? "gerade" : "just now");
+  addExc(c, x.id, reason, me, "requested", null, now());
+  lg(c, me, (L === "de" ? "Ausnahme beantragt — " : "Exception requested — ") + x[L], reason, now());
   toast(t("t_exc")); render();
 }
 function doDecideException(c, e, approve) {
-  e.status = approve ? "approved" : "rejected";
-  e.decBy = me; e.decAt = L === "de" ? "gerade" : "just now";
-  lg(c, me, ((approve ? (L === "de" ? "Ausnahme freigegeben — " : "Exception approved — ")
-                     : (L === "de" ? "Ausnahme abgelehnt — " : "Exception rejected — "))) + cat(e.cp)[L],
-     null, L === "de" ? "gerade" : "just now");
+  e.status = approve ? "approved" : "rejected"; e.decBy = me; e.decAt = now();
+  lg(c, me, (approve ? (L === "de" ? "Ausnahme freigegeben — " : "Exception approved — ")
+                     : (L === "de" ? "Ausnahme abgelehnt — " : "Exception rejected — ")) + cat(e.cp)[L], null, now());
   toast(approve ? t("t_excok") : t("t_excno")); render();
+}
+
+/* Anlegen: Firma, Trainee, Vorgang */
+function createCompany(name) {
+  const co = { id:nid("co"), name:name.trim() };
+  COMPANIES.push(co); return co;
+}
+function createTrainee(name, dob, companyId) {
+  const tr = { id:nid("tr"), name:name.trim(), dob:dob || null, co:companyId };
+  TRAINEES.push(tr); return tr;
+}
+/* ATO: Course Supervisor der Flotte, sonst Head of Training (Spec 8) */
+const resolveAto = type => (USERS.filter(u => u.dept === "ato" && u.role === "staff" && u.types.includes(type)).sort(byName)[0]
+  || USERS.find(u => u.fn === "head_of_training") || {}).id || null;
+
+function createCase(v) {
+  const u = M();
+  const c = blankCase({
+    traineeId:v.traineeId, companyId:v.companyId, type:v.type, course:v.course,
+    enquiry_date:v.enquiry || iso(new Date()),
+    course_start:v.start || null, course_end:v.end || null,
+    owner:{ sales: u.dept === "sales" ? me : null, training_admin:null, ato:resolveAto(v.type) }
+  });
+  CASES.push(c);
+  lg(c, me, L === "de" ? "Vorgang angelegt" : "Case created", null, now());
+  if (c.owner.sales) lg(c, me, (L === "de" ? "Zuständigkeit übernommen — " : "Responsibility taken — ") + DEPTS.sales, null, now());
+  if (c.owner.ato) lg(c, c.owner.ato, L === "de" ? "Zuständigkeit ATO automatisch über das Muster" : "ATO responsibility assigned automatically by aircraft type", null, now());
+  toast(t("t_case", { n:c.no }));
+  drawerCase = c; dtab = "gates"; chatScope = "case";
+  render();
+  return c;
 }
 
 /* ---------- Toast ---------- */
@@ -928,70 +1056,182 @@ function toast(text, bad) {
   const el = document.getElementById("toast");
   el.textContent = text; el.className = "toast on" + (bad ? " bad" : "");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = "toast" + (bad ? " bad" : ""); }, 3400);
+  toastTimer = setTimeout(() => { el.className = "toast" + (bad ? " bad" : ""); }, 3600);
 }
 
-/* ---------- Modal ---------- */
-let modalOk = null;
-function openModal({ title, text, value, placeholder, min, err, okLabel }) {
-  const m = document.getElementById("modal");
-  document.getElementById("mTitle").textContent = title;
-  document.getElementById("mText").textContent = text;
-  const inp = document.getElementById("mInput");
-  inp.value = value || ""; inp.placeholder = placeholder || "";
-  document.getElementById("mErr").textContent = "";
+/* ---------- Dialog ----------
+   build(values) liefert die Felder; Felder mit reactive:true zeichnen den
+   Dialog beim Ändern neu, damit abhängige Felder erscheinen.               */
+let dlg = null;
+function openDialog(cfg) { dlg = { cfg, values: Object.assign({}, cfg.values) }; renderDialog(); }
+function closeDialog() { document.getElementById("modal").classList.remove("on"); dlg = null; }
+function renderDialog(err) {
+  if (!dlg) return;
+  const { cfg, values } = dlg;
+  const fields = cfg.build(values);
+  document.getElementById("mTitle").textContent = cfg.title;
+  document.getElementById("mText").textContent = cfg.text || "";
+  document.getElementById("mErr").textContent = err || "";
   document.getElementById("mCancel").textContent = t("cancel");
-  document.getElementById("mOk").textContent = okLabel || t("ok");
-  m.classList.add("on"); inp.focus();
-  modalOk = () => {
-    const v = inp.value.trim();
-    if (v.length < min) { document.getElementById("mErr").textContent = err; return; }
-    m.classList.remove("on");
-    const cb = modalOk.cb; modalOk = null; cb(v);
-  };
-  return fn => { modalOk.cb = fn; };
+  document.getElementById("mOk").textContent = cfg.okLabel || t("ok");
+  document.getElementById("mBody").innerHTML = fields.map(f => {
+    if (f.type === "note") return `<div class="fld"><div class="notice" style="margin:0">${esc(f.label)}</div></div>`;
+    const v = values[f.name] == null ? "" : values[f.name];
+    const inner =
+      f.type === "select"
+        ? `<select data-f="${f.name}" ${f.reactive ? 'data-reactive="1"' : ""}>${
+            f.options.map(o => `<option value="${esc(o.v)}" ${String(o.v) === String(v) ? "selected" : ""}>${esc(o.l)}</option>`).join("")}</select>`
+      : f.type === "textarea"
+        ? `<textarea data-f="${f.name}" placeholder="${esc(f.placeholder || "")}">${esc(v)}</textarea>`
+        : `<input type="${f.type || "text"}" data-f="${f.name}" value="${esc(v)}"
+             placeholder="${esc(f.placeholder || "")}" ${f.list ? `list="${f.list}"` : ""}>`;
+    return `<div class="fld${f.half ? " half" : ""}">
+      <label for="">${esc(f.label)}</label>${inner}
+      ${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ""}
+      ${f.list ? `<datalist id="${f.list}">${(f.listOptions || []).map(o => `<option value="${esc(o)}"></option>`).join("")}</datalist>` : ""}
+    </div>`;
+  }).join("");
+  document.getElementById("modal").classList.add("on");
+  document.querySelectorAll("#mBody [data-f]").forEach(el => {
+    const handler = e => {
+      dlg.values[el.dataset.f] = e.target.value;
+      if (el.dataset.reactive) renderDialog();
+    };
+    el.oninput = handler; el.onchange = handler;
+  });
+  const first = document.querySelector("#mBody [data-f]");
+  if (first && !err) first.focus();
 }
-document.getElementById("mOk").onclick = () => modalOk && modalOk();
-document.getElementById("mCancel").onclick = () => { document.getElementById("modal").classList.remove("on"); modalOk = null; };
-document.getElementById("modal").onclick = e => {
-  if (e.target.id === "modal") { document.getElementById("modal").classList.remove("on"); modalOk = null; }
+document.getElementById("mOk").onclick = () => {
+  if (!dlg) return;
+  const e = dlg.cfg.validate ? dlg.cfg.validate(dlg.values) : null;
+  if (e) return renderDialog(e);
+  const { cfg, values } = dlg;
+  closeDialog();
+  cfg.onSubmit(values);
 };
+document.getElementById("mCancel").onclick = closeDialog;
+document.getElementById("modal").onclick = e => { if (e.target.id === "modal") closeDialog(); };
+
+/* Einfacher Textdialog (Begründung, Nachricht) */
+function askText({ title, text, label, value, min, err, okLabel, placeholder }, cb) {
+  openDialog({
+    title, text, okLabel, values:{ v:value || "" },
+    build: () => [{ name:"v", label, type:"textarea", placeholder }],
+    validate: v => (v.v || "").trim().length < min ? err : null,
+    onSubmit: v => cb(v.v.trim())
+  });
+}
+
+/* Vorgang anlegen */
+function dialogNewCase() {
+  if (!canCreateCase(M())) return toast(t("t_nocreate"), true);
+  const types = myTypes();
+  openDialog({
+    title:t("nc_t"), text:t("nc_p"), okLabel:t("create"),
+    values:{ company:"", trainee:"", type:types.length === 1 ? types[0] : "",
+             course:"", enquiry:iso(new Date()), start:"", end:"" },
+    build: v => {
+      const f = [];
+      f.push({ name:"company", label:t("f_company"), type:"select", reactive:true, options:
+        [{ v:"", l:t("opt_pick") }].concat(COMPANIES.slice().sort(byName).map(c => ({ v:c.id, l:c.name })))
+          .concat([{ v:"__new", l:t("opt_newco") }]) });
+      if (v.company === "__new") f.push({ name:"newco", label:t("f_newco"), type:"text", placeholder:"z. B. Alpin Jet Services" });
+      const pool = TRAINEES.filter(x => v.company && v.company !== "__new" ? x.co === v.company : false).sort(byName);
+      f.push({ name:"trainee", label:t("f_trainee"), type:"select", reactive:true, options:
+        [{ v:"", l:t("opt_pick") }].concat(pool.map(x => ({ v:x.id, l:x.name + (x.dob ? " · " + fmtDate(x.dob) : "") })))
+          .concat([{ v:"__new", l:t("opt_newtr") }]) });
+      if (v.trainee === "__new") {
+        f.push({ name:"newtr", label:t("f_newtr"), type:"text", placeholder:"Vorname Nachname" });
+        f.push({ name:"newdob", label:t("f_dob"), type:"date" });
+      }
+      f.push({ name:"type", label:t("f_aircraft"), type:"select",
+        hint: M().dept === "sales" && M().role === "staff" ? t("hint_types") : null,
+        options:[{ v:"", l:t("opt_pick") }].concat(types.slice().sort().map(x => ({ v:x, l:x }))) });
+      f.push({ name:"course", label:t("f_course"), type:"text", list:"courseTypes",
+        listOptions:COURSE_TYPES, placeholder:COURSE_TYPES[3] });
+      f.push({ name:"enquiry", label:t("f_enquiry"), type:"date" });
+      f.push({ name:"start", label:t("f_cstart"), type:"date", half:true });
+      f.push({ name:"end", label:t("f_cend"), type:"date", half:true });
+      f.push({ name:"__hint", label:t("hint_start"), type:"note" });
+      return f;
+    },
+    validate: v => {
+      if (!v.company) return t("e_company");
+      if (v.company === "__new" && (v.newco || "").trim().length < 2) return t("e_name");
+      if (v.company === "__new" && COMPANIES.some(c => c.name.toLowerCase() === (v.newco || "").trim().toLowerCase())) return t("e_conameDup");
+      if (!v.trainee) return t("e_trainee");
+      if (v.trainee === "__new" && (v.newtr || "").trim().length < 2) return t("e_name");
+      if (!v.type) return t("e_aircraft");
+      if (!(v.course || "").trim()) return t("e_course");
+      if (v.end && !v.start) return t("e_endonly");
+      if (v.start && v.end && v.end < v.start) return t("e_dates");
+      return null;
+    },
+    onSubmit: v => {
+      const companyId = v.company === "__new" ? createCompany(v.newco).id : v.company;
+      const traineeId = v.trainee === "__new" ? createTrainee(v.newtr, v.newdob, companyId).id : v.trainee;
+      createCase({ companyId, traineeId, type:v.type, course:v.course.trim(),
+        enquiry:v.enquiry, start:v.start, end:v.end });
+    }
+  });
+}
+function dialogNewCompany() {
+  openDialog({
+    title:t("nco_t"), text:t("nco_p"), okLabel:t("create"), values:{ name:"" },
+    build: () => [{ name:"name", label:t("f_newco"), type:"text", placeholder:"z. B. Alpin Jet Services" }],
+    validate: v => (v.name || "").trim().length < 2 ? t("e_name")
+      : COMPANIES.some(c => c.name.toLowerCase() === v.name.trim().toLowerCase()) ? t("e_conameDup") : null,
+    onSubmit: v => { createCompany(v.name); toast(t("t_co")); render(); }
+  });
+}
+function dialogNewTrainee(companyId) {
+  openDialog({
+    title:t("ntr_t"), text:t("ntr_p"), okLabel:t("create"), values:{ name:"", dob:"", co:companyId || "" },
+    build: () => [
+      { name:"name", label:t("f_newtr"), type:"text", placeholder:"Vorname Nachname" },
+      { name:"dob", label:t("f_dob"), type:"date" },
+      { name:"co", label:t("f_company"), type:"select",
+        options:[{ v:"", l:t("opt_pick") }].concat(COMPANIES.slice().sort(byName).map(c => ({ v:c.id, l:c.name }))) }
+    ],
+    validate: v => (v.name || "").trim().length < 2 ? t("e_name") : !v.co ? t("e_company") : null,
+    onSubmit: v => { createTrainee(v.name, v.dob, v.co); toast(t("t_tr")); render(); }
+  });
+}
 
 /* ---------- Render: Chrome ---------- */
+function navItems() {
+  const vis = visibleCases();
+  const nExc = vis.reduce((a,c) => a + c.exc.filter(e => e.status === "requested").length, 0);
+  return {
+    work:[["dash","nav_dash", vis.filter(isLate).length, true],
+          ["pool","nav_pool", vis.filter(inMyPool).length, false],
+          ["mine","nav_mine", vis.filter(isMine).length, false],
+          ["all","nav_all", vis.length, false]],
+    org:[["exc","nav_exc", nExc, true], ["data","nav_data", 0, false], ["admin","nav_admin", 0, false]]
+  };
+}
 function renderTop() {
   document.getElementById("brandSub").textContent = t("sub");
   document.getElementById("lblRole").textContent = t("loggedIn");
-  const s = document.getElementById("role");
-  s.innerHTML = USERS.map(u => {
+  document.getElementById("role").innerHTML = USERS.map(u => {
     const fn = u.fn === "director_training" ? " · Director Training"
              : u.fn === "head_of_training" ? " · Head of Training"
              : u.role === "teamleader" ? " · " + (L === "de" ? "Teamleitung" : "Team lead") : "";
     return `<option value="${u.id}" ${u.id === me ? "selected" : ""}>${esc(u.name)} — ${DEPTS[u.dept]}${fn}</option>`;
   }).join("");
 }
-function renderSide() {
-  const vis = visibleCases();
-  const nPool = vis.filter(inMyPool).length;
-  const nMine = vis.filter(isMine).length;
-  const nLate = vis.filter(isLate).length;
-  const nExc = vis.reduce((a,c) => a + c.exc.filter(e => e.status === "requested").length, 0);
-  const u = M();
-  const rows = [
-    ["dash","nav_dash", nLate || null, true],
-    ["pool","nav_pool", nPool || null, false],
-    ["mine","nav_mine", nMine || null, false],
-    ["all","nav_all", vis.length, false]
-  ];
+function renderNav() {
+  const n = navItems(), u = M();
+  const btn = ([k,lb,c,alert]) =>
+    `<button data-v="${k}" class="${view === k ? "on" : ""}">${t(lb)}${c ? `<span class="count${alert ? " alert" : ""}">${c}</span>` : ""}</button>`;
   document.getElementById("side").innerHTML =
-    `<div class="grp">${t("grp_work")}</div>` +
-    rows.map(([k,lb,n,alert]) =>
-      `<button data-v="${k}" class="${view === k ? "on" : ""}">${t(lb)}${n ? `<span class="count${alert ? " alert" : ""}">${n}</span>` : ""}</button>`).join("") +
-    `<div class="grp">${t("grp_org")}</div>` +
-    `<button data-v="exc" class="${view === "exc" ? "on" : ""}">${t("nav_exc")}${nExc ? `<span class="count alert">${nExc}</span>` : ""}</button>` +
-    `<button data-v="admin" class="${view === "admin" ? "on" : ""}">${t("nav_admin")}</button>` +
+    `<div class="grp">${t("grp_work")}</div>` + n.work.map(btn).join("") +
+    `<div class="grp">${t("grp_org")}</div>` + n.org.map(btn).join("") +
     `<div class="who"><b>${esc(u.name)}</b>${DEPTS[u.dept]} · ${
       u.role === "superadmin" ? "Superadmin" : u.role === "teamleader" ? (L === "de" ? "Teamleitung" : "Team lead") : (L === "de" ? "Mitarbeiter" : "Staff")
     }${u.dept === "sales" && u.role === "staff" ? "<br>" + (L === "de" ? "Muster: " : "Types: ") + u.types.join(", ") : ""}</div>`;
+  document.getElementById("mobnav").innerHTML = n.work.concat(n.org).map(btn).join("");
 }
 
 /* ---------- Render: Vorgangsbahn ---------- */
@@ -1002,9 +1242,9 @@ function trackHTML() {
   stages.forEach(([k,lb], i) => {
     if (i > 0) {
       const g = i;
-      const blocked = vis.filter(c => !c.gate[g].released && currentGate(c) === g && gateState(c,g) === "overdue").length;
-      h += `<div class="gatebar ${blocked ? "block" : ""}">
-        <div class="g"><b>${t("gate")} ${g}</b>${t("g" + g)}${blocked ? `<br>${blocked} ${t("overdue")}` : ""}</div></div>`;
+      const blocked = vis.filter(c => currentGate(c) === g && gateState(c, g) === "overdue").length;
+      h += `<div class="gatebar ${blocked ? "block" : ""}"><div class="g"><b>${t("gate")} ${g}</b>${t("g" + g)}${
+        blocked ? `<br>${blocked} ${t("overdue")}` : ""}</div></div>`;
     }
     const set = vis.filter(c => k === "in_progress" ? (c.status === "released" || c.status === "in_progress") : c.status === k);
     const late = set.filter(isLate).length;
@@ -1017,9 +1257,9 @@ function trackHTML() {
 
 /* ---------- Render: Filter ---------- */
 function filterHTML(n) {
-  const owners = USERS.filter(u => u.dept !== "dir");
-  return `<div class="filters">
+  return `<div class="filters ${filtersOpen ? "" : "compact"}">
     <input type="search" id="fq" placeholder="${t("f_search")}" value="${esc(F.q)}" aria-label="${t("f_search")}">
+    <button class="more" id="ftoggle">${filtersOpen ? t("f_less") : t("f_more")}</button>
     <select id="ftype" aria-label="${t("f_type")}"><option value="">${t("f_type")}</option>${
       TYPES.map(x => `<option ${F.type === x ? "selected" : ""}>${x}</option>`).join("")}</select>
     <select id="fstatus" aria-label="${t("f_status")}"><option value="">${t("f_status")}</option>${
@@ -1028,7 +1268,7 @@ function filterHTML(n) {
     <select id="fdept" aria-label="${t("f_dept")}"><option value="">${t("f_dept")}</option>${
       Object.keys(DEPTS).map(k => `<option value="${k}" ${F.dept === k ? "selected" : ""}>${DEPTS[k]}</option>`).join("")}</select>
     <select id="fowner" aria-label="${t("f_owner")}"><option value="">${t("f_owner")}</option>${
-      owners.map(u => `<option value="${u.id}" ${F.owner === u.id ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select>
+      USERS.slice().sort(byName).map(u => `<option value="${u.id}" ${F.owner === u.id ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select>
     <label class="chk"><input type="checkbox" id="flate" ${F.late ? "checked" : ""}> ${t("f_late")}</label>
     <label class="chk"><input type="checkbox" id="fpool" ${F.pool ? "checked" : ""}> ${t("f_pool")}</label>
     <button class="clear" id="fclear">${t("f_clear")}</button>
@@ -1038,7 +1278,7 @@ function filtered(base) {
   return base.filter(c => {
     if (F.q) {
       const q = F.q.toLowerCase();
-      if (!(c.trainee + c.co + c.no + c.type + c.course).toLowerCase().includes(q)) return false;
+      if (!(trName(c) + coName(c) + c.no + c.type + c.course).toLowerCase().includes(q)) return false;
     }
     if (F.type && c.type !== F.type) return false;
     if (F.status && c.status !== F.status) return false;
@@ -1050,84 +1290,129 @@ function filtered(base) {
   });
 }
 
-/* ---------- Render: Tabelle ---------- */
+/* ---------- Render: Liste ---------- */
 function stateChip(s) {
   const map = { open:"p-open", in_progress:"p-work", done:"p-done", overdue:"p-late", discarded:"p-open" };
   const lbl = { open:t("open"), in_progress:t("inwork"), done:t("done"), overdue:t("late"), discarded:t("st_discarded") };
   return `<span class="pill ${map[s]}">${lbl[s]}</span>`;
 }
-function tableHTML(rows, mode) {
+function listHTML(rows, mode) {
   if (!rows.length) return `<div class="tblwrap"><div class="empty"><b>${
     mode === "pool" ? t("pool_empty_t") : t("empty_t")}</b>${mode === "pool" ? t("pool_empty_s") : t("empty_s")}</div></div>`;
   const poolMode = mode === "pool";
-  return `<div class="tblwrap"><table>
+  const dept = M().dept;
+  const table = `<div class="tblwrap aslist"><table>
     <thead><tr>
       <th>${t("c_no")}</th><th>${t("c_trainee")}</th><th>${t("c_co")}</th><th>${t("c_type")}</th>
       <th>${t("c_start")}</th><th>${t("c_status")}</th>
-      ${poolMode ? `<th>${t("c_pool")}</th>` : `<th>${t("c_prog")}</th>`}
-      <th>${t("c_next")}</th><th>${poolMode ? "" : t("c_owner")}</th>
+      <th>${poolMode ? t("c_pool") : t("c_prog")}</th><th>${t("c_next")}</th><th>${poolMode ? "" : t("c_owner")}</th>
     </tr></thead><tbody>${rows.map(c => {
-      const nt = nextTask(c), st = caseState(c);
-      const dept = M().dept, ow = c.owner[dept];
-      const days = c.poolSince[dept] || 0;
+      const nt = nextTask(c), ow = c.owner[dept], days = c.poolSince[dept] || 0;
       return `<tr data-id="${c.id}">
         <td class="num">${c.no}</td>
-        <td class="tn">${esc(c.trainee)}</td>
-        <td class="co">${esc(c.co)}</td>
+        <td class="tn">${esc(trName(c))}</td>
+        <td class="co">${esc(coName(c))}</td>
         <td><span class="type">${c.type}</span></td>
         <td>${fmtStart(c)}</td>
-        <td>${stateChip(st)} <span class="co">${t("st_" + c.status)}</span></td>
+        <td>${stateChip(caseState(c))} <span class="co">${t("st_" + c.status)}</span></td>
         ${poolMode
-          ? `<td><span class="num">${days} ${t("c_days")}</span>${days >= 2 ? ` <span class="pill p-late">${L === "de" ? "Liegenbleiber" : "Stale"}</span>` : ""}</td>`
+          ? `<td><span class="num">${days} ${t("c_days")}</span>${days >= 2 ? ` <span class="pill p-late">${t("stale")}</span>` : ""}</td>`
           : `<td><div class="prog"><div class="bar"><i style="width:${progress(c)}%"></i></div><span>${progress(c)}%</span></div></td>`}
-        <td style="font-size:12.5px;color:var(--ink-soft)">${nt ? esc(nt[L]) : "—"}${
-          nt ? `<br><span class="num">${DEPTS[nt.d]}</span>` : ""}</td>
-        <td>${poolMode
-          ? `<button class="pill p-pool" data-take="${c.id}">${t("take")}</button>`
+        <td class="co">${nt ? esc(nt[L]) + `<br><span class="num">${DEPTS[nt.d]}</span>` : t("none")}</td>
+        <td>${poolMode ? `<button class="pill p-pool" data-take="${c.id}">${t("take")}</button>`
           : ow ? `<span style="font-size:12.5px">${esc(user(ow).name)}</span>`
                : `<span class="pill p-pool">${t("unassigned")}</span>`}</td>
-      </tr>`;
-    }).join("")}</tbody></table></div>`;
+      </tr>`; }).join("")}</tbody></table></div>`;
+
+  const cards = `<div class="cards">${rows.map(c => {
+    const nt = nextTask(c), ow = c.owner[dept], days = c.poolSince[dept] || 0;
+    return `<article class="card" data-id="${c.id}">
+      <div class="top"><span class="num">${c.no}</span><span class="type">${c.type}</span>${stateChip(caseState(c))}</div>
+      <h4>${esc(trName(c))}</h4>
+      <div class="sub"><span>${esc(coName(c))}</span><span>·</span><span>${esc(c.course)}</span></div>
+      <div class="sub"><span>${t("c_start")}: ${fmtStart(c)}</span></div>
+      ${nt ? `<div class="next">${t("c_next")}: <b>${esc(nt[L])}</b> · ${DEPTS[nt.d]}</div>` : ""}
+      <div class="foot">
+        ${poolMode
+          ? `<span class="co">${t("inpool", { n:days })}</span>${days >= 2 ? `<span class="pill p-late">${t("stale")}</span>` : ""}
+             <button class="btn-primary" style="margin-left:auto" data-take="${c.id}">${t("take")}</button>`
+          : `<div class="prog"><div class="bar"><i style="width:${progress(c)}%"></i></div><span>${progress(c)}%</span></div>
+             <span class="co" style="margin-left:auto">${ow ? esc(user(ow).name) : t("unassigned")}</span>`}
+      </div></article>`; }).join("")}</div>`;
+  return table + cards;
 }
 
 /* ---------- Render: Views ---------- */
 function renderMain() {
   const m = document.getElementById("main");
   const vis = visibleCases();
+  const newBtn = canCreateCase(M()) ? `<button class="btn-primary" id="newCase">+ ${t("new_case")}</button>` : "";
+  const head = (title, sub, extra) => `<div class="hd"><div><h1>${t(title)}</h1><p>${t(sub)}</p></div>${extra || ""}</div>`;
 
   if (view === "admin") {
-    m.innerHTML = `<div class="hd"><div><h1>${t("admin_t")}</h1><p>${t("admin_s")}</p></div></div>
-      <div class="notice">${t("admin_note")}</div>
-      <div class="tblwrap"><table class="admtbl"><thead><tr>
+    m.innerHTML = head("admin_t","admin_s") + `<div class="notice">${t("admin_note")}</div>
+      <div class="tblwrap"><table><thead><tr>
         <th>${t("cat_gate")}</th><th>${t("cat_lb")}</th><th>${t("cat_dept")}</th>
         <th>${t("cat_m")}</th><th>${t("cat_4")}</th><th>${t("cat_dl")}</th><th>${t("cat_ev")}</th>
-      </tr></thead><tbody>${CAT.map(x => `<tr style="cursor:default">
+      </tr></thead><tbody>${CAT.map(x => `<tr>
         <td class="num">${x.g}</td>
-        <td>${esc(x[L])}${x.needsGate ? ` <span class="pill p-exc">${L === "de" ? "Gate-3-Sperre" : "Gate 3 lock"}</span>` : ""}</td>
+        <td>${esc(x[L])}${x.needsGate ? ` <span class="pill p-exc">${t("g3lock")}</span>` : ""}</td>
         <td class="co">${DEPTS[x.d]}</td>
-        <td>${x.m ? t("yes") : t("no")}</td>
-        <td>${x.f ? `<span class="four">${t("fourEyes")}</span>` : t("no")}</td>
+        <td>${x.m ? t("yes") : t("none")}</td>
+        <td>${x.f ? `<span class="four">${t("fourEyes")}</span>` : t("none")}</td>
         <td class="co">${x.days} ${t("anchor_" + x.a)}</td>
-        <td class="co">${x.ev ? esc(x.ev) : t("no")}</td>
+        <td class="co">${x.ev ? esc(x.ev) : t("none")}</td>
       </tr>`).join("")}</tbody></table></div>`;
-    return;
+    wireMain(); return;
+  }
+
+  if (view === "data") {
+    const caseCountCo = id => CASES.filter(c => c.companyId === id && canView(c)).length;
+    const caseCountTr = id => CASES.filter(c => c.traineeId === id && canView(c)).length;
+    m.innerHTML = head("data_t","data_s") + `
+      <section class="panel">
+        <header><h2>${t("d_co")} <span class="co">(${COMPANIES.length})</span></h2>
+          <button class="btn-ghost" id="newCo">+ ${t("new_co")}</button></header>
+        <div class="tblwrap"><table><thead><tr>
+          <th>${t("c_co")}</th><th>${t("d_tr")}</th><th>${t("d_cases")}</th><th>${t("tab_chat")}</th>
+        </tr></thead><tbody>${COMPANIES.slice().sort(byName).map(co => `<tr>
+          <td class="tn">${esc(co.name)}</td>
+          <td class="co">${TRAINEES.filter(x => x.co === co.id).length}</td>
+          <td class="co">${caseCountCo(co.id)}</td>
+          <td class="co">${thread("company", co.id).length}${
+            unread("company", co.id) ? ` <span class="pill p-late">${unread("company", co.id)}</span>` : ""}</td>
+        </tr>`).join("")}</tbody></table></div>
+      </section>
+      <section class="panel">
+        <header><h2>${t("d_tr")} <span class="co">(${TRAINEES.length})</span></h2>
+          <button class="btn-ghost" id="newTr">+ ${t("new_tr")}</button></header>
+        <div class="tblwrap"><table><thead><tr>
+          <th>${t("c_trainee")}</th><th>${t("f_dob")}</th><th>${t("c_co")}</th><th>${t("d_cases")}</th><th>${t("tab_chat")}</th>
+        </tr></thead><tbody>${TRAINEES.slice().sort(byName).map(tr => `<tr>
+          <td class="tn">${esc(tr.name)}</td>
+          <td class="co">${tr.dob ? fmtDate(tr.dob) : t("none")}</td>
+          <td class="co">${esc(company(tr.co).name)}</td>
+          <td class="co">${caseCountTr(tr.id)}</td>
+          <td class="co">${thread("trainee", tr.id).length}${
+            unread("trainee", tr.id) ? ` <span class="pill p-late">${unread("trainee", tr.id)}</span>` : ""}</td>
+        </tr>`).join("")}</tbody></table></div>
+      </section>`;
+    wireMain(); return;
   }
 
   if (view === "exc") {
     const all = [];
     vis.forEach(c => c.exc.forEach(e => all.push({ c, e })));
-    all.sort((a,b) => (a.e.status === "requested" ? -1 : 1) - (b.e.status === "requested" ? -1 : 1));
-    m.innerHTML = `<div class="hd"><div><h1>${t("exc_t")}</h1><p>${t("exc_s")}</p></div></div>
-      ${canDecideExceptions(M()) ? "" : `<div class="notice">${t("ex_only")}</div>`}
-      ${all.length ? `<div class="exlist">${all.map(({ c, e }) => {
-        const x = cat(e.cp);
-        const cls = { requested:"p-work", approved:"p-done", rejected:"p-late" }[e.status];
-        return `<div class="excard">
-          <div class="m">
+    all.sort((a,b) => (a.e.status === "requested" ? 0 : 1) - (b.e.status === "requested" ? 0 : 1));
+    m.innerHTML = head("exc_t","exc_s") +
+      (canDecideExceptions(M()) ? "" : `<div class="notice">${t("ex_only")}</div>`) +
+      (all.length ? `<div class="exlist">${all.map(({ c, e }) => {
+        const x = cat(e.cp), cls = { requested:"p-work", approved:"p-done", rejected:"p-late" }[e.status];
+        return `<div class="excard"><div class="m">
             <span class="pill ${cls}">${t("ex_" + e.status)}</span>
             <span class="num" style="margin-left:8px">${c.no}</span>
             <span class="type" style="margin-left:6px">${c.type}</span>
-            <span style="margin-left:6px;font-weight:600">${esc(c.trainee)}</span>
+            <span style="margin-left:6px;font-weight:600">${esc(trName(c))}</span>
             <div class="rsn">${t("gate")} ${x.g} · ${esc(x[L])} · ${DEPTS[x.d]}</div>
             <div class="rsn" style="color:var(--ink-soft)">„${esc(e.reason)}"</div>
             <div class="sub">${t("ex_by")} ${esc(user(e.by).name)}, ${e.at}${
@@ -1136,15 +1421,15 @@ function renderMain() {
           ${e.status === "requested" && canDecideExceptions(M()) ? `<div class="acts">
             <button class="ok" data-exok="${c.id}|${e.id}">${t("ex_approve")}</button>
             <button data-exno="${c.id}|${e.id}">${t("ex_reject")}</button></div>` : ""}
-        </div>`;
-      }).join("")}</div>` : `<div class="tblwrap"><div class="empty"><b>${t("exc_empty_t")}</b>${t("exc_empty_s")}</div></div>`}`;
+        </div>`; }).join("")}</div>`
+        : `<div class="tblwrap"><div class="empty"><b>${t("exc_empty_t")}</b>${t("exc_empty_s")}</div></div>`);
     wireMain(); return;
   }
 
   let base = vis, title = "all_t", sub = "all_s", mode = "all";
-  if (view === "pool")  { base = vis.filter(inMyPool); title = "pool_t"; sub = "pool_s"; mode = "pool"; }
-  if (view === "mine")  { base = vis.filter(isMine);   title = "mine_t"; sub = "mine_s"; }
-  if (view === "dash")  { title = "dash_t"; sub = "dash_s"; }
+  if (view === "pool") { base = vis.filter(inMyPool); title = "pool_t"; sub = "pool_s"; mode = "pool"; }
+  if (view === "mine") { base = vis.filter(isMine);   title = "mine_t"; sub = "mine_s"; }
+  if (view === "dash") { title = "dash_t"; sub = "dash_s"; }
   const rows = filtered(base);
 
   let body = "";
@@ -1162,13 +1447,13 @@ function renderMain() {
       <div class="kpi"><div class="n">${exc}</div><div class="lb">${t("k_exc")}</div></div>
       <div class="kpi warn"><div class="n">${g3}</div><div class="lb">${t("k_g3")}</div></div>
       <div class="kpi ok"><div class="n">${cl}</div><div class="lb">${t("k_closed")}</div></div>
-    </div><div class="notice">${t("notice_vis")}</div>` + filterHTML(rows.length) + tableHTML(rows, mode);
+    </div><div class="notice">${t("notice_vis")}</div>` + filterHTML(rows.length) + listHTML(rows, mode);
   } else if (view === "pool") {
-    body = `<div class="notice">${t("notice_pool")}</div>` + filterHTML(rows.length) + tableHTML(rows, mode);
+    body = `<div class="notice">${t("notice_pool")}</div>` + filterHTML(rows.length) + listHTML(rows, mode);
   } else {
-    body = filterHTML(rows.length) + tableHTML(rows, mode);
+    body = filterHTML(rows.length) + listHTML(rows, mode);
   }
-  m.innerHTML = `<div class="hd"><div><h1>${t(title)}</h1><p>${t(sub)}</p></div></div>` + body;
+  m.innerHTML = head(title, sub, newBtn) + body;
   wireMain();
 }
 
@@ -1176,21 +1461,18 @@ function renderMain() {
 function cpHTML(c, x) {
   const s = c.cp[x.id];
   const exc = approvedExc(c, x.id), pend = pendingExc(c, x.id);
-  const comp = canComplete(c, x), ver = canVerify(c, x);
-  const overdue = cpOverdue(c, x);
-  const state = exc ? "excepted" : s.state === "verified" ? "done" : s.state === "completed" ? "waiting" : overdue ? "late" : "open";
+  const comp = canComplete(c, x), ver = canVerify(c, x), overdue = cpOverdue(c, x);
+  const state = exc ? "excepted" : s.state === "verified" ? "done"
+              : s.state === "completed" ? "waiting" : overdue ? "late" : "open";
 
-  let boxCls = "", boxTxt = "", boxDis = true, act = "";
+  let boxCls = "", boxTxt = "", boxDis = true, act = "x";
   if (exc) { boxCls = "exc"; boxTxt = "A"; }
   else if (s.state === "verified") { boxCls = "full"; boxTxt = "✓"; }
-  else if (s.state === "completed") {
-    boxCls = "half"; boxTxt = "✓";
-    if (ver.ok) { boxDis = false; act = "verify"; }
-  } else if (comp.ok) { boxDis = false; act = "complete"; }
+  else if (s.state === "completed") { boxCls = "half"; boxTxt = "✓"; if (ver.ok) { boxDis = false; act = "verify"; } }
+  else if (comp.ok) { boxDis = false; act = "complete"; }
 
-  const sub = [];
-  sub.push(`<span>${DEPTS[x.d]}</span>`);
-  if (!x.m) sub.push(`<span class="opt">optional</span>`);
+  const sub = [`<span>${DEPTS[x.d]}</span>`];
+  if (!x.m) sub.push(`<span class="opt">${t("optional")}</span>`);
   if (x.f) sub.push(`<span class="four">${t("fourEyes")}</span>`);
   if (s.due) sub.push(`<span class="due${overdue ? " late" : ""}">${t("deadline")} ${fmtDate(s.due)}</span>`);
   if (x.ev) sub.push(`<span>${t("evidence")}: ${esc(x.ev)}</span>`);
@@ -1200,7 +1482,7 @@ function cpHTML(c, x) {
   const why = [];
   if (!exc && s.state === "completed" && !ver.ok && ver.why) why.push({ txt:ver.why, neutral:ver.why === t("lock_own") });
   if (!exc && s.state === "open" && comp.why) why.push({ txt:comp.why, neutral:!comp.hard && !overdue });
-  if (pend) why.push({ txt:(L === "de" ? "Ausnahme beantragt, Entscheidung offen" : "Exception requested, decision pending"), neutral:true });
+  if (pend) why.push({ txt:L === "de" ? "Ausnahme beantragt, Entscheidung offen" : "Exception requested, decision pending", neutral:true });
 
   const acts = [];
   if (!exc && s.state === "completed" && ver.ok) acts.push(`<button data-verify="${x.id}">${t("verify")}</button>`);
@@ -1214,8 +1496,8 @@ function cpHTML(c, x) {
                  open:`<span class="pill p-open">${t("open")}</span>` }[state];
 
   return `<div class="cp ${s.state === "verified" ? "done" : ""} ${exc ? "excepted" : ""}">
-    <button class="box ${boxCls}" ${boxDis ? "disabled" : ""} data-${act}="${x.id}"
-      aria-label="${esc(x[L])}" title="${esc(x[L])}">${boxTxt}</button>
+    <button class="box ${boxCls}" ${boxDis ? "disabled" : ""} data-${act}="${x.id}" title="${esc(x[L])}"
+      aria-label="${esc(x[L])}">${boxTxt}</button>
     <span class="txt">
       <span class="lbl">${esc(x[L])}</span>
       <span class="sub">${sub.join("")}</span>
@@ -1231,8 +1513,7 @@ function gateHTML(c, g) {
   const recv = GATE_RECEIVER[g];
   const open = openMandatory(c, g).length;
   const locked = g > 1 && !c.gate[g - 1].released;
-  /* Ein freigegebenes Gate ist abgearbeitet und startet eingeklappt, damit die
-     offene Arbeit oben steht. Aufklappen bleibt jederzeit möglich. */
+  /* Ein freigegebenes Gate ist abgearbeitet und startet eingeklappt. */
   const folded = c.gate[g].released && !expanded.has(c.id + ":" + g);
   return `<div class="gate ${locked ? "locked" : ""} ${c.gate[g].released ? "released" : ""} ${folded ? "folded" : ""}">
     <header>
@@ -1248,50 +1529,51 @@ function gateHTML(c, g) {
         : `<button class="btn" ${rel.ok ? "" : "disabled"} data-rel="${g}">${t("release")}</button>
            <span class="note">${open ? `<b>${open}</b> ${open === 1 ? t("need1") : t("need")}` : t("allDone")}${
              rel.ok ? "" : rel.why ? ` · ${esc(rel.why)}` : ""}</span>`}
-    </div>
-  </div>`;
+    </div></div>`;
 }
 function chatHTML(c) {
-  const counts = { case:0, trainee:0, company:0 };
-  c.chat.forEach(m => counts[m.scope]++);
-  const list = c.chat.filter(m => m.scope === chatScope);
+  const scopes = [["case", c.id, t("ctx_case")],
+                  ["trainee", c.traineeId, t("ctx_trainee") + ": " + trName(c)],
+                  ["company", c.companyId, t("ctx_company") + ": " + coName(c)]];
+  const cur = scopes.find(s => s[0] === chatScope) || scopes[0];
+  const list = thread(cur[0], cur[1]);
+  markRead(cur[0], cur[1]);
   const av = { sales:"s", training_admin:"t", ato:"a" };
   const openCps = CAT.filter(x => !cpDone(c, x));
   return `<div class="notice">${t("keep")}</div>
-  <div class="ctx">
-    <button data-sc="case" class="${chatScope === "case" ? "on" : ""}">${t("ctx_case")}${counts.case ? `<span class="b">${counts.case}</span>` : ""}</button>
-    <button data-sc="trainee" class="${chatScope === "trainee" ? "on" : ""}">${t("ctx_trainee")}: ${esc(c.trainee)}${counts.trainee ? `<span class="b">${counts.trainee}</span>` : ""}</button>
-    <button data-sc="company" class="${chatScope === "company" ? "on" : ""}">${t("ctx_co")}: ${esc(c.co)}${counts.company ? `<span class="b">${counts.company}</span>` : ""}</button>
-  </div>
+  <div class="ctx">${scopes.map(([sc, id, lb]) => {
+    const u = unread(sc, id);
+    return `<button data-sc="${sc}" class="${chatScope === sc ? "on" : ""}">${esc(lb)}${
+      u ? `<span class="b">${u}</span>` : ""}</button>`; }).join("")}</div>
+  ${cur[0] !== "case" ? `<div class="notice">${t("scope_" + cur[0])}</div>` : ""}
   ${list.length ? list.map(m => {
     const u = user(m.uid), x = m.ref ? cat(m.ref) : null;
+    const src = m.caseId && m.caseId !== c.id ? findCase(m.caseId) : null;
     return `<div class="msg">
       <div class="av ${av[u.dept] || "d"}">${initials(u.name)}</div>
       <div style="flex:1;min-width:0">
         <div class="row"><span class="who">${esc(u.name)}</span><span class="dept">${DEPTS[u.dept]}</span>
-          <span class="tm">${m.when}${m.edited ? ` · <span class="edited">${t("edited")}</span>` : ""}</span></div>
+          <span class="tm">${esc(m.when)}${m.edited ? ` · <span class="edited">${t("edited")}</span>` : ""}</span></div>
         <div class="body">${m.txt}</div>
         ${x ? `<span class="ref">↳ ${t("refTo")} ${esc(x[L])}</span>` : ""}
-        ${m.uid === me ? `<div><button class="edit" data-editmsg="${m.id}">${t("edit")}</button></div>` : ""}
-      </div></div>`;
-  }).join("") : `<div class="empty" style="padding:26px 0"><b>${t("empty_t")}</b></div>`}
+        ${src ? `<div class="case">${t("fromCase")} ${src.no} · ${esc(trName(src))}</div>` : ""}
+        ${m.uid === me ? `<div><button class="edit" data-editmsg="${cur[0]}|${cur[1]}|${m.id}">${t("edit")}</button></div>` : ""}
+      </div></div>`; }).join("")
+    : `<div class="empty" style="padding:26px 0"><b>${t("empty_t")}</b></div>`}
   <div class="composer">
     <textarea id="cmsg" placeholder="${t("ph")}"></textarea>
     <footer>
       <select id="cref"><option value="">${t("noRef")}</option>${
         openCps.map(x => `<option value="${x.id}">${t("refTo")} ${esc(x[L])}</option>`).join("")}</select>
-      <span class="keep">${t("keep")}</span>
       <button class="send" id="csend">${t("send")}</button>
     </footer>
   </div>`;
 }
-function logHTML(c) {
-  return `<div class="log">${c.log.map(e => `<div class="e">
-    <span class="t">${e.when}</span>
-    <span><b>${e.who === "system" ? "System" : esc(user(e.who).name)}</b> — ${esc(e.txt)}
-      ${e.reason ? `<span class="rsn">„${esc(e.reason)}"</span>` : ""}</span>
-  </div>`).join("")}</div>`;
-}
+const logHTML = c => `<div class="log">${c.log.map(e => `<div class="e">
+  <span class="t">${esc(e.when)}</span>
+  <span><b>${e.who === "system" ? "System" : esc(user(e.who).name)}</b> — ${esc(e.txt)}
+    ${e.reason ? `<span class="rsn">„${esc(e.reason)}"</span>` : ""}</span></div>`).join("")}</div>`;
+
 function renderDrawer() {
   const d = document.getElementById("drawer");
   if (!drawerCase) {
@@ -1302,20 +1584,21 @@ function renderDrawer() {
   const ow = Object.entries(c.owner).map(([k,v]) =>
     v ? `${DEPTS[k]}: ${esc(user(v).name)}` : `${DEPTS[k]}: <span class="pill p-pool">${t("unassigned")}</span>`).join(" · ");
   const g3warn = c.course_end && daysTo(c.course_end) < 0 && !c.gate[3].released && openMandatory(c,3).length;
+  const nUnread = unread("case", c.id) + unread("trainee", c.traineeId) + unread("company", c.companyId);
 
   d.innerHTML = `
     <div class="dhd">
       <div>
-        <h2>${esc(c.trainee)}</h2>
+        <h2>${esc(trName(c))}</h2>
         <div class="meta"><span class="num">${c.no}</span><span class="type">${c.type}</span>
-          <span>${esc(c.co)}</span><span>${esc(c.course)}</span><span>${fmtStart(c)}</span>${stateChip(caseState(c))}</div>
+          <span>${esc(coName(c))}</span><span>${esc(c.course)}</span><span>${fmtStart(c)}</span>${stateChip(caseState(c))}</div>
         <div class="meta">${ow}</div>
       </div>
       <button class="x" id="dx" aria-label="${t("cancel")}">×</button>
     </div>
     <div class="tabs">
       <button data-tab="gates" class="${dtab === "gates" ? "on" : ""}">${t("tab_gates")}</button>
-      <button data-tab="chat" class="${dtab === "chat" ? "on" : ""}">${t("tab_chat")}${c.chat.length ? ` (${c.chat.length})` : ""}</button>
+      <button data-tab="chat" class="${dtab === "chat" ? "on" : ""}">${t("tab_chat")}${nUnread ? ` (${nUnread})` : ""}</button>
       <button data-tab="log" class="${dtab === "log" ? "on" : ""}">${t("tab_log")}</button>
     </div>
     <div class="dbody">${
@@ -1334,9 +1617,13 @@ function renderDrawer() {
 /* ---------- Wiring ---------- */
 function wireMain() {
   const q = id => document.getElementById(id);
+  if (q("newCase")) q("newCase").onclick = dialogNewCase;
+  if (q("newCo")) q("newCo").onclick = dialogNewCompany;
+  if (q("newTr")) q("newTr").onclick = () => dialogNewTrainee();
   if (q("fq")) {
     q("fq").oninput = e => { F.q = e.target.value; renderMain();
       const el = q("fq"); el.focus(); el.setSelectionRange(F.q.length, F.q.length); };
+    q("ftoggle").onclick = () => { filtersOpen = !filtersOpen; renderMain(); };
     q("ftype").onchange   = e => { F.type = e.target.value; renderMain(); };
     q("fstatus").onchange = e => { F.status = e.target.value; renderMain(); };
     q("fdept").onchange   = e => { F.dept = e.target.value; renderMain(); };
@@ -1349,18 +1636,18 @@ function wireMain() {
     F.status = F.status === b.dataset.stage ? "" : b.dataset.stage; renderMain();
   });
   document.querySelectorAll("[data-take]").forEach(b => b.onclick = e => {
-    e.stopPropagation(); doTake(CASES.find(c => c.id === b.dataset.take));
+    e.stopPropagation(); doTake(findCase(b.dataset.take));
   });
   document.querySelectorAll("[data-exok]").forEach(b => b.onclick = () => {
-    const [cid, eid] = b.dataset.exok.split("|"); const c = CASES.find(x => x.id === cid);
+    const [cid, eid] = b.dataset.exok.split("|"); const c = findCase(cid);
     doDecideException(c, c.exc.find(e => e.id === eid), true);
   });
   document.querySelectorAll("[data-exno]").forEach(b => b.onclick = () => {
-    const [cid, eid] = b.dataset.exno.split("|"); const c = CASES.find(x => x.id === cid);
+    const [cid, eid] = b.dataset.exno.split("|"); const c = findCase(cid);
     doDecideException(c, c.exc.find(e => e.id === eid), false);
   });
-  document.querySelectorAll("tbody tr[data-id]").forEach(tr => tr.onclick = () => {
-    drawerCase = CASES.find(c => c.id === tr.dataset.id); dtab = "gates"; chatScope = "case"; renderDrawer();
+  document.querySelectorAll("[data-id]").forEach(el => el.onclick = () => {
+    drawerCase = findCase(el.dataset.id); dtab = "gates"; chatScope = "case"; renderDrawer();
   });
 }
 function wireDrawer() {
@@ -1377,36 +1664,35 @@ function wireDrawer() {
   });
   document.querySelectorAll("[data-reset]").forEach(b => b.onclick = () => {
     const x = cat(b.dataset.reset);
-    openModal({ title:t("m_res_t"), text:t("m_res_p") + " — " + x[L], min:5, err:t("m_res_e"), okLabel:t("ok") })
-      (reason => doReset(c, x, reason));
+    askText({ title:t("m_res_t"), text:t("m_res_p") + " — " + x[L], label:t("m_reason"),
+      min:5, err:t("m_res_e"), okLabel:t("ok") }, r => doReset(c, x, r));
   });
   document.querySelectorAll("[data-exc]").forEach(b => b.onclick = () => {
     const x = cat(b.dataset.exc);
-    openModal({ title:t("m_exc_t"), text:t("m_exc_p") + " — " + x[L], min:10, err:t("m_exc_e"), okLabel:t("request") })
-      (reason => doRequestException(c, x, reason));
+    askText({ title:t("m_exc_t"), text:t("m_exc_p") + " — " + x[L], label:t("m_reason"),
+      min:10, err:t("m_exc_e"), okLabel:t("request") }, r => doRequestException(c, x, r));
   });
   const tk = document.getElementById("dtake");
   if (tk) tk.onclick = () => doTake(c);
   document.querySelectorAll("[data-sc]").forEach(b => b.onclick = () => { chatScope = b.dataset.sc; renderDrawer(); });
   document.querySelectorAll("[data-editmsg]").forEach(b => b.onclick = () => {
-    const m = c.chat.find(x => x.id === b.dataset.editmsg);
-    const plain = m.txt.replace(/<[^>]+>/g, "");
-    openModal({ title:t("m_edit_t"), text:t("m_edit_p"), value:plain, min:1, err:t("m_edit_e"), okLabel:t("save") })(v => {
-      m.history.push({ body:m.txt, by:me, at:L === "de" ? "gerade" : "just now" });
-      m.txt = esc(v); m.edited = true;
-      lg(c, me, L === "de" ? "Nachricht bearbeitet" : "Message edited", null, L === "de" ? "gerade" : "just now");
-      toast(t("t_edited")); render();
-    });
+    const [sc, id, mid] = b.dataset.editmsg.split("|");
+    const m = thread(sc, id).find(x => x.id === mid);
+    askText({ title:t("m_edit_t"), text:t("m_edit_p"), label:t("m_msg"),
+      value:m.txt.replace(/<[^>]+>/g, ""), min:1, err:t("m_edit_e"), okLabel:t("save") }, v => {
+        m.history.push({ body:m.txt, by:me, at:now() });
+        m.txt = esc(v); m.edited = true;
+        lg(c, me, L === "de" ? "Nachricht bearbeitet" : "Message edited", null, now());
+        toast(t("t_edited")); render();
+      });
   });
   const sd = document.getElementById("csend");
   if (sd) sd.onclick = () => {
     const ta = document.getElementById("cmsg");
     if (!ta.value.trim()) return;
-    const ref = document.getElementById("cref").value || null;
-    c.chat.push({ id:"m" + Math.random().toString(36).slice(2,7), scope:chatScope, uid:me,
-      txt:esc(ta.value.trim()), when:L === "de" ? "gerade" : "just now", ref, edited:false, history:[] });
-    lg(c, me, (L === "de" ? "Nachricht hinzugefügt — " : "Message added — ") + t("ctx_" + (chatScope === "company" ? "co" : chatScope)),
-       null, L === "de" ? "gerade" : "just now");
+    const id = chatScope === "case" ? c.id : chatScope === "trainee" ? c.traineeId : c.companyId;
+    msg(chatScope, id, me, esc(ta.value.trim()), now(), document.getElementById("cref").value || null, c.id);
+    lg(c, me, (L === "de" ? "Nachricht hinzugefügt — " : "Message added — ") + t("ctx_" + chatScope), null, now());
     toast(t("t_msg")); render();
   };
 }
@@ -1414,9 +1700,8 @@ function closeDrawer() { drawerCase = null; renderDrawer(); }
 document.getElementById("scrim").onclick = closeDrawer;
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
-  if (document.getElementById("modal").classList.contains("on")) {
-    document.getElementById("modal").classList.remove("on"); modalOk = null;
-  } else closeDrawer();
+  if (document.getElementById("modal").classList.contains("on")) closeDialog();
+  else closeDrawer();
 });
 document.getElementById("role").onchange = e => { me = e.target.value; render(); };
 document.querySelectorAll(".lang button").forEach(b => b.onclick = () => {
@@ -1424,14 +1709,11 @@ document.querySelectorAll(".lang button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".lang button").forEach(x => x.classList.toggle("on", x === b));
   render();
 });
-document.getElementById("side").addEventListener("click", e => {
+["side","mobnav"].forEach(id => document.getElementById(id).addEventListener("click", e => {
   const b = e.target.closest("[data-v]"); if (!b) return;
-  view = b.dataset.v; renderMain(); renderSide();
-});
+  view = b.dataset.v; renderMain(); renderNav();
+}));
 
-function render() { renderTop(); renderSide(); renderMain(); renderDrawer(); }
+function render() { renderTop(); renderNav(); renderMain(); renderDrawer(); }
 render();
-/* Startzustand: die Vorgangsakte mit der Gate-3-Sperre ist offen, damit der
-   Kern des Modells ohne Suchen sichtbar ist. */
-drawerCase = CASES[6]; dtab = "gates"; renderDrawer();
 </script>
