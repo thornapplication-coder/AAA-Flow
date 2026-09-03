@@ -65,7 +65,7 @@ button:disabled{cursor:not-allowed}
 .mobnav .count{font-size:11px;margin-left:5px;font-variant-numeric:tabular-nums}
 .mobnav .count.alert{color:#F0A192;font-weight:700}
 
-.main{padding:22px 24px 60px;flex:1;min-width:0}
+.main{padding:22px 24px 96px;flex:1;min-width:0}
 .hd{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap}
 .hd h1{font-size:21px;font-weight:600;letter-spacing:-.015em;text-wrap:balance}
 .hd p{color:var(--ink-soft);font-size:13px;margin-top:3px;max-width:66ch}
@@ -159,7 +159,7 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .tabs{display:flex;gap:2px;padding:0 14px;border-bottom:1px solid var(--line);background:var(--surface-2);overflow-x:auto}
 .tabs button{padding:11px 13px;font-size:13.5px;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tabs button.on{color:var(--navy-700);border-bottom-color:var(--navy-600);font-weight:600}
-.dbody{flex:1;overflow-y:auto;padding:18px 20px 40px}
+.dbody{flex:1;overflow-y:auto;padding:18px 20px 96px}
 
 /* ---------- Gate-Panel ---------- */
 .gate{border:1px solid var(--line);border-radius:8px;margin-bottom:14px;overflow:hidden}
@@ -262,8 +262,49 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .modal .btns .go{background:var(--navy-600);color:#fff;border-color:var(--navy-600)}
 .modal .btns .go:hover{background:var(--navy-700)}
 
+/* ---------- Anmeldung ---------- */
+.login{position:fixed;inset:0;overflow-y:auto;display:none;
+  background:linear-gradient(160deg,var(--navy-900) 0%,var(--navy-700) 100%);padding:32px 16px 110px}
+.login.on{display:block}
+.login .box{max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.login .hello{text-align:center;color:#9DB4CC;font-size:13.5px}
+.login h1{text-align:center;color:#fff;font-size:29px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.login h1 em{color:var(--navy-400);font-style:normal}
+.login .claim{text-align:center;color:#9DB4CC;font-size:13.5px;margin-top:-8px}
+.login .card{background:var(--surface);border-radius:10px;padding:18px}
+.login label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:5px}
+.login input{width:100%;border:1px solid var(--line-strong);border-radius:var(--r);padding:11px 12px;font-size:15px;background:#fff}
+.login .go{width:100%;background:var(--navy-600);color:#fff;padding:12px;border-radius:var(--r);font-size:15px;font-weight:600;margin-top:12px}
+.login .go:hover{background:var(--navy-700)}
+.login .fine{color:#8FAAC6;font-size:12px;text-align:center;line-height:1.45}
+.pick{background:rgba(255,255,255,.05);border:1px solid #24405F;border-radius:10px;overflow:hidden}
+.pick h2{font-size:11px;letter-spacing:.09em;color:#E3B341;padding:13px 15px 9px;font-weight:600}
+.pick .rows{max-height:min(44vh,400px);overflow-y:auto}
+.pick button{display:flex;align-items:center;gap:12px;width:100%;padding:10px 15px;text-align:left;border-top:1px solid #1E3A57}
+.pick button:hover{background:rgba(255,255,255,.07)}
+.pick .ini{width:36px;height:36px;flex:0 0 36px;border-radius:8px;background:var(--navy-600);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600}
+.pick .ini.s{background:#6B4E9E}.pick .ini.t{background:#1F6E5A}.pick .ini.a{background:#B0641A}
+.pick .nm{color:#fff;font-size:14.5px;font-weight:600}
+.pick .rl{color:#8FAAC6;font-size:12px}
+
+/* ---------- Sandbox-Leiste ---------- */
+.sandbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#2A2410;border-top:1px solid #5A4A18;
+  display:flex;align-items:center;gap:8px;padding:7px 12px;overflow-x:auto}
+.sandbar .tag{display:flex;align-items:center;gap:7px;color:#E3B341;font-size:11.5px;font-weight:700;letter-spacing:.08em;white-space:nowrap}
+.sandbar .clock{color:#CDBA7A;font-size:12px;font-family:var(--mono);white-space:nowrap}
+.sandbar .clock b{color:#F0D48A;font-weight:600}
+.sandbar .sp{flex:1;min-width:4px}
+.sandbar button{border:1px solid #5A4A18;color:#E3B341;border-radius:5px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap;background:transparent}
+.sandbar button:hover{background:#3B3316}
+.sandbar button.reset{color:#CDBA7A}
+.topbar .userchip{display:flex;align-items:center;gap:9px;color:#C6D8E8;font-size:12.5px;white-space:nowrap;min-width:0}
+.topbar .userchip b{color:#fff;font-weight:600}
+.topbar .userchip .sw{border:1px solid #24405F;border-radius:var(--r);color:#9DB4CC;padding:5px 10px;font-size:12px}
+.topbar .userchip .sw:hover{background:var(--navy-700);color:#fff}
+
 /* ---------- Toast ---------- */
-.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);background:var(--navy-900);color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;z-index:30;max-width:min(560px,92vw);box-shadow:0 10px 30px rgba(12,27,46,.35)}
+.toast{position:fixed;left:50%;bottom:70px;transform:translate(-50%,14px);background:var(--navy-900);color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;z-index:30;max-width:min(560px,92vw);box-shadow:0 10px 30px rgba(12,27,46,.35)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .toast.bad{background:#7C2D20}
 
@@ -308,14 +349,14 @@ tr.inactive td{opacity:.55}
   .side{display:none}
   .mobnav{display:flex;grid-column:1}
   .workspace{grid-column:1}
-  .main{padding:16px 16px 60px}
+  .main{padding:16px 16px 96px}
   .ctl label{display:none}
 }
 /* ---------- Handy: Kartenliste statt Tabelle ---------- */
 @media(max-width:760px){
   .topbar{gap:10px;padding:0 12px}
   .brand span{display:none}
-  .main{padding:14px 12px 60px}
+  .main{padding:14px 12px 96px}
   .tblwrap.aslist{display:none}
   .cards{display:flex}
   .drawer{width:100vw}
@@ -328,19 +369,21 @@ tr.inactive td{opacity:.55}
   .fld.half{grid-column:1/-1}
   .kpis{grid-template-columns:1fr 1fr}
   .log .t{flex:0 0 74px}
+  .sandbar{flex-wrap:wrap;gap:6px 8px;overflow-x:visible}
+  .sandbar .sp{flex-basis:100%;min-width:100%;height:0}
+  .sandbar .clock{font-size:11.5px}
   .cp .sub{gap:2px 12px}
   .cp .sub>span:not(:last-child)::after{content:none}
 }
 </style>
 
-<div class="app">
+<div class="login" id="login"></div>
+
+<div class="app" id="app">
   <div class="topbar">
     <div class="brand">AAA Flow <span id="brandSub">Sandbox</span></div>
     <div class="spacer"></div>
-    <div class="ctl">
-      <label id="lblRole" for="role">Angemeldet als</label>
-      <select id="role"></select>
-    </div>
+    <div class="userchip" id="userchip"></div>
     <div class="lang">
       <button data-l="de" class="on">DE</button>
       <button data-l="en">EN</button>
@@ -369,6 +412,7 @@ tr.inactive td{opacity:.55}
   </div>
 </div>
 
+<div class="sandbar" id="sandbar"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -381,7 +425,16 @@ tr.inactive td{opacity:.55}
 /* ---------- i18n ---------- */
 const I = {
 de:{
-  sub:"Sandbox — Demodaten", loggedIn:"Angemeldet als",
+  sub:"Sandbox — Demodaten", switch:"Wechseln",
+  lg_hello:"Willkommen bei", lg_claim:"Gate-Steuerung für Trainingsvorgänge der Aviation Academy Austria.",
+  lg_email:"E-Mail-Adresse", lg_signin:"Anmelden",
+  lg_code:"Sie erhalten einen sechsstelligen Anmeldecode per E-Mail.",
+  lg_noreg:"Keine Selbstregistrierung — Nutzer werden ausschließlich durch Admins angelegt.",
+  lg_as:"SANDBOX: ANMELDEN ALS",
+  lg_demo:"In der Sandbox wird keine E-Mail versandt. Bitte unten eine Rolle wählen.",
+  sb_tag:"SANDBOX", sb_today:"Simuliertes Datum", sb_real:"echtes Datum",
+  sb_day:"Tag", sb_reset:"Zurücksetzen",
+  t_travel:"Die Uhr steht jetzt auf {d}. Fristen, Überfälligkeit und Liegedauer sind neu berechnet.",
   nav_dash:"Dashboard", nav_pool:"Pool", nav_mine:"Meine Vorgänge", nav_all:"Alle Vorgänge",
   nav_exc:"Ausnahmen", nav_data:"Stammdaten", nav_admin:"Admin",
   grp_work:"Arbeit", grp_org:"Organisation",
@@ -521,7 +574,16 @@ de:{
   col_rules:"Regeln", col_order:"Reihenfolge", col_edit:"Aktion"
 },
 en:{
-  sub:"Sandbox — demo data", loggedIn:"Signed in as",
+  sub:"Sandbox — demo data", switch:"Switch",
+  lg_hello:"Welcome to", lg_claim:"Gate control for training cases at Aviation Academy Austria.",
+  lg_email:"Email address", lg_signin:"Sign in",
+  lg_code:"You will receive a 6-digit sign-in code by email.",
+  lg_noreg:"No self-registration — accounts are created by admins only.",
+  lg_as:"SANDBOX: SIGN IN AS",
+  lg_demo:"No email is sent in the sandbox. Please pick a role below.",
+  sb_tag:"SANDBOX", sb_today:"Simulated date", sb_real:"real date",
+  sb_day:"day", sb_reset:"Reset",
+  t_travel:"The clock is now at {d}. Deadlines, overdue state and pool age have been recalculated.",
   nav_dash:"Dashboard", nav_pool:"Pool", nav_mine:"My cases", nav_all:"All cases",
   nav_exc:"Exceptions", nav_data:"Master data", nav_admin:"Admin",
   grp_work:"Work", grp_org:"Organisation",
@@ -700,6 +762,9 @@ const canDecideExceptions = u => u.role === "superadmin" || holds(u, "director_t
 const canCreateCase = u => isAdmin(u) || u.role === "teamleader" || u.dept === "sales" || u.dept === "training_admin";
 /* alphabetisch, wie in der Spec für alle Listen und Dropdowns gefordert */
 const byName = (a,b) => a.name.localeCompare(b.name, L === "de" ? "de" : "en");
+/* Für die Anmeldeliste: Superadmin zuerst, dann Leitung, dann Mitarbeiter */
+const ROLE_ORDER = { superadmin:0, admin:1, teamleader:2, staff:3 };
+const byRole = (a,b) => (ROLE_ORDER[a.role] - ROLE_ORDER[b.role]) || byName(a,b);
 
 let idSeq = 100;
 const nid = p => p + (++idSeq);
@@ -814,7 +879,13 @@ const cat = id => CAT.find(c => c.id === id);
 const GATE_RECEIVER = { 1:"training_admin", 2:"ato", 3:"training_admin" };
 
 /* ---------- Datum und Arbeitstage ---------- */
+/* Simulierte Uhr: die Sandbox-Leiste verschiebt "heute" nach vorn, damit
+   Fristen, Überfälligkeit, Eskalation und Gate 3 erlebbar werden. Die
+   Demodaten entstehen einmal beim Laden relativ zum echten Datum. */
+let CLOCK = 0;                       // Verschiebung in Kalendertagen
 const iso = d => d.toISOString().slice(0,10);
+const todayD = () => { const d = new Date(); d.setDate(d.getDate() + CLOCK); return d; };
+const today = () => iso(todayD());
 const D = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
 function addBusinessDays(dateStr, days) {
   if (!dateStr) return null;
@@ -822,7 +893,12 @@ function addBusinessDays(dateStr, days) {
   while (left > 0) { d.setDate(d.getDate() + step); const w = d.getDay(); if (w !== 0 && w !== 6) left--; }
   return iso(d);
 }
-const daysTo = s => Math.round((new Date(s) - new Date(iso(new Date()))) / 864e5);
+const daysTo = s => Math.round((new Date(s) - new Date(today())) / 864e5);
+function businessDaysBetween(from, to) {
+  let n = 0; const d = new Date(from), end = new Date(to);
+  while (d < end) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) n++; }
+  return n;
+}
 const fmtDate = s => s ? new Date(s).toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { day:"2-digit", month:"short" }) : t("none");
 function fmtStart(c) {
   if (!c.course_start) return t("none");
@@ -861,7 +937,7 @@ function blankCase(o) {
   c.gate = { 1:{ released:false, by:null, at:null }, 2:{ released:false, by:null, at:null }, 3:{ released:false, by:null, at:null } };
   if (o.gates) for (const g in o.gates) c.gate[g] = { released:true, by:o.gates[g].by, at:o.gates[g].at };
   ["sales","training_admin","ato"].forEach(d => {
-    if (!c.owner[d]) c.poolSince[d] = (o.poolDays && o.poolDays[d] != null) ? o.poolDays[d] : 0;
+    if (!c.owner[d]) c.poolSince[d] = addBusinessDays(today(), -((o.poolDays && o.poolDays[d]) || 0));
   });
   recomputeDue(c);
   return c;
@@ -1004,7 +1080,7 @@ CASES.forEach(c => {
 });
 
 /* ---------- State ---------- */
-let me = "u5", view = "dash", drawerCase = null, chatScope = "case", dtab = "gates";
+let me = null, view = "dash", drawerCase = null, chatScope = "case", dtab = "gates";
 let F = { q:"", type:"", status:"", dept:"", owner:"", late:false, pool:false };
 let filtersOpen = false;
 let adminTab = "cat";
@@ -1023,6 +1099,7 @@ const visibleCases = () => CASES.filter(canView);
 const isResponsible = (c, dept) => c.owner[dept] === me;
 const isMine = c => Object.values(c.owner).includes(me);
 const inMyPool = c => !c.owner[M().dept] && canView(c);
+const poolDays = (c, dept) => c.poolSince[dept] ? businessDaysBetween(c.poolSince[dept], today()) : 0;
 const myTypes = () => { const u = M(); return (isAdmin(u) || u.dept !== "sales" || u.role === "teamleader" || holds(u, "sales_lead")) ? TYPES : u.types; };
 
 /* ---------- Ableitungen ---------- */
@@ -1157,7 +1234,7 @@ function doReset(c, x, reason) {
 function doRelease(c, g) {
   const r = canRelease(c, g);
   if (!r.ok) return toast(r.why || "", true);
-  c.gate[g] = { released:true, by:me, at:iso(new Date()) };
+  c.gate[g] = { released:true, by:me, at:today() };
   syncStatus(c);
   lg(c, me, "Gate " + g + (L === "de" ? " freigegeben" : " released"), null, now());
   toast(t("t_released", { n:g })); render();
@@ -1197,10 +1274,11 @@ function createCase(v) {
   const u = M();
   const c = blankCase({
     traineeId:v.traineeId, companyId:v.companyId, type:v.type, course:v.course,
-    enquiry_date:v.enquiry || iso(new Date()),
+    enquiry_date:v.enquiry || today(),
     course_start:v.start || null, course_end:v.end || null,
     owner:{ sales: u.dept === "sales" ? me : null, training_admin:null, ato:resolveAto(v.type) }
   });
+  ["sales","training_admin","ato"].forEach(d => { if (!c.owner[d]) c.poolSince[d] = today(); });
   CASES.push(c);
   lg(c, me, L === "de" ? "Vorgang angelegt" : "Case created", null, now());
   if (c.owner.sales) lg(c, me, (L === "de" ? "Zuständigkeit übernommen — " : "Responsibility taken — ") + DEPTS.sales, null, now());
@@ -1212,6 +1290,20 @@ function createCase(v) {
 }
 
 /* ---------- Toast ---------- */
+/* Kursbeginn erreicht: freigegebene Vorgänge laufen an (entspricht
+   advance_in_progress() in der Datenbank, dort ein Tagesjob). */
+function advanceStatuses() {
+  CASES.forEach(c => {
+    if (c.status === "released" && c.course_start && daysTo(c.course_start) <= 0) c.status = "in_progress";
+  });
+}
+function travel(days) {
+  CLOCK += days;
+  advanceStatuses();
+  render();
+  toast(t("t_travel", { d:fmtDate(today()) }));
+}
+
 let toastTimer = null;
 function toast(text, bad) {
   const el = document.getElementById("toast");
@@ -1301,7 +1393,7 @@ function dialogNewCase() {
   openDialog({
     title:t("nc_t"), text:t("nc_p"), okLabel:t("create"),
     values:{ company:"", trainee:"", type:types.length === 1 ? types[0] : "",
-             course:"", enquiry:iso(new Date()), start:"", end:"" },
+             course:"", enquiry:today(), start:"", end:"" },
     build: v => {
       const f = [];
       f.push({ name:"company", label:t("f_company"), type:"select", reactive:true, options:
@@ -1382,15 +1474,66 @@ function navItems() {
     org:[["exc","nav_exc", nExc, true], ["data","nav_data", 0, false], ["admin","nav_admin", 0, false]]
   };
 }
+const fnLabel = u => holds(u, "director_training") ? " · Director Training"
+  : holds(u, "head_of_training") ? " · Head of Training"
+  : holds(u, "sales_lead") ? " · " + t("set_sl") : "";
+
 function renderTop() {
   document.getElementById("brandSub").textContent = t("sub");
-  document.getElementById("lblRole").textContent = t("loggedIn");
-  document.getElementById("role").innerHTML = USERS.filter(u => u.active !== false).map(u => {
-    const fn = holds(u, "director_training") ? " · Director Training"
-             : holds(u, "head_of_training") ? " · Head of Training"
-             : u.role === "teamleader" ? " · " + t("role_teamleader") : "";
-    return `<option value="${u.id}" ${u.id === me ? "selected" : ""}>${esc(u.name)} — ${DEPTS[u.dept]}${fn}</option>`;
-  }).join("");
+  const u = M();
+  document.getElementById("userchip").innerHTML =
+    `<span><b>${esc(u.name)}</b> · ${DEPTS[u.dept]}</span>
+     <button class="sw" id="switchUser">${t("switch")}</button>`;
+  document.getElementById("switchUser").onclick = () => { me = null; drawerCase = null; render(); };
+}
+
+/* Anmeldung. In der Zielversion ein Einmalcode per E-Mail; in der Sandbox
+   wählt man die Rolle direkt, um die Rechte durchspielen zu können. */
+function renderLogin() {
+  const av = { sales:"s", training_admin:"t", ato:"a" };
+  document.getElementById("login").innerHTML = `<div class="box">
+    <div class="lang" style="align-self:center">
+      <button data-l="de" class="${L === "de" ? "on" : ""}">DE</button>
+      <button data-l="en" class="${L === "en" ? "on" : ""}">EN</button>
+    </div>
+    <div class="hello">${t("lg_hello")}</div>
+    <h1>AAA <em>Flow</em></h1>
+    <div class="claim">${t("lg_claim")}</div>
+    <div class="card">
+      <label for="lgMail">${t("lg_email")}</label>
+      <input id="lgMail" type="email" autocomplete="username" placeholder="name@aviationacademy.at">
+      <button class="go" id="lgGo">${t("lg_signin")}</button>
+    </div>
+    <div class="fine">${t("lg_code")}</div>
+    <div class="pick"><h2>${t("lg_as")}</h2><div class="rows">${
+      USERS.filter(u => u.active !== false).slice().sort(byRole).map(u => `<button data-login="${u.id}">
+        <span class="ini ${av[u.dept] || ""}">${initials(u.name)}</span>
+        <span><span class="nm">${esc(u.name)}</span><br>
+          <span class="rl">${DEPTS[u.dept]} · ${t("role_" + u.role)}${fnLabel(u)}</span></span>
+      </button>`).join("")}</div></div>
+    <div class="fine">${t("lg_noreg")}</div>
+  </div>`;
+  document.querySelectorAll("[data-login]").forEach(b => b.onclick = () => {
+    me = b.dataset.login; view = "dash"; drawerCase = null; render();
+  });
+  document.getElementById("lgGo").onclick = () => toast(t("lg_demo"), true);
+  document.querySelectorAll("#login .lang button").forEach(b => b.onclick = () => setLang(b.dataset.l));
+}
+
+/* Sandbox-Leiste: simulierte Uhr und Zurücksetzen */
+function renderSandbar() {
+  const d = new Date(today()).toLocaleDateString(L === "de" ? "de-AT" : "en-GB",
+    { weekday:"short", day:"2-digit", month:"short", year:"numeric" });
+  document.getElementById("sandbar").innerHTML =
+    `<span class="tag">⚗ ${t("sb_tag")}</span>
+     <span class="clock">${t("sb_today")}: <b>${d}</b>${CLOCK ? ` (+${CLOCK} ${t("days")})` : ` · ${t("sb_real")}`}</span>
+     <span class="sp"></span>
+     <button data-tr="1">+1 ${t("sb_day")}</button>
+     <button data-tr="8">+8 ${t("days")}</button>
+     <button data-tr="31">+31 ${t("days")}</button>
+     <button class="reset" id="sbReset">↺ ${t("sb_reset")}</button>`;
+  document.querySelectorAll("[data-tr]").forEach(b => b.onclick = () => travel(+b.dataset.tr));
+  document.getElementById("sbReset").onclick = () => location.reload();
 }
 function renderNav() {
   const n = navItems(), u = M();
@@ -1478,7 +1621,7 @@ function listHTML(rows, mode) {
       <th>${t("c_start")}</th><th>${t("c_status")}</th>
       <th>${poolMode ? t("c_pool") : t("c_prog")}</th><th>${t("c_next")}</th><th>${poolMode ? "" : t("c_owner")}</th>
     </tr></thead><tbody>${rows.map(c => {
-      const nt = nextTask(c), ow = c.owner[dept], days = c.poolSince[dept] || 0;
+      const nt = nextTask(c), ow = c.owner[dept], days = poolDays(c, dept);
       return `<tr data-id="${c.id}">
         <td class="num">${c.no}</td>
         <td class="tn">${esc(trName(c))}</td>
@@ -1496,7 +1639,7 @@ function listHTML(rows, mode) {
       </tr>`; }).join("")}</tbody></table></div>`;
 
   const cards = `<div class="cards">${rows.map(c => {
-    const nt = nextTask(c), ow = c.owner[dept], days = c.poolSince[dept] || 0;
+    const nt = nextTask(c), ow = c.owner[dept], days = poolDays(c, dept);
     return `<article class="card" data-id="${c.id}">
       <div class="top"><span class="num">${c.no}</span><span class="type">${c.type}</span>${stateChip(caseState(c))}</div>
       <h4>${esc(trName(c))}</h4>
@@ -2118,17 +2261,24 @@ document.addEventListener("keydown", e => {
   if (document.getElementById("modal").classList.contains("on")) closeDialog();
   else closeDrawer();
 });
-document.getElementById("role").onchange = e => { me = e.target.value; render(); };
-document.querySelectorAll(".lang button").forEach(b => b.onclick = () => {
-  L = b.dataset.l; document.documentElement.lang = L;
-  document.querySelectorAll(".lang button").forEach(x => x.classList.toggle("on", x === b));
+function setLang(l) {
+  L = l; document.documentElement.lang = L;
+  document.querySelectorAll(".topbar .lang button").forEach(x => x.classList.toggle("on", x.dataset.l === L));
   render();
-});
+}
+document.querySelectorAll(".topbar .lang button").forEach(b => b.onclick = () => setLang(b.dataset.l));
 ["side","mobnav"].forEach(id => document.getElementById(id).addEventListener("click", e => {
   const b = e.target.closest("[data-v]"); if (!b) return;
   view = b.dataset.v; renderMain(); renderNav();
 }));
 
-function render() { renderTop(); renderNav(); renderMain(); renderDrawer(); }
+function render() {
+  const inApp = !!me;
+  document.getElementById("login").classList.toggle("on", !inApp);
+  document.getElementById("app").style.display = inApp ? "" : "none";
+  renderSandbar();
+  if (!inApp) { drawerCase = null; renderDrawer(); renderLogin(); return; }
+  renderTop(); renderNav(); renderMain(); renderDrawer();
+}
 render();
 </script>

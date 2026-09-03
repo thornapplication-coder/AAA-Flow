@@ -31,8 +31,11 @@ Ausnahmen mit Freigabe; Kommunikation auf den Ebenen Vorgang, Trainee und Firma;
 Audit-Trail, Pool mit Liegedauer, Vorgangsbahn und Stammdaten. Dazu ein
 Admin-Panel für den Superadmin: Prüfpunkte anlegen und mit Regeln versehen,
 Einstellungen und Nutzerverwaltung.
-Über die Auswahl **Angemeldet als** lassen sich die Rechte aller Rollen
-durchspielen.
+Der Einstieg erfolgt über einen Anmeldebildschirm; die Schnellwahl darunter
+lässt die Rechte aller Rollen durchspielen. Die Sandbox-Leiste am unteren Rand
+verschiebt das simulierte Datum um 1, 8 oder 31 Tage — damit werden Fristen,
+Überfälligkeit, Liegedauer im Pool und der Statuswechsel bei Kursbeginn
+erlebbar. Zurücksetzen stellt den Ausgangszustand her.
 
 Die Ansicht ist für Desktop ausgelegt und nach unten reduziert: auf dem Tablet
 wandert die Navigation in eine Leiste unter die Kopfzeile, auf dem Handy tritt an

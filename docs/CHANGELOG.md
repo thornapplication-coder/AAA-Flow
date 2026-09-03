@@ -3,6 +3,22 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 1.4.0 — 2026-09-03
+
+Angeregt durch die Sandbox von InstructorConnect:
+
+- **Zeitreise.** Eine Sandbox-Leiste am unteren Rand verschiebt das simulierte
+  Datum um 1, 8 oder 31 Tage. Fristen, Überfälligkeit, Liegedauer im Pool,
+  Gate-3-Warnungen und der Statuswechsel bei Kursbeginn werden dabei neu
+  berechnet — die Fristenlogik lässt sich damit erleben statt nur ansehen.
+  Zurücksetzen stellt den Ausgangszustand her.
+- **Anmeldebildschirm** statt Auswahlfeld in der Kopfzeile: E-Mail-Feld mit
+  Hinweis auf den Einmalcode, ausdrücklicher Vermerk zur fehlenden
+  Selbstregistrierung und eine Schnellwahl der Rollen für die Sandbox,
+  sortiert nach Superadmin, Leitung, Mitarbeiter.
+- **Sichtbare Sandbox-Kennzeichnung** mit simuliertem Datum, damit die
+  Demodaten nicht mit einem Echtsystem verwechselt werden.
+
 ## 1.3.0 — 2026-09-03
 
 - Sandbox: Admin-Panel für den Superadmin mit drei Bereichen.
