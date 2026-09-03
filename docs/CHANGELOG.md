@@ -3,6 +3,26 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 1.3.0 — 2026-09-03
+
+- Sandbox: Admin-Panel für den Superadmin mit drei Bereichen.
+  - **Prüfpunkte:** anlegen, bearbeiten, duplizieren, deaktivieren, löschen
+    (nur wenn in keinem Vorgang verwendet), Reihenfolge je Gate ändern.
+    Regeln je Punkt: Pflicht/optional, Vier-Augen, sperrt nachfolgende Punkte,
+    Vorbedingung, erst nach allen übrigen Pflichtpunkten, Frist mit Anker,
+    Nachweis und Nachweispflicht, Musterfilter, Kurstypfilter, nur Teamleitung,
+    aktiv. Neue Punkte wahlweise auch auf laufende Vorgänge anwenden.
+  - **Einstellungen:** Liegenbleiber-Frist (wirkt sofort), Erinnerungstage,
+    Frist bis Eskalationsstufe 2, Funktionsträger (Director Training, Head of
+    Training, Sales-Leitung), Eskalationsstufe je Abteilung.
+  - **Nutzer und Muster:** Nutzer anlegen und bearbeiten, Rolle, Abteilung,
+    Aktivstatus und Musterzuordnung — wirkt unmittelbar auf Sichtbarkeit bei
+    Sales und automatische Zuständigkeit bei ATO.
+- Sandbox: Prüfpunkt-Katalog wird je Vorgang als Snapshot geführt, damit
+  Katalogänderungen laufende Vorgänge nicht rückwirkend verändern.
+- Sandbox: Nachweis wird beim Erledigen erfasst, wenn der Punkt es verlangt.
+- ARCHITECTURE: neue Regelfelder gegenüber Schema 1.0.0 dokumentiert.
+
 ## 1.2.0 — 2026-09-03
 
 - Sandbox: Vorgang, Trainee und Firma lassen sich anlegen. Beim Anlegen eines

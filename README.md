@@ -28,7 +28,9 @@ Supabase gebaut werden. Einfach im Browser öffnen.
 Enthalten sind: Vorgang, Trainee und Firma anlegen; Vorgangsakte mit den drei
 Gates, Gate-Sperre, Vier-Augen-Prinzip, Gate-3-Sperre des Abschlussnachweises,
 Ausnahmen mit Freigabe; Kommunikation auf den Ebenen Vorgang, Trainee und Firma;
-Audit-Trail, Pool mit Liegedauer, Vorgangsbahn, Stammdaten und Prüfpunkt-Katalog.
+Audit-Trail, Pool mit Liegedauer, Vorgangsbahn und Stammdaten. Dazu ein
+Admin-Panel für den Superadmin: Prüfpunkte anlegen und mit Regeln versehen,
+Einstellungen und Nutzerverwaltung.
 Über die Auswahl **Angemeldet als** lassen sich die Rechte aller Rollen
 durchspielen.
 

@@ -121,6 +121,39 @@ und Prüfpunkt, `v_gate_lead_times` die Gate-Durchlaufzeiten.
 | 9 | Regulatorische Referenzen | Katalog ohne Paragraphenverweise, Feld `evidence` vorbereitet |
 | 11 | Sales-Akzeptanz | Kennzahlen dafür: `v_pool` (Liegedauer Sales), `v_exception_stats` |
 
+## Regelwerk je Prüfpunkt — Erweiterung gegenüber Schema 1.0.0
+
+Das Admin-Panel der Sandbox vergibt je Prüfpunkt Regeln, die über die heutigen
+Spalten von `checkpoints` hinausgehen. Bewährt sich das im Prototyp, sind
+folgende Spalten zu ergänzen (Migration `20260904_checkpoint_rules.sql`):
+
+| Regel | Spalte | Wirkung | Schon im Schema |
+|---|---|---|---|
+| Pflicht / optional | `mandatory` | ohne den Punkt keine Gate-Freigabe | ja |
+| Vier-Augen-Pflicht | `four_eyes` | Erledigen und Kontrollieren durch zwei Personen | ja |
+| Frist und Anker | `deadline_days`, `deadline_anchor` | Arbeitstage vor Kursbeginn bzw. nach Anfrage oder Kursende | ja |
+| Erst nach allen übrigen Pflichtpunkten | `requires_gate_complete` | Sperre des Abschlussnachweises | ja |
+| Musterfilter | `aircraft_type_filter` | Punkt gilt nur für bestimmte Muster | ja |
+| Aktiv / deaktiviert | `active` | wirkt nur auf neu angelegte Vorgänge | ja |
+| **Sperrt nachfolgende Punkte** | `blocks_following bool` | solange offen, ist kein späterer Punkt desselben Gates erledigbar | **nein** |
+| **Vorbedingung** | `depends_on uuid` | erst möglich, wenn ein bestimmter anderer Punkt erledigt ist | **nein** |
+| **Kurstypfilter** | `course_type_filter text[]` | Punkt gilt nur für bestimmte Kurstypen, z. B. Prüfer nur beim Type Rating | **nein** |
+| **Nur Teamleitung** | `role_required user_role` | nur die Teamleitung der Abteilung darf abhaken | **nein** |
+| **Nachweis verpflichtend** | `evidence_required bool` | beim Erledigen ist der Nachweis zu erfassen (landet in `case_checkpoints.note`) | **nein** |
+
+`blocks_following` und `depends_on` sind bewusst beide vorgesehen: Ersteres ist
+ein Schalter für den häufigen Fall „dieser Punkt kommt zuerst", Letzteres die
+genaue Angabe einer einzelnen Abhängigkeit. Beide werden in
+`complete_checkpoint()` geprüft und melden den blockierenden Punkt im Klartext.
+
+**Katalogänderungen und laufende Vorgänge.** Der Katalog wird je Vorgang bei der
+Anlage festgehalten; spätere Änderungen wirken nur auf neue Vorgänge. Weil das
+im Betrieb zu eng sein kann, bietet das Anlegen eines Prüfpunkts die Option
+„auf laufende Vorgänge anwenden" — abgeschlossene und verworfene Vorgänge
+bleiben ausgenommen. In der Datenbank entspricht das einem gezielten
+`instantiate_case_checkpoints()` für die betroffenen Vorgänge, mit Eintrag im
+Audit-Trail.
+
 ## Offene Entscheidung: Vier-Augen-Prinzip an Gate 3
 
 Bei Gate 1 und Gate 2 empfängt eine andere Abteilung, als geliefert hat — die

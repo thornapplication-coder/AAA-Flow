@@ -279,6 +279,28 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .panel{margin-bottom:20px}
 .panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
 .panel>header h2{font-size:16px;font-weight:600}
+.subtabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+.subtabs button{padding:9px 14px;font-size:13.5px;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.subtabs button.on{color:var(--navy-700);border-bottom-color:var(--navy-600);font-weight:600}
+td.rules{max-width:340px}
+td.rules .pill{margin:1px 2px 1px 0}
+td.acts{white-space:nowrap}
+td.acts button{font-size:11.5px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 8px;color:var(--navy-600);background:#fff;margin-right:4px}
+td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
+td.acts button.danger{color:var(--late);border-color:#E8C0B8}
+td.ord{white-space:nowrap;width:1%}
+td.ord button{width:22px;height:22px;border:1px solid var(--line-strong);border-radius:4px;color:var(--navy-600);background:#fff;line-height:1}
+td.ord button:disabled{color:var(--line-strong)}
+tr.inactive td{opacity:.55}
+.setgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
+.setgrid .fld input,.setgrid .fld select{width:100%;border:1px solid var(--line-strong);border-radius:var(--r);padding:8px 10px;font-size:13.5px;background:#fff}
+.setgrid .fld label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:4px}
+.setgrid .fld .hint{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
+.checks{display:flex;flex-wrap:wrap;gap:6px 14px;border:1px solid var(--line-strong);border-radius:var(--r);padding:9px 11px;background:#fff}
+.checks label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;color:var(--ink);cursor:pointer;margin:0}
+.tgl{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line-strong);border-radius:var(--r);padding:9px 11px;background:#fff;cursor:pointer}
+.tgl input{margin-top:2px;width:16px;height:16px;accent-color:var(--navy-600);flex:0 0 16px}
+.tgl span{font-size:12.5px;color:var(--ink-soft);font-weight:400}
 
 /* ---------- Tablet ---------- */
 @media(max-width:1100px){
@@ -361,7 +383,7 @@ const I = {
 de:{
   sub:"Sandbox — Demodaten", loggedIn:"Angemeldet als",
   nav_dash:"Dashboard", nav_pool:"Pool", nav_mine:"Meine Vorgänge", nav_all:"Alle Vorgänge",
-  nav_exc:"Ausnahmen", nav_data:"Stammdaten", nav_admin:"Prüfpunkte",
+  nav_exc:"Ausnahmen", nav_data:"Stammdaten", nav_admin:"Admin",
   grp_work:"Arbeit", grp_org:"Organisation",
   dash_t:"Dashboard", dash_s:"Bestand, Engpässe und Fristen über alle Abteilungen.",
   pool_t:"Pool", pool_s:"Nicht zugewiesene Vorgänge Ihrer Abteilung. Übernehmen per Klick.",
@@ -452,13 +474,56 @@ de:{
   cat_gate:"Gate", cat_lb:"Prüfpunkt", cat_dept:"Abteilung", cat_m:"Pflicht", cat_4:"4-Augen",
   cat_dl:"Frist", cat_ev:"Nachweis", yes:"ja", g3lock:"Gate-3-Sperre",
   anchor_course_start:"AT vor Kursbeginn", anchor_enquiry_date:"AT nach Anfrage", anchor_course_end:"AT nach Kursende",
-  admin_note:"Im Prototyp nur lesend. In der Zielversion im Admin-Panel änderbar: Pflicht/optional, Frist, Vier-Augen-Anforderung, Nachweis und Musterfilter je Prüfpunkt.",
-  sandbox_note:"Sandbox mit Demodaten. Änderungen bleiben nur bis zum Neuladen der Seite erhalten."
+  sandbox_note:"Sandbox mit Demodaten. Änderungen bleiben nur bis zum Neuladen der Seite erhalten.",
+  a_cat:"Prüfpunkte", a_set:"Einstellungen", a_users:"Nutzer und Muster",
+  admin_t:"Admin", admin_s:"Prüfpunkt-Katalog, Regeln, Fristen, Einstellungen und Nutzer.",
+  admin_ro:"Nur der Superadmin darf den Katalog ändern. Wechseln Sie oben rechts auf Patrick Thorn, um zu bearbeiten.",
+  cat_help:"Die Reihenfolge bestimmt, in welcher Folge die Prüfpunkte im Gate erscheinen — und, zusammen mit der Regel „sperrt nachfolgende Punkte\u201c, in welcher Reihenfolge sie abgearbeitet werden müssen.",
+  cp_new:"Prüfpunkt anlegen", cp_edit:"Prüfpunkt bearbeiten", cp_dup:"Duplizieren",
+  cp_help:"Bezeichnung und Regeln des Prüfpunkts. Die Regeln greifen sofort in allen sichtbaren Vorgängen.",
+  cp_de:"Bezeichnung (Deutsch)", cp_en:"Bezeichnung (Englisch)", cp_anchor:"Fristanker",
+  cp_nodep:"— keine Vorbedingung —", cp_anyone:"Jeder Zuständige der Abteilung", cp_tl:"Nur die Teamleitung",
+  cp_types:"Nur für diese Muster", cp_types_h:"Nichts ausgewählt = gilt für alle Muster.",
+  cp_courses:"Nur für diese Kurstypen", cp_courses_h:"Nichts ausgewählt = gilt für alle Kurstypen.",
+  cp_m_h:"Ohne diesen Punkt lässt sich das Gate nicht freigeben.",
+  cp_f_h:"Erledigen und Kontrollieren müssen zwei verschiedene Personen sein.",
+  cp_blocks_h:"Solange dieser Punkt offen ist, lässt sich kein nachfolgender Punkt desselben Gates erledigen.",
+  cp_gate_h:"Erst möglich, wenn alle übrigen Pflichtpunkte des Gates erledigt sind — die Sperre des Abschlussnachweises.",
+  cp_ev_h:"Beim Erledigen muss der Nachweis erfasst werden (Dokumentnummer, Pfad, Datum).",
+  cp_active_h:"Deaktivierte Prüfpunkte erscheinen nicht mehr in neuen Vorgängen.",
+  cp_apply:"Auf laufende Vorgänge anwenden",
+  cp_apply_h:"Standardmäßig gilt ein neuer Prüfpunkt nur für neu angelegte Vorgänge, weil der Katalog je Vorgang festgehalten wird.",
+  r_mand:"Pflicht", r_blocks:"sperrt nachfolgende", r_dep:"Vorbedingung", r_gate:"nach allen Pflichtpunkten",
+  r_role:"nur Teamleitung", r_ev:"Nachweis Pflicht", r_active:"Aktiv", r_inactive:"deaktiviert",
+  cp_del:"Löschen", cp_deact:"Deaktivieren", cp_act:"Aktivieren",
+  cp_inuse:"In Vorgängen verwendet — nur deaktivierbar, nicht löschbar.",
+  e_cpname:"Bitte deutsche und englische Bezeichnung angeben (mindestens 3 Zeichen).",
+  t_cpsaved:"Prüfpunkt gespeichert.", t_cpnew:"Prüfpunkt angelegt.", t_cpdel:"Prüfpunkt gelöscht.",
+  t_cpact:"Prüfpunkt aktiviert.", t_cpdeact:"Prüfpunkt deaktiviert.", t_set:"Einstellung übernommen.",
+  t_usr:"Nutzer gespeichert.", t_usrnew:"Nutzer angelegt.", t_noself:"Sie können sich nicht selbst deaktivieren.",
+  lock_blocked:"Zuerst erledigen: {s}", lock_dep:"Vorbedingung offen: {s}",
+  lock_role:"Nur die Teamleitung darf diesen Prüfpunkt erledigen",
+  m_ev_t:"Nachweis erfassen", m_ev_p:"Für diesen Prüfpunkt ist ein Nachweis verpflichtend.",
+  m_ev_l:"Nachweis", m_ev_e:"Bitte den Nachweis angeben (mindestens 2 Zeichen).", note:"Nachweis",
+  set_pool:"Liegenbleiber-Frist (Arbeitstage)", set_pool_h:"Danach geht der Vorgang an die Teamleitung. Wirkt sofort in der Pool-Ansicht.",
+  set_rem:"Erinnerung (AT vor Frist)", set_rem_h:"Kommagetrennt. Wirkt in der Zielversion per E-Mail und In-App.",
+  set_l2:"Stufe 2 nach (Arbeitstage)", set_l2_h:"Reagiert die Eskalationsstufe nicht, erscheint der Vorgang im Dashboard der Leitung.",
+  set_fn:"Funktionsträger", set_esc:"Eskalationsstufe je Abteilung",
+  set_dt:"Director Training", set_hot:"Head of Training", set_sl:"Sales-Leitung",
+  set_fn_h:"Director Training und Head of Training geben Ausnahmen frei. Head of Training ist der ATO-Fallback bei unbesetztem Muster.",
+  set_esc_h:"Empfänger der ersten Eskalation. Wirkt in der Zielversion.",
+  usr_new:"Neuer Nutzer", usr_edit:"Nutzer bearbeiten",
+  usr_help:"Rolle und Abteilung bestimmen die Rechte, die Musterzuordnung die Sichtbarkeit bei Sales und die automatische Zuständigkeit bei ATO.",
+  usr_name:"Name", usr_dept:"Abteilung", usr_role:"Rolle", usr_types:"Musterzuordnung",
+  usr_types_h:"Sales: steuert, welche Vorgänge sichtbar sind. ATO: Course Supervisor der Flotte.",
+  usr_active:"Aktiv", usr_active_h:"Deaktivierte Nutzer können sich nicht anmelden und erhalten keine Aufgaben.",
+  role_superadmin:"Superadmin", role_admin:"Admin", role_teamleader:"Teamleitung", role_staff:"Mitarbeiter",
+  col_rules:"Regeln", col_order:"Reihenfolge", col_edit:"Aktion"
 },
 en:{
   sub:"Sandbox — demo data", loggedIn:"Signed in as",
   nav_dash:"Dashboard", nav_pool:"Pool", nav_mine:"My cases", nav_all:"All cases",
-  nav_exc:"Exceptions", nav_data:"Master data", nav_admin:"Checkpoints",
+  nav_exc:"Exceptions", nav_data:"Master data", nav_admin:"Admin",
   grp_work:"Work", grp_org:"Organisation",
   dash_t:"Dashboard", dash_s:"Volume, bottlenecks and deadlines across all departments.",
   pool_t:"Pool", pool_s:"Unassigned cases in your department. Click to take one.",
@@ -547,8 +612,51 @@ en:{
   cat_gate:"Gate", cat_lb:"Checkpoint", cat_dept:"Department", cat_m:"Mandatory", cat_4:"4-eyes",
   cat_dl:"Due", cat_ev:"Evidence", yes:"yes", g3lock:"Gate 3 lock",
   anchor_course_start:"bd before course start", anchor_enquiry_date:"bd after enquiry", anchor_course_end:"bd after course end",
-  admin_note:"Read-only in the prototype. In the target version editable in the admin panel: mandatory/optional, deadline, four-eyes requirement, evidence and type filter per checkpoint.",
-  sandbox_note:"Sandbox with demo data. Changes are kept only until the page is reloaded."
+  sandbox_note:"Sandbox with demo data. Changes are kept only until the page is reloaded.",
+  a_cat:"Checkpoints", a_set:"Settings", a_users:"Users and types",
+  admin_t:"Admin", admin_s:"Checkpoint catalogue, rules, deadlines, settings and users.",
+  admin_ro:"Only the superadmin may change the catalogue. Switch to Patrick Thorn at the top right to edit.",
+  cat_help:"The order defines how checkpoints appear within a gate — and, together with the rule \u201cblocks the following items\u201d, the order in which they must be worked.",
+  cp_new:"Create checkpoint", cp_edit:"Edit checkpoint", cp_dup:"Duplicate",
+  cp_help:"Label and rules of the checkpoint. Rules take effect immediately in all visible cases.",
+  cp_de:"Label (German)", cp_en:"Label (English)", cp_anchor:"Deadline anchor",
+  cp_nodep:"— no prerequisite —", cp_anyone:"Anyone responsible in the department", cp_tl:"Team lead only",
+  cp_types:"Only for these aircraft types", cp_types_h:"Nothing selected = applies to all types.",
+  cp_courses:"Only for these course types", cp_courses_h:"Nothing selected = applies to all course types.",
+  cp_m_h:"Without this item the gate cannot be released.",
+  cp_f_h:"Completing and checking must be two different people.",
+  cp_blocks_h:"While this item is open, no later item of the same gate can be completed.",
+  cp_gate_h:"Only possible once all other mandatory items of the gate are done — the completion certificate lock.",
+  cp_ev_h:"Completing requires the evidence to be recorded (document number, path, date).",
+  cp_active_h:"Deactivated checkpoints no longer appear in new cases.",
+  cp_apply:"Apply to running cases",
+  cp_apply_h:"By default a new checkpoint applies only to newly created cases, because the catalogue is captured per case.",
+  r_mand:"Mandatory", r_blocks:"blocks following", r_dep:"prerequisite", r_gate:"after all mandatory items",
+  r_role:"team lead only", r_ev:"evidence required", r_active:"Active", r_inactive:"inactive",
+  cp_del:"Delete", cp_deact:"Deactivate", cp_act:"Activate",
+  cp_inuse:"Used in cases — can only be deactivated, not deleted.",
+  e_cpname:"Please give a German and an English label (at least 3 characters).",
+  t_cpsaved:"Checkpoint saved.", t_cpnew:"Checkpoint created.", t_cpdel:"Checkpoint deleted.",
+  t_cpact:"Checkpoint activated.", t_cpdeact:"Checkpoint deactivated.", t_set:"Setting applied.",
+  t_usr:"User saved.", t_usrnew:"User created.", t_noself:"You cannot deactivate yourself.",
+  lock_blocked:"Complete first: {s}", lock_dep:"Prerequisite open: {s}",
+  lock_role:"Only the team lead may complete this item",
+  m_ev_t:"Record evidence", m_ev_p:"Evidence is mandatory for this checkpoint.",
+  m_ev_l:"Evidence", m_ev_e:"Please give the evidence (at least 2 characters).", note:"Evidence",
+  set_pool:"Stale-pool limit (working days)", set_pool_h:"After this the case goes to the team lead. Takes effect immediately in the pool view.",
+  set_rem:"Reminder (wd before due)", set_rem_h:"Comma separated. Takes effect in the target version by email and in-app.",
+  set_l2:"Level 2 after (working days)", set_l2_h:"If the escalation contact does not react, the case appears on the management dashboard.",
+  set_fn:"Function holders", set_esc:"Escalation contact per department",
+  set_dt:"Director Training", set_hot:"Head of Training", set_sl:"Head of Sales",
+  set_fn_h:"Director Training and Head of Training approve exceptions. Head of Training is the ATO fallback for unstaffed types.",
+  set_esc_h:"Recipient of the first escalation. Takes effect in the target version.",
+  usr_new:"New user", usr_edit:"Edit user",
+  usr_help:"Role and department define the rights, the type assignment defines Sales visibility and the automatic ATO responsibility.",
+  usr_name:"Name", usr_dept:"Department", usr_role:"Role", usr_types:"Aircraft type assignment",
+  usr_types_h:"Sales: controls which cases are visible. ATO: course supervisor of the fleet.",
+  usr_active:"Active", usr_active_h:"Deactivated users cannot sign in and receive no tasks.",
+  role_superadmin:"Superadmin", role_admin:"Admin", role_teamleader:"Team lead", role_staff:"Staff",
+  col_rules:"Rules", col_order:"Order", col_edit:"Action"
 }};
 let L = "de";
 const t = (k, v) => { let s = I[L][k] || k; if (v) for (const n in v) s = s.replace("{" + n + "}", v[n]); return s; };
@@ -578,7 +686,17 @@ const USERS = [
 const user = id => USERS.find(u => u.id === id) || { name:"?", dept:"training_admin", role:"staff", types:[] };
 const initials = n => n.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
 const isAdmin = u => u.role === "superadmin" || u.role === "admin";
-const canDecideExceptions = u => u.role === "superadmin" || u.fn === "director_training" || u.fn === "head_of_training";
+
+/* Im Admin-Panel änderbar (Spec Abschnitt 14) */
+const SETTINGS = {
+  poolStale:2,
+  reminderDays:[3,1],
+  level2Days:2,
+  fn:{ director_training:"u1", head_of_training:"u2", sales_lead:"u6" },
+  escalation:{ sales:"u6", training_admin:"u3", ato:"u2" }
+};
+const holds = (u, f) => u && u.id === SETTINGS.fn[f];
+const canDecideExceptions = u => u.role === "superadmin" || holds(u, "director_training") || holds(u, "head_of_training");
 const canCreateCase = u => isAdmin(u) || u.role === "teamleader" || u.dept === "sales" || u.dept === "training_admin";
 /* alphabetisch, wie in der Spec für alle Listen und Dropdowns gefordert */
 const byName = (a,b) => a.name.localeCompare(b.name, L === "de" ? "de" : "en");
@@ -671,6 +789,26 @@ const CAT = [
   { id:"g3_feedback",       g:3, d:"training_admin", m:0, f:0, days:10, a:"course_end", ev:null,
     de:"Kundenfeedback eingeholt", en:"Customer feedback obtained" }
 ];
+/* Regelwerk je Prüfpunkt. Voreinstellungen, damit ältere Einträge vollständig
+   sind. blocks, dep, courses, roleReq und evReq gehen über das heutige
+   Datenbankschema hinaus — siehe docs/ARCHITECTURE.md. */
+CAT.forEach(x => {
+  x.active   = x.active !== false;
+  x.blocks   = !!x.blocks;          // sperrt alle nachfolgenden Punkte des Gates
+  x.dep      = x.dep || null;       // Vorbedingung: ein bestimmter Prüfpunkt
+  x.needsGate= !!x.needsGate;       // erst nach allen übrigen Pflichtpunkten
+  x.types    = x.types || [];       // leer = alle Muster
+  x.courses  = x.courses || [];     // leer = alle Kurstypen
+  x.roleReq  = x.roleReq || "";     // "" = jeder Zuständige, "teamleader"
+  x.evReq    = !!x.evReq;           // Nachweis beim Erledigen erfassen
+});
+/* Beispielregeln, damit die Wirkung sofort sichtbar ist */
+cat0("g1_customer_order").blocks = true;   // ohne Auftrag beginnt Gate 1 nicht
+cat0("g2_course_date").blocks    = true;   // ohne bestätigtes Kursdatum kein Gate 2
+cat0("g2_course_file").evReq     = true;   // Ablagepfad der Kursakte erfassen
+cat0("g2_examiner").courses      = ["Type Rating Initial"];
+
+function cat0(id) { return CAT.find(c => c.id === id); }
 const cat = id => CAT.find(c => c.id === id);
 /* Ein Gate gibt frei, wer die Arbeit empfängt (Spec Abschnitt 7). */
 const GATE_RECEIVER = { 1:"training_admin", 2:"ato", 3:"training_admin" };
@@ -695,20 +833,29 @@ function fmtStart(c) {
 
 /* ---------- Vorgänge ---------- */
 let SEQ = 1240;
+/* Welche Katalogpunkte gelten für diesen Vorgang? Muster- und Kurstypfilter
+   werden bei der Anlage einmal ausgewertet und als Snapshot festgehalten —
+   genauso wie in der Datenbank. */
+const applicableCat = c => CAT.filter(x => x.active
+  && (!x.types.length || x.types.includes(c.type))
+  && (!x.courses.length || x.courses.includes(c.course))).map(x => x.id);
+const caseCat = c => CAT.filter(x => c.catIds.includes(x.id));
+
 function blankCase(o) {
   const c = Object.assign({
     id:"case" + (++SEQ), no:"AF-2026-" + SEQ, cp:{}, log:[], exc:[],
     owner:{ sales:null, training_admin:null, ato:null }, poolSince:{}, status:"enquiry",
     course_start:null, course_end:null
   }, o);
-  CAT.forEach(x => {
+  c.catIds = applicableCat(c);
+  caseCat(c).forEach(x => {
     const done = (o.done || []).includes(x.id);
     const wait = (o.wait || []).includes(x.id);
     c.cp[x.id] = {
       state: done ? "verified" : wait ? "completed" : "open",
       by: (done || wait) ? ((o.byMap && o.byMap[x.id]) || c.owner[x.d] || "u3") : null,
       vby: done && x.f ? ((o.vbyMap && o.vbyMap[x.id]) || "u3") : null,
-      due: null
+      due: null, note: null
     };
   });
   c.gate = { 1:{ released:false, by:null, at:null }, 2:{ released:false, by:null, at:null }, 3:{ released:false, by:null, at:null } };
@@ -720,7 +867,7 @@ function blankCase(o) {
   return c;
 }
 function recomputeDue(c) {
-  CAT.forEach(x => {
+  caseCat(c).forEach(x => {
     const anchor = x.a === "enquiry_date" ? c.enquiry_date : x.a === "course_end" ? c.course_end : c.course_start;
     c.cp[x.id].due = anchor ? addBusinessDays(anchor, x.a === "course_start" ? -x.days : x.days) : null;
   });
@@ -860,6 +1007,7 @@ CASES.forEach(c => {
 let me = "u5", view = "dash", drawerCase = null, chatScope = "case", dtab = "gates";
 let F = { q:"", type:"", status:"", dept:"", owner:"", late:false, pool:false };
 let filtersOpen = false;
+let adminTab = "cat";
 const expanded = new Set();       // aufgeklappte, bereits freigegebene Gates
 const M = () => user(me);
 
@@ -867,7 +1015,7 @@ const M = () => user(me);
 function canView(c) {
   const u = M();
   if (isAdmin(u) || u.dept !== "sales") return true;
-  if (u.role === "teamleader" || u.fn === "sales_lead") return true;
+  if (u.role === "teamleader" || holds(u, "sales_lead")) return true;
   if (c.owner.sales === u.id) return true;
   return u.types.includes(c.type);
 }
@@ -875,7 +1023,7 @@ const visibleCases = () => CASES.filter(canView);
 const isResponsible = (c, dept) => c.owner[dept] === me;
 const isMine = c => Object.values(c.owner).includes(me);
 const inMyPool = c => !c.owner[M().dept] && canView(c);
-const myTypes = () => { const u = M(); return (isAdmin(u) || u.dept !== "sales" || u.role === "teamleader" || u.fn === "sales_lead") ? TYPES : u.types; };
+const myTypes = () => { const u = M(); return (isAdmin(u) || u.dept !== "sales" || u.role === "teamleader" || holds(u, "sales_lead")) ? TYPES : u.types; };
 
 /* ---------- Ableitungen ---------- */
 const approvedExc = (c, cpId) => c.exc.some(e => e.cp === cpId && e.status === "approved");
@@ -883,11 +1031,11 @@ const pendingExc  = (c, cpId) => c.exc.some(e => e.cp === cpId && e.status === "
 const cpDone = (c, x) => c.cp[x.id].state === "verified" || approvedExc(c, x.id);
 const cpOverdue = (c, x) => c.cp[x.id].state !== "verified" && c.cp[x.id].due
   && daysTo(c.cp[x.id].due) < 0 && !approvedExc(c, x.id) && c.status !== "completed";
-const openMandatory = (c, g, exclude) => CAT.filter(x => x.g === g && x.m && x.id !== exclude && !cpDone(c, x));
+const openMandatory = (c, g, exclude) => caseCat(c).filter(x => x.g === g && x.m && x.id !== exclude && !cpDone(c, x));
 
 function gateState(c, g) {
   if (c.gate[g].released) return "done";
-  const items = CAT.filter(x => x.g === g);
+  const items = caseCat(c).filter(x => x.g === g);
   if (items.some(x => cpOverdue(c, x))) return "overdue";
   if (items.some(x => c.cp[x.id].state !== "open" || approvedExc(c, x.id))) return "in_progress";
   return "open";
@@ -895,8 +1043,8 @@ function gateState(c, g) {
 function caseState(c) {
   if (c.status === "completed") return "done";
   if (c.status === "discarded") return "discarded";
-  if (CAT.some(x => cpOverdue(c, x))) return "overdue";
-  if (CAT.some(x => c.cp[x.id].state !== "open")) return "in_progress";
+  if (caseCat(c).some(x => cpOverdue(c, x))) return "overdue";
+  if (caseCat(c).some(x => c.cp[x.id].state !== "open")) return "in_progress";
   return "open";
 }
 const isLate = c => caseState(c) === "overdue";
@@ -911,7 +1059,7 @@ function nextTask(c) {
   })[0] || null;
 }
 const progress = c => {
-  const m = CAT.filter(x => x.m);
+  const m = caseCat(c).filter(x => x.m);
   return Math.round(m.filter(x => cpDone(c, x)).length / m.length * 100);
 };
 /* Ungelesene Nachrichten je Kontextebene */
@@ -928,6 +1076,18 @@ function canComplete(c, x) {
     if (u.dept !== x.d) return { ok:false, why:t("lock_dept", { d:DEPTS[x.d] }) };
     if (!isResponsible(c, x.d)) return { ok:false, why:t("lock_notmine", { d:DEPTS[x.d] }) };
   }
+  if (x.roleReq === "teamleader" && !isAdmin(u) && u.role !== "teamleader")
+    return { ok:false, why:t("lock_role") };
+  /* Vorbedingung: ein bestimmter Prüfpunkt muss erledigt sein */
+  if (x.dep) {
+    const dep = cat(x.dep);
+    if (dep && c.catIds.includes(dep.id) && !cpDone(c, dep))
+      return { ok:false, why:t("lock_dep", { s:dep[L] }), hard:true };
+  }
+  /* Sperrender Prüfpunkt weiter oben im selben Gate */
+  const items = caseCat(c).filter(y => y.g === x.g);
+  const blocker = items.slice(0, items.indexOf(x)).find(y => y.blocks && !cpDone(c, y));
+  if (blocker) return { ok:false, why:t("lock_blocked", { s:blocker[L] }), hard:true };
   if (x.needsGate) {
     const open = openMandatory(c, x.g, x.id);
     if (open.length) return { ok:false, why:t("lock_g3", { n:open.length }), hard:true };
@@ -972,11 +1132,12 @@ function syncStatus(c) {
   else if (c.gate[1].released) c.status = "booked";
   else c.status = "enquiry";
 }
-function doComplete(c, x) {
+function doComplete(c, x, note) {
   const r = canComplete(c, x);
   if (!r.ok) return toast(r.why || t("lock_closed"), true);
   const s = c.cp[x.id];
   s.by = me;
+  if (note) s.note = note;
   if (x.f) { s.state = "completed"; toast(t("t_wait")); } else { s.state = "verified"; toast(t("t_done")); }
   lg(c, me, (L === "de" ? "Prüfpunkt erledigt: " : "Checkpoint completed: ") + x[L], null, now());
   render();
@@ -1029,8 +1190,8 @@ function createTrainee(name, dob, companyId) {
   TRAINEES.push(tr); return tr;
 }
 /* ATO: Course Supervisor der Flotte, sonst Head of Training (Spec 8) */
-const resolveAto = type => (USERS.filter(u => u.dept === "ato" && u.role === "staff" && u.types.includes(type)).sort(byName)[0]
-  || USERS.find(u => u.fn === "head_of_training") || {}).id || null;
+const resolveAto = type => (USERS.filter(u => u.active !== false && u.dept === "ato" && u.role === "staff" && u.types.includes(type)).sort(byName)[0]
+  || user(SETTINGS.fn.head_of_training) || {}).id || null;
 
 function createCase(v) {
   const u = M();
@@ -1078,7 +1239,13 @@ function renderDialog(err) {
     if (f.type === "note") return `<div class="fld"><div class="notice" style="margin:0">${esc(f.label)}</div></div>`;
     const v = values[f.name] == null ? "" : values[f.name];
     const inner =
-      f.type === "select"
+      f.type === "toggle"
+        ? `<label class="tgl"><input type="checkbox" data-f="${f.name}" ${v ? "checked" : ""}
+             ${f.reactive ? 'data-reactive="1"' : ""}><span>${esc(f.text || "")}</span></label>`
+      : f.type === "checks"
+        ? `<div class="checks">${f.options.map(o => `<label><input type="checkbox" data-fm="${f.name}"
+             value="${esc(o.v)}" ${(v || []).includes(o.v) ? "checked" : ""}> ${esc(o.l)}</label>`).join("")}</div>`
+      : f.type === "select"
         ? `<select data-f="${f.name}" ${f.reactive ? 'data-reactive="1"' : ""}>${
             f.options.map(o => `<option value="${esc(o.v)}" ${String(o.v) === String(v) ? "selected" : ""}>${esc(o.l)}</option>`).join("")}</select>`
       : f.type === "textarea"
@@ -1086,7 +1253,7 @@ function renderDialog(err) {
         : `<input type="${f.type || "text"}" data-f="${f.name}" value="${esc(v)}"
              placeholder="${esc(f.placeholder || "")}" ${f.list ? `list="${f.list}"` : ""}>`;
     return `<div class="fld${f.half ? " half" : ""}">
-      <label for="">${esc(f.label)}</label>${inner}
+      ${f.type === "toggle" ? `<label>${esc(f.label)}</label>` : `<label for="">${esc(f.label)}</label>`}${inner}
       ${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ""}
       ${f.list ? `<datalist id="${f.list}">${(f.listOptions || []).map(o => `<option value="${esc(o)}"></option>`).join("")}</datalist>` : ""}
     </div>`;
@@ -1094,10 +1261,14 @@ function renderDialog(err) {
   document.getElementById("modal").classList.add("on");
   document.querySelectorAll("#mBody [data-f]").forEach(el => {
     const handler = e => {
-      dlg.values[el.dataset.f] = e.target.value;
+      dlg.values[el.dataset.f] = el.type === "checkbox" ? el.checked : e.target.value;
       if (el.dataset.reactive) renderDialog();
     };
     el.oninput = handler; el.onchange = handler;
+  });
+  document.querySelectorAll("#mBody [data-fm]").forEach(el => el.onchange = () => {
+    const n = el.dataset.fm;
+    dlg.values[n] = Array.from(document.querySelectorAll(`#mBody [data-fm="${n}"]:checked`)).map(x => x.value);
   });
   const first = document.querySelector("#mBody [data-f]");
   if (first && !err) first.focus();
@@ -1214,10 +1385,10 @@ function navItems() {
 function renderTop() {
   document.getElementById("brandSub").textContent = t("sub");
   document.getElementById("lblRole").textContent = t("loggedIn");
-  document.getElementById("role").innerHTML = USERS.map(u => {
-    const fn = u.fn === "director_training" ? " · Director Training"
-             : u.fn === "head_of_training" ? " · Head of Training"
-             : u.role === "teamleader" ? " · " + (L === "de" ? "Teamleitung" : "Team lead") : "";
+  document.getElementById("role").innerHTML = USERS.filter(u => u.active !== false).map(u => {
+    const fn = holds(u, "director_training") ? " · Director Training"
+             : holds(u, "head_of_training") ? " · Head of Training"
+             : u.role === "teamleader" ? " · " + t("role_teamleader") : "";
     return `<option value="${u.id}" ${u.id === me ? "selected" : ""}>${esc(u.name)} — ${DEPTS[u.dept]}${fn}</option>`;
   }).join("");
 }
@@ -1229,7 +1400,7 @@ function renderNav() {
     `<div class="grp">${t("grp_work")}</div>` + n.work.map(btn).join("") +
     `<div class="grp">${t("grp_org")}</div>` + n.org.map(btn).join("") +
     `<div class="who"><b>${esc(u.name)}</b>${DEPTS[u.dept]} · ${
-      u.role === "superadmin" ? "Superadmin" : u.role === "teamleader" ? (L === "de" ? "Teamleitung" : "Team lead") : (L === "de" ? "Mitarbeiter" : "Staff")
+      t("role_" + u.role)
     }${u.dept === "sales" && u.role === "staff" ? "<br>" + (L === "de" ? "Muster: " : "Types: ") + u.types.join(", ") : ""}</div>`;
   document.getElementById("mobnav").innerHTML = n.work.concat(n.org).map(btn).join("");
 }
@@ -1316,7 +1487,7 @@ function listHTML(rows, mode) {
         <td>${fmtStart(c)}</td>
         <td>${stateChip(caseState(c))} <span class="co">${t("st_" + c.status)}</span></td>
         ${poolMode
-          ? `<td><span class="num">${days} ${t("c_days")}</span>${days >= 2 ? ` <span class="pill p-late">${t("stale")}</span>` : ""}</td>`
+          ? `<td><span class="num">${days} ${t("c_days")}</span>${days >= SETTINGS.poolStale ? ` <span class="pill p-late">${t("stale")}</span>` : ""}</td>`
           : `<td><div class="prog"><div class="bar"><i style="width:${progress(c)}%"></i></div><span>${progress(c)}%</span></div></td>`}
         <td class="co">${nt ? esc(nt[L]) + `<br><span class="num">${DEPTS[nt.d]}</span>` : t("none")}</td>
         <td>${poolMode ? `<button class="pill p-pool" data-take="${c.id}">${t("take")}</button>`
@@ -1334,7 +1505,7 @@ function listHTML(rows, mode) {
       ${nt ? `<div class="next">${t("c_next")}: <b>${esc(nt[L])}</b> · ${DEPTS[nt.d]}</div>` : ""}
       <div class="foot">
         ${poolMode
-          ? `<span class="co">${t("inpool", { n:days })}</span>${days >= 2 ? `<span class="pill p-late">${t("stale")}</span>` : ""}
+          ? `<span class="co">${t("inpool", { n:days })}</span>${days >= SETTINGS.poolStale ? `<span class="pill p-late">${t("stale")}</span>` : ""}
              <button class="btn-primary" style="margin-left:auto" data-take="${c.id}">${t("take")}</button>`
           : `<div class="prog"><div class="bar"><i style="width:${progress(c)}%"></i></div><span>${progress(c)}%</span></div>
              <span class="co" style="margin-left:auto">${ow ? esc(user(ow).name) : t("unassigned")}</span>`}
@@ -1350,19 +1521,7 @@ function renderMain() {
   const head = (title, sub, extra) => `<div class="hd"><div><h1>${t(title)}</h1><p>${t(sub)}</p></div>${extra || ""}</div>`;
 
   if (view === "admin") {
-    m.innerHTML = head("admin_t","admin_s") + `<div class="notice">${t("admin_note")}</div>
-      <div class="tblwrap"><table><thead><tr>
-        <th>${t("cat_gate")}</th><th>${t("cat_lb")}</th><th>${t("cat_dept")}</th>
-        <th>${t("cat_m")}</th><th>${t("cat_4")}</th><th>${t("cat_dl")}</th><th>${t("cat_ev")}</th>
-      </tr></thead><tbody>${CAT.map(x => `<tr>
-        <td class="num">${x.g}</td>
-        <td>${esc(x[L])}${x.needsGate ? ` <span class="pill p-exc">${t("g3lock")}</span>` : ""}</td>
-        <td class="co">${DEPTS[x.d]}</td>
-        <td>${x.m ? t("yes") : t("none")}</td>
-        <td>${x.f ? `<span class="four">${t("fourEyes")}</span>` : t("none")}</td>
-        <td class="co">${x.days} ${t("anchor_" + x.a)}</td>
-        <td class="co">${x.ev ? esc(x.ev) : t("none")}</td>
-      </tr>`).join("")}</tbody></table></div>`;
+    m.innerHTML = head("admin_t","admin_s") + adminHTML();
     wireMain(); return;
   }
 
@@ -1457,6 +1616,223 @@ function renderMain() {
   wireMain();
 }
 
+/* ============================================================================
+   Admin-Panel: Prüfpunkt-Katalog, Einstellungen, Nutzer
+   Ändern nur für Superadmin (Spec Abschnitt 4: Admin ohne Katalogänderung
+   und ohne Nutzeranlage). Für alle anderen ist die Ansicht schreibgeschützt.
+   ========================================================================== */
+const cpUsed = x => CASES.some(c => c.catIds.includes(x.id));
+
+function ruleChips(x) {
+  const p = [];
+  p.push(x.m ? `<span class="pill p-work">${t("r_mand")}</span>`
+             : `<span class="pill p-open">${t("optional")}</span>`);
+  if (x.f) p.push(`<span class="pill p-exc">${t("fourEyes")}</span>`);
+  if (x.blocks) p.push(`<span class="pill p-late">${t("r_blocks")}</span>`);
+  if (x.dep) p.push(`<span class="pill p-open">${t("r_dep")}: ${esc((cat(x.dep) || {})[L] || "?")}</span>`);
+  if (x.needsGate) p.push(`<span class="pill p-exc">${t("r_gate")}</span>`);
+  if (x.roleReq) p.push(`<span class="pill p-open">${t("r_role")}</span>`);
+  if (x.evReq) p.push(`<span class="pill p-open">${t("r_ev")}</span>`);
+  if (x.types.length) p.push(`<span class="pill p-open">${esc(x.types.join(", "))}</span>`);
+  if (x.courses.length) p.push(`<span class="pill p-open">${esc(x.courses.join(", "))}</span>`);
+  if (!x.active) p.push(`<span class="pill p-late">${t("r_inactive")}</span>`);
+  return p.join(" ");
+}
+
+function dialogCheckpoint(x, dup) {
+  const isNew = !x || dup;
+  const b = x || { g:1, d:"sales", de:"", en:"", m:1, f:0, blocks:false, dep:null, needsGate:false,
+                   days:15, a:"course_start", ev:"", evReq:false, types:[], courses:[], roleReq:"", active:true };
+  openDialog({
+    title: isNew ? t("cp_new") : t("cp_edit"), text:t("cp_help"),
+    okLabel: isNew ? t("create") : t("save"),
+    values:{ g:String(b.g), d:b.d, de:dup ? b.de + " (Kopie)" : b.de, en:dup ? b.en + " (copy)" : b.en,
+      m:!!b.m, f:!!b.f, blocks:!!b.blocks, dep:b.dep || "", needsGate:!!b.needsGate,
+      days:b.days == null ? "" : String(b.days), a:b.a, ev:b.ev || "", evReq:!!b.evReq,
+      types:(b.types || []).slice(), courses:(b.courses || []).slice(),
+      roleReq:b.roleReq || "", active:b.active !== false, apply:false },
+    build: v => {
+      const sameGate = CAT.filter(y => String(y.g) === String(v.g) && y !== x);
+      const f = [
+        { name:"de", label:t("cp_de"), type:"text" },
+        { name:"en", label:t("cp_en"), type:"text" },
+        { name:"g", label:t("cat_gate"), type:"select", half:true, reactive:true, options:
+          [1,2,3].map(g => ({ v:String(g), l:"Gate " + g + " — " + t("g" + g) })) },
+        { name:"d", label:t("cat_dept"), type:"select", half:true, options:
+          Object.keys(DEPTS).map(k => ({ v:k, l:DEPTS[k] })) },
+        { name:"m", label:t("r_mand"), type:"toggle", text:t("cp_m_h") },
+        { name:"f", label:t("fourEyes"), type:"toggle", text:t("cp_f_h") },
+        { name:"blocks", label:t("r_blocks"), type:"toggle", text:t("cp_blocks_h") },
+        { name:"needsGate", label:t("r_gate"), type:"toggle", text:t("cp_gate_h") },
+        { name:"dep", label:t("r_dep"), type:"select", options:
+          [{ v:"", l:t("cp_nodep") }].concat(sameGate.map(y => ({ v:y.id, l:y[L] }))) },
+        { name:"days", label:t("cat_dl"), type:"number", half:true },
+        { name:"a", label:t("cp_anchor"), type:"select", half:true, options:
+          ["course_start","enquiry_date","course_end"].map(k => ({ v:k, l:t("anchor_" + k) })) },
+        { name:"ev", label:t("cat_ev"), type:"text" },
+        { name:"evReq", label:t("r_ev"), type:"toggle", text:t("cp_ev_h") },
+        { name:"roleReq", label:t("r_role"), type:"select", options:
+          [{ v:"", l:t("cp_anyone") }, { v:"teamleader", l:t("cp_tl") }] },
+        { name:"types", label:t("cp_types"), type:"checks", hint:t("cp_types_h"), options:TYPES.map(y => ({ v:y, l:y })) },
+        { name:"courses", label:t("cp_courses"), type:"checks", hint:t("cp_courses_h"), options:COURSE_TYPES.map(y => ({ v:y, l:y })) },
+        { name:"active", label:t("r_active"), type:"toggle", text:t("cp_active_h") }
+      ];
+      if (isNew) f.push({ name:"apply", label:t("cp_apply"), type:"toggle", text:t("cp_apply_h") });
+      return f;
+    },
+    validate: v => ((v.de || "").trim().length < 3 || (v.en || "").trim().length < 3) ? t("e_cpname") : null,
+    onSubmit: v => saveCheckpoint(dup ? null : x, v)
+  });
+}
+function saveCheckpoint(x, v) {
+  const data = { g:+v.g, d:v.d, de:v.de.trim(), en:v.en.trim(),
+    m:v.m ? 1 : 0, f:v.f ? 1 : 0, blocks:!!v.blocks, needsGate:!!v.needsGate,
+    dep:v.dep || null, days:v.days === "" ? null : Math.max(0, parseInt(v.days, 10) || 0), a:v.a,
+    ev:(v.ev || "").trim() || null, evReq:!!v.evReq, roleReq:v.roleReq || "",
+    types:v.types || [], courses:v.courses || [], active:!!v.active };
+  if (x) {
+    Object.assign(x, data);
+    if (x.dep === x.id) x.dep = null;
+    toast(t("t_cpsaved"));
+  } else {
+    const nx = Object.assign({ id:nid("cp") }, data);
+    let i = CAT.map(y => y.g).lastIndexOf(nx.g);
+    CAT.splice(i === -1 ? CAT.length : i + 1, 0, nx);
+    if (v.apply) CASES.forEach(c => {
+      if (c.status === "completed" || c.status === "discarded") return;
+      if (nx.types.length && !nx.types.includes(c.type)) return;
+      if (nx.courses.length && !nx.courses.includes(c.course)) return;
+      c.catIds.push(nx.id);
+      c.cp[nx.id] = { state:"open", by:null, vby:null, due:null, note:null };
+      lg(c, me, (L === "de" ? "Prüfpunkt aus Katalog ergänzt: " : "Checkpoint added from catalogue: ") + nx[L], null, now());
+    });
+    toast(t("t_cpnew"));
+  }
+  CASES.forEach(recomputeDue);
+  render();
+}
+function moveCp(x, dir) {
+  const sib = CAT.filter(y => y.g === x.g);
+  const i = sib.indexOf(x), j = i + dir;
+  if (j < 0 || j >= sib.length) return;
+  const a = CAT.indexOf(x), b = CAT.indexOf(sib[j]);
+  CAT[a] = sib[j]; CAT[b] = x;
+  render();
+}
+function dialogUser(u) {
+  const isNew = !u;
+  const b = u || { name:"", dept:"sales", role:"staff", types:[], active:true };
+  openDialog({
+    title:isNew ? t("usr_new") : t("usr_edit"), text:t("usr_help"),
+    okLabel:isNew ? t("create") : t("save"),
+    values:{ name:b.name, dept:b.dept, role:b.role, types:(b.types || []).slice(), active:b.active !== false },
+    build: v => [
+      { name:"name", label:t("usr_name"), type:"text" },
+      { name:"dept", label:t("usr_dept"), type:"select", half:true, reactive:true, options:
+        Object.keys(DEPTS).map(k => ({ v:k, l:DEPTS[k] })) },
+      { name:"role", label:t("usr_role"), type:"select", half:true, options:
+        ["staff","teamleader","admin","superadmin"].map(k => ({ v:k, l:t("role_" + k) })) },
+      { name:"types", label:t("usr_types"), type:"checks", hint:t("usr_types_h"), options:TYPES.map(y => ({ v:y, l:y })) },
+      { name:"active", label:t("usr_active"), type:"toggle", text:t("usr_active_h") }
+    ],
+    validate: v => (v.name || "").trim().length < 3 ? t("e_name") : null,
+    onSubmit: v => {
+      if (u && u.id === me && !v.active) return toast(t("t_noself"), true);
+      const data = { name:v.name.trim(), dept:v.dept, role:v.role, types:v.types || [], active:!!v.active };
+      if (u) { Object.assign(u, data); toast(t("t_usr")); }
+      else { USERS.push(Object.assign({ id:nid("u") }, data)); toast(t("t_usrnew")); }
+      render();
+    }
+  });
+}
+function userOptions(sel) {
+  return `<option value="">${t("none")}</option>` + USERS.filter(u => u.active !== false).sort(byName)
+    .map(u => `<option value="${u.id}" ${sel === u.id ? "selected" : ""}>${esc(u.name)} — ${DEPTS[u.dept]}</option>`).join("");
+}
+function adminHTML() {
+  const u = M(), edit = u.role === "superadmin";
+  const tabs = [["cat","a_cat"],["settings","a_set"],["users","a_users"]]
+    .map(([k,lb]) => `<button data-at="${k}" class="${adminTab === k ? "on" : ""}">${t(lb)}</button>`).join("");
+  let body = "";
+
+  if (adminTab === "cat") {
+    body = `<div class="notice">${edit ? t("cat_help") : t("admin_ro")}</div>
+      ${edit ? `<div class="panel"><header><h2>${t("a_cat")} <span class="co">(${CAT.length})</span></h2>
+        <button class="btn-primary" id="cpNew">+ ${t("cp_new")}</button></header></div>` : ""}
+      <div class="tblwrap"><table><thead><tr>
+        <th>${t("col_order")}</th><th>${t("cat_gate")}</th><th>${t("cat_lb")}</th><th>${t("cat_dept")}</th>
+        <th>${t("col_rules")}</th><th>${t("cat_dl")}</th><th>${t("cat_ev")}</th>${edit ? `<th>${t("col_edit")}</th>` : ""}
+      </tr></thead><tbody>${CAT.map(x => {
+        const sib = CAT.filter(y => y.g === x.g), i = sib.indexOf(x);
+        return `<tr class="${x.active ? "" : "inactive"}">
+          <td class="ord">${edit
+            ? `<button data-up="${x.id}" ${i === 0 ? "disabled" : ""} aria-label="↑">↑</button>
+               <button data-down="${x.id}" ${i === sib.length - 1 ? "disabled" : ""} aria-label="↓">↓</button>`
+            : `<span class="num">${i + 1}</span>`}</td>
+          <td class="num">${x.g}</td>
+          <td><b>${esc(x.de)}</b><div class="co">${esc(x.en)}</div><div class="num">${esc(x.id)}</div></td>
+          <td class="co">${DEPTS[x.d]}</td>
+          <td class="rules">${ruleChips(x)}</td>
+          <td class="co">${x.days == null ? t("none") : x.days + " " + t("anchor_" + x.a)}</td>
+          <td class="co">${x.ev ? esc(x.ev) : t("none")}</td>
+          ${edit ? `<td class="acts">
+            <button data-cpedit="${x.id}">${t("edit")}</button>
+            <button data-cpdup="${x.id}">${t("cp_dup")}</button>
+            <button data-cptoggle="${x.id}">${x.active ? t("cp_deact") : t("cp_act")}</button>
+            ${cpUsed(x) ? "" : `<button class="danger" data-cpdel="${x.id}">${t("cp_del")}</button>`}
+          </td>` : ""}</tr>`; }).join("")}</tbody></table></div>`;
+  }
+
+  if (adminTab === "settings") {
+    const dis = edit || u.role === "admin" ? "" : "disabled";
+    body = `<div class="notice">${edit || u.role === "admin" ? t("admin_s") : t("admin_ro")}</div>
+      <div class="setgrid">
+        <div class="fld"><label>${t("set_pool")}</label>
+          <input type="number" min="1" id="sPool" value="${SETTINGS.poolStale}" ${dis}>
+          <div class="hint">${t("set_pool_h")}</div></div>
+        <div class="fld"><label>${t("set_rem")}</label>
+          <input type="text" id="sRem" value="${SETTINGS.reminderDays.join(", ")}" ${dis}>
+          <div class="hint">${t("set_rem_h")}</div></div>
+        <div class="fld"><label>${t("set_l2")}</label>
+          <input type="number" min="1" id="sL2" value="${SETTINGS.level2Days}" ${dis}>
+          <div class="hint">${t("set_l2_h")}</div></div>
+      </div>
+      <h2 style="font-size:16px;font-weight:600;margin:20px 0 10px">${t("set_fn")}</h2>
+      <div class="setgrid">
+        <div class="fld"><label>${t("set_dt")}</label><select id="fnDT" ${dis}>${userOptions(SETTINGS.fn.director_training)}</select></div>
+        <div class="fld"><label>${t("set_hot")}</label><select id="fnHOT" ${dis}>${userOptions(SETTINGS.fn.head_of_training)}</select></div>
+        <div class="fld"><label>${t("set_sl")}</label><select id="fnSL" ${dis}>${userOptions(SETTINGS.fn.sales_lead)}</select></div>
+        <div class="fld" style="grid-column:1/-1"><div class="hint">${t("set_fn_h")}</div></div>
+      </div>
+      <h2 style="font-size:16px;font-weight:600;margin:20px 0 10px">${t("set_esc")}</h2>
+      <div class="setgrid">
+        ${Object.keys(DEPTS).map(k => `<div class="fld"><label>${DEPTS[k]}</label>
+          <select data-esc="${k}" ${dis}>${userOptions(SETTINGS.escalation[k])}</select></div>`).join("")}
+        <div class="fld" style="grid-column:1/-1"><div class="hint">${t("set_esc_h")}</div></div>
+      </div>`;
+  }
+
+  if (adminTab === "users") {
+    body = `<div class="notice">${edit ? t("usr_help") : t("admin_ro")}</div>
+      ${edit ? `<div class="panel"><header><h2>${t("a_users")} <span class="co">(${USERS.length})</span></h2>
+        <button class="btn-primary" id="usrNew">+ ${t("usr_new")}</button></header></div>` : ""}
+      <div class="tblwrap"><table><thead><tr>
+        <th>${t("usr_name")}</th><th>${t("usr_dept")}</th><th>${t("usr_role")}</th>
+        <th>${t("usr_types")}</th><th>${t("usr_active")}</th>${edit ? `<th>${t("col_edit")}</th>` : ""}
+      </tr></thead><tbody>${USERS.slice().sort(byName).map(x => `<tr class="${x.active === false ? "inactive" : ""}">
+        <td class="tn">${esc(x.name)}${
+          ["director_training","head_of_training","sales_lead"].filter(f => holds(x, f))
+            .map(f => ` <span class="pill p-exc">${t("set_" + { director_training:"dt", head_of_training:"hot", sales_lead:"sl" }[f])}</span>`).join("")}</td>
+        <td class="co">${DEPTS[x.dept]}</td>
+        <td class="co">${t("role_" + x.role)}</td>
+        <td class="co">${x.types.length ? esc(x.types.join(", ")) : t("none")}</td>
+        <td>${x.active === false ? `<span class="pill p-late">${t("r_inactive")}</span>` : `<span class="pill p-done">${t("r_active")}</span>`}</td>
+        ${edit ? `<td class="acts"><button data-usredit="${x.id}">${t("edit")}</button></td>` : ""}
+      </tr>`).join("")}</tbody></table></div>`;
+  }
+  return `<div class="subtabs">${tabs}</div>` + body;
+}
+
 /* ---------- Render: Vorgangsakte ---------- */
 function cpHTML(c, x) {
   const s = c.cp[x.id];
@@ -1478,6 +1854,7 @@ function cpHTML(c, x) {
   if (x.ev) sub.push(`<span>${t("evidence")}: ${esc(x.ev)}</span>`);
   if (s.by) sub.push(`<span>${t("by")} ${esc(user(s.by).name)}</span>`);
   if (s.vby) sub.push(`<span>${t("verifiedBy")} ${esc(user(s.vby).name)}</span>`);
+  if (s.note) sub.push(`<span>${t("note")}: ${esc(s.note)}</span>`);
 
   const why = [];
   if (!exc && s.state === "completed" && !ver.ok && ver.why) why.push({ txt:ver.why, neutral:ver.why === t("lock_own") });
@@ -1509,7 +1886,7 @@ function cpHTML(c, x) {
 }
 function gateHTML(c, g) {
   const st = gateState(c, g), rel = canRelease(c, g);
-  const items = CAT.filter(x => x.g === g);
+  const items = caseCat(c).filter(x => x.g === g);
   const recv = GATE_RECEIVER[g];
   const open = openMandatory(c, g).length;
   const locked = g > 1 && !c.gate[g - 1].released;
@@ -1539,7 +1916,7 @@ function chatHTML(c) {
   const list = thread(cur[0], cur[1]);
   markRead(cur[0], cur[1]);
   const av = { sales:"s", training_admin:"t", ato:"a" };
-  const openCps = CAT.filter(x => !cpDone(c, x));
+  const openCps = caseCat(c).filter(x => !cpDone(c, x));
   return `<div class="notice">${t("keep")}</div>
   <div class="ctx">${scopes.map(([sc, id, lb]) => {
     const u = unread(sc, id);
@@ -1620,6 +1997,39 @@ function wireMain() {
   if (q("newCase")) q("newCase").onclick = dialogNewCase;
   if (q("newCo")) q("newCo").onclick = dialogNewCompany;
   if (q("newTr")) q("newTr").onclick = () => dialogNewTrainee();
+  document.querySelectorAll("[data-at]").forEach(b => b.onclick = () => { adminTab = b.dataset.at; renderMain(); });
+  if (q("cpNew")) q("cpNew").onclick = () => dialogCheckpoint(null);
+  if (q("usrNew")) q("usrNew").onclick = () => dialogUser(null);
+  document.querySelectorAll("[data-cpedit]").forEach(b => b.onclick = () => dialogCheckpoint(cat(b.dataset.cpedit)));
+  document.querySelectorAll("[data-cpdup]").forEach(b => b.onclick = () => dialogCheckpoint(cat(b.dataset.cpdup), true));
+  document.querySelectorAll("[data-up]").forEach(b => b.onclick = () => moveCp(cat(b.dataset.up), -1));
+  document.querySelectorAll("[data-down]").forEach(b => b.onclick = () => moveCp(cat(b.dataset.down), 1));
+  document.querySelectorAll("[data-cptoggle]").forEach(b => b.onclick = () => {
+    const x = cat(b.dataset.cptoggle); x.active = !x.active;
+    toast(x.active ? t("t_cpact") : t("t_cpdeact")); render();
+  });
+  document.querySelectorAll("[data-cpdel]").forEach(b => b.onclick = () => {
+    const x = cat(b.dataset.cpdel);
+    if (cpUsed(x)) return toast(t("cp_inuse"), true);
+    CAT.forEach(y => { if (y.dep === x.id) y.dep = null; });
+    CAT.splice(CAT.indexOf(x), 1);
+    toast(t("t_cpdel")); render();
+  });
+  document.querySelectorAll("[data-usredit]").forEach(b => b.onclick = () => dialogUser(user(b.dataset.usredit)));
+  const setNum = (id, k, min) => { const el = q(id); if (!el) return;
+    el.onchange = () => { SETTINGS[k] = Math.max(min, parseInt(el.value, 10) || min); toast(t("t_set")); render(); }; };
+  setNum("sPool", "poolStale", 1);
+  setNum("sL2", "level2Days", 1);
+  if (q("sRem")) q("sRem").onchange = e => {
+    SETTINGS.reminderDays = e.target.value.split(",").map(x => parseInt(x, 10)).filter(x => x > 0);
+    toast(t("t_set")); render();
+  };
+  [["fnDT","director_training"],["fnHOT","head_of_training"],["fnSL","sales_lead"]].forEach(([id, k]) => {
+    if (q(id)) q(id).onchange = e => { SETTINGS.fn[k] = e.target.value || null; toast(t("t_set")); render(); };
+  });
+  document.querySelectorAll("[data-esc]").forEach(el => el.onchange = () => {
+    SETTINGS.escalation[el.dataset.esc] = el.value || null; toast(t("t_set")); render();
+  });
   if (q("fq")) {
     q("fq").oninput = e => { F.q = e.target.value; renderMain();
       const el = q("fq"); el.focus(); el.setSelectionRange(F.q.length, F.q.length); };
@@ -1654,7 +2064,12 @@ function wireDrawer() {
   const c = drawerCase;
   document.getElementById("dx").onclick = closeDrawer;
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { dtab = b.dataset.tab; renderDrawer(); });
-  document.querySelectorAll("[data-complete]").forEach(b => b.onclick = () => doComplete(c, cat(b.dataset.complete)));
+  document.querySelectorAll("[data-complete]").forEach(b => b.onclick = () => {
+    const x = cat(b.dataset.complete);
+    if (x.evReq) askText({ title:t("m_ev_t"), text:t("m_ev_p") + (x.ev ? " — " + x.ev : ""),
+      label:t("m_ev_l"), min:2, err:t("m_ev_e"), okLabel:t("ok") }, v => doComplete(c, x, v));
+    else doComplete(c, x);
+  });
   document.querySelectorAll("[data-verify]").forEach(b => b.onclick = () => doVerify(c, cat(b.dataset.verify)));
   document.querySelectorAll("[data-rel]").forEach(b => b.onclick = () => doRelease(c, +b.dataset.rel));
   document.querySelectorAll("[data-fold]").forEach(b => b.onclick = () => {
