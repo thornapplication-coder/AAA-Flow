@@ -1,77 +1,84 @@
 -- =============================================================================
--- AAA Flow — Seed: Muster, Prüfpunkt-Katalog (Spec 7), Einstellungen, Changelog
--- Idempotent (on conflict). Keine Nutzer: Anlage ausschließlich durch Admins.
+-- Project Control Center — Grunddaten
+-- Konfiguration, keine Demodaten: Projekte brauchen Nutzer, und Nutzer entstehen
+-- erst mit der Anmeldung. Beispieldaten stehen in supabase/tests/001_core.sql.
 -- =============================================================================
-select public.enable_internal_write();
 
-insert into public.aircraft_types (code, name) values
-  ('ATR',    'ATR'),
-  ('C525',   'C525'),
-  ('CL350',  'CL350'),
-  ('CL650',  'CL650'),
-  ('M2',     'M2'),
-  ('PHENOM', 'Phenom'),
-  ('XLS',    'XLS')
+-- -----------------------------------------------------------------------------
+-- Welche Ereignisse eine neue Projektversion erzeugen (Abschnitt 6).
+-- Diese Liste ist Konfiguration: sie lässt sich erweitern, ohne Code zu ändern.
+-- -----------------------------------------------------------------------------
+insert into pcc.version_triggers (code, label_de, label_en, description) values
+  ('project_created',      'Projekt angelegt',        'Project created',        'Version 1.0 bei der Anlage'),
+  ('project_status',       'Projektstatus geändert',  'Project status changed', 'Statuswechsel des Projekts'),
+  ('project_end_date',     'Zieltermin geändert',     'Target date changed',    'Änderung des geplanten Endes'),
+  ('milestone_moved',      'Meilenstein verschoben',  'Milestone moved',        'Terminänderung eines Meilensteins'),
+  ('milestone_completed',  'Meilenstein erreicht',    'Milestone reached',      'Abschluss eines Meilensteins'),
+  ('risk_critical',        'Kritisches Risiko',       'Critical risk',          'Neues Risiko ab Score 15'),
+  ('workstream_completed', 'Workstream abgeschlossen','Workstream completed',   'Abschluss eines Workstreams'),
+  ('pm_release',           'Freigabe durch die Projektleitung', 'Release by project manager', 'Ausdrückliche Freigabe eines Stands')
 on conflict (code) do nothing;
 
--- Gate 1 — Booking Accepted (Sales → Training Admin), Fristen in Arbeitstagen vor Kursbeginn
-insert into public.checkpoints (code, gate_no, department, label_de, label_en, mandatory, four_eyes, evidence, deadline_days, deadline_anchor, sort_order) values
-  ('g1_customer_order',   1, 'sales', 'Kundenauftrag liegt vor',                                           'Customer order on file',                                         true,  false, 'Auftrag/Bestätigung', 15, 'course_start', 10),
-  ('g1_trainee_data',     1, 'sales', 'Trainee-Stammdaten vollständig',                                    'Trainee master data complete',                                   true,  false, 'Stammdatenblatt', 15, 'course_start', 20),
-  ('g1_licence',          1, 'sales', 'Lizenzkopie vorhanden und gültig',                                  'Licence copy on file and valid',                                 true,  true,  'Lizenzkopie', 15, 'course_start', 30),
-  ('g1_medical',          1, 'sales', 'Medical vorhanden und gültig am letzten Kurstag',                   'Medical on file and valid on last course day',                   true,  true,  'Medical-Kopie', 15, 'course_start', 40),
-  ('g1_language',         1, 'sales', 'Sprachkenntnisvermerk vorhanden und gültig',                        'Language proficiency endorsement on file and valid',             true,  false, 'Vermerk/Lizenz', 15, 'course_start', 50),
-  ('g1_prerequisites',    1, 'sales', 'Voraussetzungen für den Kurstyp geprüft (Vorerfahrung, Berechtigungen)', 'Course prerequisites checked (experience, ratings)',        true,  true,  'Logbuch/Lizenz', 15, 'course_start', 60),
-  ('g1_course_defined',   1, 'sales', 'Kurstyp und Muster eindeutig festgelegt',                            'Course type and aircraft type defined',                          true,  false, null, 15, 'course_start', 70),
-  ('g1_billing',          1, 'sales', 'Rechnungsdaten vollständig',                                         'Billing data complete',                                          true,  false, 'Rechnungsadresse', 15, 'course_start', 80),
-  ('g1_special_needs',    1, 'sales', 'Sonderbedarf erfasst (Visum, Unterkunft)',                           'Special requirements recorded (visa, accommodation)',            false, false, null, 15, 'course_start', 90),
-  ('g1_offer_sent',       1, 'sales', 'Angebot an Kunden versandt',                                         'Offer sent to customer',                                         false, false, 'Angebot', 3, 'enquiry_date', 5)
-on conflict (code) do nothing;
-
--- Gate 2 — Course Readiness (Training Admin → ATO)
-insert into public.checkpoints (code, gate_no, department, label_de, label_en, mandatory, four_eyes, evidence, deadline_days, deadline_anchor, sort_order) values
-  ('g2_course_date',      2, 'training_admin', 'Kursdatum bestätigt',                                                  'Course date confirmed',                                          true,  false, null, 10, 'course_start', 10),
-  ('g2_fstd_slot',        2, 'training_admin', 'FSTD-Slot bestätigt',                                                  'FSTD slot confirmed',                                            true,  false, 'Slot-Bestätigung', 10, 'course_start', 20),
-  ('g2_instructor',       2, 'ato',            'Instruktor zugewiesen, qualifiziert und current für das Muster',       'Instructor assigned, qualified and current on type',             true,  true,  'InstructorConnect (manuelle Prüfung)', 7, 'course_start', 30),
-  ('g2_examiner',         2, 'ato',            'Prüfer zugewiesen, qualifiziert und current (sofern Prüfung Teil des Kurses)', 'Examiner assigned, qualified and current (if a check is part of the course)', false, true, 'InstructorConnect (manuelle Prüfung)', 7, 'course_start', 40),
-  ('g2_training_docs',    2, 'training_admin', 'Trainingsunterlagen auf gültigem Revisionsstand bereitgestellt',       'Training documents provided at valid revision',                  true,  true,  'Revisionsstand TM', 5, 'course_start', 50),
-  ('g2_forms',            2, 'training_admin', 'Verwendete Formulare auf gültigem Revisionsstand',                     'Forms in use at valid revision',                                 true,  false, 'Formularliste', 5, 'course_start', 60),
-  ('g2_course_file',      2, 'training_admin', 'Kursakte angelegt',                                                    'Course file created',                                            true,  false, 'Pfad Kursakte', 5, 'course_start', 70),
-  ('g2_joining_instr',    2, 'training_admin', 'Joining Instructions an Trainee versandt',                             'Joining instructions sent to trainee',                           true,  false, 'Versandnachweis', 5, 'course_start', 80),
-  ('g2_ground_school',    2, 'ato',            'Theorie/Ground School geplant',                                        'Theory / ground school scheduled',                               true,  false, null, 5, 'course_start', 90)
-on conflict (code) do nothing;
-
--- Gate 3 — Course Closure (ATO → Training Admin), Fristen in Arbeitstagen nach Kursende
-insert into public.checkpoints (code, gate_no, department, label_de, label_en, mandatory, four_eyes, evidence, deadline_days, deadline_anchor, requires_gate_complete, sort_order) values
-  ('g3_attendance',       3, 'ato',            'Anwesenheit dokumentiert',                                             'Attendance documented',                                          true,  false, 'Anwesenheitsliste', 3, 'course_end', false, 10),
-  ('g3_grading_sheets',   3, 'ato',            'Grading Sheets vollständig und beidseitig unterschrieben',             'Grading sheets complete and signed by both parties',             true,  true,  'InstructorConnect Grading Tool (manuelle Prüfung)', 3, 'course_end', false, 20),
-  ('g3_deferred_items',   3, 'ato',            'Deferred Items geschlossen oder dokumentiert',                         'Deferred items closed or documented',                            true,  false, null, 3, 'course_end', false, 30),
-  ('g3_additional_trg',   3, 'ato',            'Additional Training dokumentiert, sofern zutreffend',                  'Additional training documented, if applicable',                  false, false, null, 3, 'course_end', false, 40),
-  ('g3_exam_result',      3, 'ato',            'Prüfungsergebnis dokumentiert',                                        'Examination result documented',                                  true,  true,  'Prüfungsprotokoll', 3, 'course_end', false, 50),
-  ('g3_records_filed',    3, 'training_admin', 'Records an die Ablage übergeben',                                      'Records handed over to filing',                                  true,  true,  'Ablagepfad', 5, 'course_end', false, 60),
-  ('g3_certificate',      3, 'training_admin', 'Zertifikat/Bescheinigung ausgestellt',                                 'Certificate issued',                                             true,  false, 'Zertifikat', 5, 'course_end', true,  70),
-  ('g3_feedback',         3, 'training_admin', 'Kundenfeedback eingeholt',                                             'Customer feedback obtained',                                     false, false, null, 10, 'course_end', false, 80)
-on conflict (code) do nothing;
-
-insert into public.settings (key, value, description) values
-  ('pool_stale',       '{"business_days": 2}',
-     'Liegenbleiber-Regel: nach N Arbeitstagen im Pool geht der Vorgang an den Teamleader (Spec 8)'),
-  ('reminders',        '{"days_before": [3, 1]}',
-     'Erinnerung an den Zuständigen N Arbeitstage vor Fristablauf (Spec 11)'),
-  ('escalation',       '{"contacts": {"sales": null, "training_admin": null, "ato": null}, "level2_after_business_days": 2}',
-     'Eskalationsstufe je Abteilung (user_id) und Frist bis Stufe 2 (Dashboard Director Training / Head of Training)'),
-  ('function_holders', '{"director_training": null, "head_of_training": null, "sales_lead": null}',
-     'Funktionsträger (user_id): Ausnahmefreigabe, ATO-Fallback, Sales-Fallback (Spec 8, 12)'),
-  ('mail',             '{"from": "aaa-flow@example.invalid", "reply_to": null, "templates": {}}',
-     'Absender und Vorlagen für E-Mail-Benachrichtigungen'),
-  ('retention',        '{"cases_years": null, "messages_years": null}',
-     'Aufbewahrungsfristen — offen (Spec 15, Punkte 8 und 10)'),
-  ('course_file',      '{"base_path": null}',
-     'Ablageort der Kursakte — offen (Spec 15, Punkt 7)')
+-- -----------------------------------------------------------------------------
+-- Einstellungen
+-- -----------------------------------------------------------------------------
+insert into pcc.settings (key, value, description) values
+  ('reminders', jsonb_build_object(
+      'due_soon_days', 3,
+      'overdue_repeat_days', 7,
+      'digest_hour', 7),
+   'Vorlauf für Fälligkeitshinweise und Wiederholung bei Überfälligkeit'),
+  ('risk', jsonb_build_object(
+      'critical_score', 15,
+      'matrix_size', 5),
+   'Ab welchem Score ein Risiko als kritisch gilt (Abschnitt 17)'),
+  ('documents', jsonb_build_object(
+      'max_size_mb', 50,
+      'bucket', 'project-docs',
+      'quarantine_prefix', 'quarantine/',
+      'allowed', jsonb_build_array('application/pdf','image/png','image/jpeg','text/plain',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation')),
+   'Grenzen und Ablage für Uploads (Abschnitt 7a der Architektur)'),
+  ('retention', jsonb_build_object(
+      'mode', 'unlimited',
+      'decided_on', '2026-09-18',
+      'note', 'Unbegrenzte Aufbewahrung. Löschung ausschließlich auf Verlangen nach Artikel 17 DSGVO.'),
+   'Aufbewahrung von Projektdaten, Dokumenten und Audit-Trail (Abschnitt 7b)'),
+  ('health', jsonb_build_object(
+      'red_critical_risks', 2,
+      'amber_critical_risks', 1),
+   'Schwellen der Gesamtlage. Rot bleibt selten, sonst verliert die Farbe ihre Aussage.')
 on conflict (key) do nothing;
 
-insert into public.changelog (version, released_on, notes_de, notes_en) values
-  ('1.0.0', '2026-09-02',
-   'Fundament: Datenmodell, Gate-Logik, Vier-Augen-Prinzip, Pool, Fristen, Ausnahmen, Gate-3-Sperre, Kommunikation, Audit-Trail, RLS.',
-   'Foundation: data model, gate logic, four-eyes principle, pool, deadlines, exceptions, gate 3 lock, communication, audit trail, RLS.')
+-- -----------------------------------------------------------------------------
+-- Eine erste Projektvorlage (Abschnitt 30)
+-- -----------------------------------------------------------------------------
+insert into pcc.templates (name, description, payload) values
+  ('Simulator-Einführung',
+   'Vorlage für die Einführung eines Full Flight Simulators: Qualifikation, Instruktoren, Unterlagen.',
+   jsonb_build_object(
+     'workstreams', jsonb_build_array(
+       jsonb_build_object('name', 'Qualifikation', 'sort_order', 1, 'description', 'Abnahme und behördliche Qualifikation'),
+       jsonb_build_object('name', 'Instruktoren',  'sort_order', 2, 'description', 'Qualifikation und Einweisung der Instruktoren'),
+       jsonb_build_object('name', 'Unterlagen',    'sort_order', 3, 'description', 'Kursunterlagen und Dokumentation')),
+     'tasks', jsonb_build_array(
+       jsonb_build_object('title', 'Factory Acceptance Test durchführen', 'workstream', 'Qualifikation', 'priority', 'critical', 'due_offset_days', 30),
+       jsonb_build_object('title', 'Qualification Test Guide einreichen', 'workstream', 'Qualifikation', 'priority', 'high', 'due_offset_days', 60),
+       jsonb_build_object('title', 'Instruktorenplan aufstellen',         'workstream', 'Instruktoren',  'priority', 'medium', 'due_offset_days', 45),
+       jsonb_build_object('title', 'Kursunterlagen erstellen',            'workstream', 'Unterlagen',    'priority', 'medium', 'due_offset_days', 90)),
+     'milestones', jsonb_build_array(
+       jsonb_build_object('name', 'Abnahme erfolgt',        'workstream', 'Qualifikation', 'due_offset_days', 35),
+       jsonb_build_object('name', 'Qualifikation erteilt',  'workstream', 'Qualifikation', 'due_offset_days', 120),
+       jsonb_build_object('name', 'Erster Kurs freigegeben','workstream', 'Unterlagen',    'due_offset_days', 150))))
+on conflict (name) do nothing;
+
+-- -----------------------------------------------------------------------------
+-- Versionsstand für den Bereich des Super Admins
+-- -----------------------------------------------------------------------------
+insert into pcc.changelog (version, released_on, notes_de, notes_en) values
+  ('1.0.0', date '2026-09-18',
+   'Project Control Center: Datenmodell, Rechte, Versionierung, Dokumente und Tageslauf in der Datenbank.',
+   'Project Control Center: data model, permissions, versioning, documents and daily jobs in the database.')
 on conflict (version) do nothing;

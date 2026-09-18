@@ -9,7 +9,7 @@
 set -euo pipefail
 shopt -s nullglob
 cd "$(dirname "$0")/.."
-DB="${AAA_FLOW_TEST_DB:-aaa_flow_check}"
+DB="${PCC_TEST_DB:-pcc_check}"
 PSQL="psql -v ON_ERROR_STOP=1 -X -q"
 
 echo "==> Datenbank $DB neu anlegen"

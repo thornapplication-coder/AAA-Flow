@@ -37,8 +37,8 @@ from pcc.projects p
 left join public.users pm on pm.id = p.pm_user_id;
 
 -- -----------------------------------------------------------------------------
--- Aufgaben. „Überfällig" ist kein gespeicherter Status, sondern abgeleitet —
--- dieselbe Festlegung wie in Flow.
+-- Aufgaben. „Überfällig" ist kein gespeicherter Status, sondern aus dem Termin
+-- abgeleitet: sonst müsste ihn jemand pflegen, und niemand tut das zuverlässig.
 -- -----------------------------------------------------------------------------
 create view pcc.v_tasks with (security_invoker = true) as
 select
@@ -149,8 +149,7 @@ select
   a.old_value, a.new_value
 from public.audit_log a
 left join public.users u on u.id = a.user_id
-left join pcc.projects p on p.id = a.project_id
-where a.module = 'pcc';
+left join pcc.projects p on p.id = a.project_id;
 
 create view pcc.v_my_notifications with (security_invoker = true) as
 select n.*, p.key as project_key, p.name as project_name
@@ -170,3 +169,19 @@ grant select on all tables in schema pcc to authenticated;
 revoke all on pcc.v_projects, pcc.v_tasks, pcc.v_milestones, pcc.v_risks,
   pcc.v_issues, pcc.v_dashboard, pcc.v_overdue_tasks, pcc.v_upcoming_milestones,
   pcc.v_risk_matrix, pcc.v_activity, pcc.v_my_notifications, pcc.v_pending_users from anon;
+
+-- -----------------------------------------------------------------------------
+-- Tageslauf einplanen. Auf Supabase steht pg_cron zur Verfügung, lokal in der
+-- Regel nicht — dort wird run_daily_jobs() von Hand oder aus dem Test gerufen.
+-- -----------------------------------------------------------------------------
+do $$
+begin
+  if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
+    create extension if not exists pg_cron;
+    perform cron.schedule('pcc_daily', '0 5 * * *', 'select pcc.run_daily_jobs()');
+  else
+    raise notice 'pg_cron nicht verfügbar: pcc.run_daily_jobs() muss extern (Edge Function oder Scheduler) aufgerufen werden';
+  end if;
+exception when others then
+  raise notice 'pg_cron konnte nicht eingerichtet werden: %', sqlerrm;
+end $$;

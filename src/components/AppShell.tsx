@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthProvider'
 export function AppShell() {
   const { t } = useTranslation()
   const { profile, signOut, setLanguage } = useAuth()
-  const canSeeAll = profile?.role !== 'staff'
+  const isAdmin = profile?.role === 'super_admin' || profile?.role === 'admin'
 
   return (
     <div className="shell">
@@ -15,15 +15,17 @@ export function AppShell() {
           {t('app.name')}
         </div>
         <nav className="nav">
-          <NavLink to="/pool">{t('nav.pool')}</NavLink>
-          <NavLink to="/my">{t('nav.my')}</NavLink>
-          {canSeeAll && <NavLink to="/all">{t('nav.all')}</NavLink>}
           <NavLink to="/dashboard">{t('nav.dashboard')}</NavLink>
-          {(profile?.role === 'superadmin' || profile?.role === 'admin') && <NavLink to="/admin">{t('nav.admin')}</NavLink>}
+          <NavLink to="/projects">{t('nav.projects')}</NavLink>
+          <NavLink to="/tasks">{t('nav.tasks')}</NavLink>
+          <NavLink to="/risks">{t('nav.risks')}</NavLink>
+          <NavLink to="/reports">{t('nav.reports')}</NavLink>
+          {isAdmin && <NavLink to="/admin">{t('nav.admin')}</NavLink>}
         </nav>
         <div className="user">
           <span className="name">
-            {profile?.name} · {profile ? t(`department.${profile.department}`) : ''}
+            {profile?.name}
+            {profile?.role ? ` · ${t(`role.${profile.role}`)}` : ''}
           </span>
           <button
             type="button"

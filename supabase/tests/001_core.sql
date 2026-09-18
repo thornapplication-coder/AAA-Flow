@@ -69,42 +69,31 @@ select test.ok((select count(*) from pcc.templates where active) = 1, 'Eine Proj
 -- 2. Selbstregistrierung: Konto ohne Rolle sieht nichts (Abschnitt 4)
 -- -----------------------------------------------------------------------------
 insert into test_users (key) values
-  ('psa'), ('padmin'), ('ppm'), ('ppm2'), ('pcon'), ('pview'), ('pnew'), ('flowonly');
+  ('psa'), ('padmin'), ('ppm'), ('ppm2'), ('pcon'), ('pview'), ('pnew');
 insert into auth.users (id, email) select id, key || '@test.invalid' from test_users;
 
-select test.ok((select count(*) from public.users where pending and not active) = 8,
+select test.ok((select count(*) from public.users where pending and not active) = 7,
                'Jede Registrierung erzeugt ein gesperrtes Profil');
-select test.ok((select role is null and department is null and pcc_role is null
+select test.ok((select role is null and not active and pending
                 from public.users where id = test.uid('pnew')),
-               'Ein frisch registriertes Konto hat in keinem Modul eine Rolle');
+               'Ein frisch registriertes Konto hat keine Rolle und keinen Zugang');
 
 -- Freischalten von Hand (im Betrieb: Super Admin über die Oberfläche)
 select public.enable_internal_write();
 update public.users set name = key, active = true, pending = false,
-  pcc_role = case key when 'psa' then 'super_admin' when 'padmin' then 'admin'
+  role = case key when 'psa' then 'super_admin' when 'padmin' then 'admin'
                       when 'ppm' then 'pm' when 'ppm2' then 'pm'
                       when 'pcon' then 'contributor' when 'pview' then 'viewer' end::pcc.user_role
-from test_users t where public.users.id = t.id and t.key <> 'pnew' and t.key <> 'flowonly';
-
--- Ein reiner Flow-Nutzer: Rolle in Flow, keine im Control Center
-update public.users set name = 'flowonly', active = true, pending = false,
-  department = 'sales', role = 'staff'
-where id = test.uid('flowonly');
+from test_users t where public.users.id = t.id and t.key <> 'pnew';
 select public.disable_internal_write();
 
 select test.login('pnew');
-select test.ok(pcc.is_user() = false, 'Ohne Freigabe kein Zugang zum Control Center');
+select test.ok(pcc.is_user() = false, 'Ohne Freigabe kein Zugang zur Anwendung');
 select test.ok((select count(*) from pcc.projects) = 0, 'Ein gesperrtes Konto sieht keine Projekte');
 select test.logout();
 
-select test.login('flowonly');
-select test.ok(pcc.is_user() = false, 'Ein reiner Flow-Nutzer hat keinen Zugang zum Control Center');
-select test.ok(public.is_active_user() = true, 'Der Flow-Zugang bleibt davon unberührt');
-select test.logout();
-
 select test.login('pview');
-select test.ok(public.is_active_user() = false, 'Ein reiner Control-Center-Nutzer hat keinen Zugang zu Flow');
-select test.ok(pcc.is_user() = true, 'Der freigegebene Nutzer ist im Control Center angemeldet');
+select test.ok(pcc.is_user() = true, 'Der freigegebene Nutzer ist angemeldet');
 select test.logout();
 
 -- Freigabe ist dem Super Admin vorbehalten
@@ -114,7 +103,7 @@ select test.fails(format('select pcc.approve_user(%L, ''viewer'')', test.uid('pn
 select test.logout();
 select test.login('psa');
 select pcc.approve_user(test.uid('pnew'), 'viewer', 'Neue Kollegin');
-select test.ok((select active and not pending and pcc_role = 'viewer' and approved_at is not null
+select test.ok((select active and not pending and role = 'viewer' and approved_at is not null
                 from public.users where id = test.uid('pnew')),
                'Der Super Admin gibt das Konto mit Rolle frei');
 select test.logout();
@@ -377,7 +366,7 @@ select test.fails(format('select pcc.delete_project(%L, ''  '')', test.pid('p2')
 select pcc.delete_project(test.pid('p2'), 'Doppelt angelegt, Inhalt in SIM-26 überführt');
 select test.ok((select count(*) from pcc.projects where id = test.pid('p2')) = 0, 'Das Projekt ist gelöscht');
 select test.ok((select count(*) from public.audit_log
-                where module = 'pcc' and action = 'purge' and project_id = test.pid('p2')) = 1,
+                where action = 'purge' and project_id = test.pid('p2')) = 1,
                'Die Löschung steht im Audit-Trail, mit Grund');
 select test.logout();
 
@@ -392,13 +381,13 @@ select test.login('psa');
 select test.fails(format('select pcc.anonymise_user(%L, '''')', test.uid('pcon')),
                   'PCC_STATE', 'Ohne Grundlage keine Pseudonymisierung');
 select pcc.anonymise_user(test.uid('pcon'), 'Antrag nach Artikel 17 DSGVO vom 01.09.2026');
-select test.ok((select name like 'Ehemaliger Mitarbeiter%' and not active and pcc_role is null
+select test.ok((select name like 'Ehemaliger Mitarbeiter%' and not active and role is null
                 from public.users where id = test.uid('pcon')),
                'Das Konto ist pseudonymisiert und gesperrt');
 select test.ok((select count(*) from pcc.tasks where assignee_user_id = test.uid('pcon')) >= 1,
                'Die fachliche Zuordnung bleibt über die ID bestehen');
 select test.ok((select count(*) from public.audit_log
-                where module = 'pcc' and action = 'anonymise'
+                where action = 'anonymise'
                   and entity_id = test.uid('pcon')::text) = 1,
                'Der Vorgang selbst bleibt nachvollziehbar');
 select test.logout();

@@ -1,12 +1,12 @@
-# Supabase CLI-Konfiguration für AAA Flow.
+# Supabase CLI-Konfiguration für das Project Control Center.
 # Lokaler Start: `supabase start` (benötigt Docker), Migrationen: `supabase db reset`.
-project_id = "aaa-flow"
+project_id = "project-control-center"
 
 [api]
 enabled = true
 port = 54321
-schemas = ["public"]
-extra_search_path = ["public"]
+schemas = ["public", "pcc"]
+extra_search_path = ["public", "pcc"]
 max_rows = 1000
 
 [db]

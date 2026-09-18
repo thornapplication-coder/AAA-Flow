@@ -11,3 +11,7 @@ if (!url || !anonKey) {
 export const supabase = createClient<Database>(url, anonKey, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
 })
+
+// Die Fachdaten liegen im Schema pcc, das Nutzerprofil in public. Beides über
+// denselben Client, damit ein Token genügt.
+export const pcc = supabase.schema('pcc')

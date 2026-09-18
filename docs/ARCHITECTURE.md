@@ -1,224 +1,348 @@
-# Architektur und Entscheidungen
+# Project Control Center — Architektur
 
-Stand: Schema 1.0.0. Ergänzt die Spezifikation (`docs/SPEC.md`) um die
-Entscheidungen, die bei der Umsetzung des Fundaments getroffen wurden.
+Stand: 2026-09-18
+Bezug: „Project Control Center — Master Development Prompt", Abschnitte 1–64
 
-## Leitprinzip: Logik in der Datenbank
+Dieses Dokument ist die in Abschnitt 62, Phase 1 geforderte Architektur. Es
+legt Technologie, Datenmodell, Rechtemodell, Betrieb und Ausbaureihenfolge
+fest. Die Datenbank ist danach gebaut; die Oberfläche folgt.
 
-Gate-Sperre, Vier-Augen-Prinzip, Zuständigkeit und Audit werden in
-PostgreSQL erzwungen, nicht im Frontend. Das Frontend ruft Funktionen auf
-(`claim_case`, `complete_checkpoint`, `release_gate`, …) und liest Views.
-Gründe:
+---
 
-- Kontrolle wirkt nur, wenn sie blockiert (Spec 1). Eine Regel, die nur in
-  der Oberfläche lebt, ist über die API umgehbar.
-- Ein späterer zweiter Client (Edge Function, Export, Standardsoftware) erbt
-  dieselben Regeln.
-- Die Regeln sind mit einer SQL-Testsuite ohne Browser prüfbar.
+## 1. Aufteilung der Anwendung
 
-Guard-Trigger weisen direkte Schreibzugriffe auf `cases.status`, `gates`,
-`case_assignments`, `case_checkpoints` und `exceptions` ab. Die Funktionen
-schalten den Schreibmodus per Transaktions-Setting `app.internal_write`
-frei und wieder aus.
+**Entschieden: ein modularer Monolith, eine Datenbank, ein Login.**
 
-## Abweichungen und Ergänzungen zum Datenmodell der Spec
-
-| Punkt | Entscheidung | Begründung |
-|---|---|---|
-| `trainees` als eigene Tabelle | `cases.trainee_id` statt `trainee_name`/`trainee_dob` | Trainee-Threads müssen über mehrere Kurse hinweg funktionieren (Spec 5a); dafür braucht der Trainee eine stabile Identität. |
-| `cases.company_id` | statt Freitext `customer` | Firmen-Threads und Zahlungsthemen hängen an der Firma (Spec 5). |
-| `checkpoints.code` | stabiler Schlüssel je Prüfpunkt | Referenzierbar in Tests, Vorlagen und späteren Auswertungen, unabhängig vom Label. |
-| `checkpoints.four_eyes` | je Prüfpunkt konfigurierbar | Spec 10 und 14. |
-| `checkpoints.requires_gate_complete` | Gate-3-Sperre | Prüfpunkt kann erst erledigt werden, wenn alle anderen Pflichtpunkte des Gates erledigt sind. Im Seed gesetzt für „Zertifikat/Bescheinigung ausgestellt". Umsetzung von offenem Punkt 1 (Entscheidung: Sperre). |
-| `checkpoints.deadline_anchor` | `course_start` (rückwärts), `enquiry_date` oder `course_end` (vorwärts) | Sales-eigene Fristen hängen am Anfragedatum, Gate-3-Fristen am Kursende (Spec 6). |
-| `case_assignments.pool_since`, `stale_notified_at` | Liegedauer und Liegenbleiber-Meldung | Spec 8 und 13 (Pool-Bestand mit Liegedauer). |
-| `exceptions.status` | `requested` / `approved` / `rejected` | Antrag und Entscheidung sind getrennte Schritte (Spec 12). |
-| `message_mentions`, `thread_reads` | Erwähnungen und Lesestand | Spec 5a: Erwähnung mit Benachrichtigung, Ungelesen-Zähler je Kontextebene. |
-| `audit_log.case_id` | zusätzliche Spalte | Audit-Trail je Vorgang ohne Join, Sichtbarkeit folgt dem Vorgang. |
-| `changelog` | Tabelle | Versionsstand im Superadmin-Bereich (Spec 3). |
-| Funktionsträger in `settings.function_holders` | Director Training, Head of Training, Sales-Leitung als `user_id` | Das sind Funktionen, keine Rollen. So bleiben sie ohne Schemaänderung umbesetzbar. |
-
-## Regeln, die die Spec offen lässt (Annahmen)
-
-1. **Gate-Reihenfolge ist strikt.** Prüfpunkte von Gate n lassen sich erst
-   erledigen, wenn Gate n-1 freigegeben ist. Vorarbeiten am nächsten Gate
-   sind damit ausgeschlossen. Wird das im Betrieb als zu hart empfunden, ist
-   die Prüfung in `complete_checkpoint` an einer Stelle lockerbar.
-2. **Zurücksetzen nur vor Gate-Freigabe.** Nach Freigabe bleibt der Prüfpunkt
-   erledigt; ein „Gate wieder öffnen" gibt es nicht. Begründung: Sonst wäre
-   der Status „Gebucht" nicht belastbar. Bei echten Fehlern nach Freigabe:
-   Vorgang verwerfen und neu anlegen, oder Ausnahme dokumentieren.
-3. **Kontrolle (Vier-Augen) durch die Abteilung des Prüfpunkts.** Jeder aktive
-   Nutzer der Abteilung außer dem Bearbeiter darf kontrollieren; Admins
-   ebenfalls. Das Vier-Augen-Prinzip gilt auch für Vertretungen und Admins.
-4. **Admins dürfen Prüfpunkte erledigen**, Teamleader nur, wenn sie zuständig
-   sind. Alles wird im Audit-Trail protokolliert.
-5. **Gate 1 setzt ein Kursdatum voraus**, weil „Gebucht" den Fristenlauf
-   startet (Spec 6). Gate 3 ist erst nach Kursende freigebbar.
-6. **Sales legt nur Vorgänge für zugeordnete Muster an**; Sales-Teamleitung
-   und Sales-Leitung für alle. Training Admin kann Vorgänge ebenfalls anlegen.
-7. **Arbeitstage sind Montag bis Freitag** ohne Feiertagskalender. Ein
-   Feiertagskalender ist in `add_business_days` nachrüstbar.
-8. **Nachrichten bearbeitet nur der Autor** (Superadmin ausgenommen); jede
-   Bearbeitung landet in `message_edits`. Löschen ist auch für den Superuser
-   per Trigger gesperrt.
-9. **Erinnerungen** gehen an den Zuständigen, bei Pool-Vorgängen an die
-   Teamleader der Abteilung. Ist keine Eskalationsstufe hinterlegt, ersetzt der
-   Teamleader sie. Stufe 2 geht an Director Training und Head of Training.
-10. **E-Mail-Versand** ist entkoppelt: Die Datenbank schreibt `notifications`
-    mit `email_status = 'pending'`; eine Edge Function versendet und setzt
-    `sent`/`failed` mit Fehlertext (Admin-Panel, Spec 11 und 14).
-
-## Rechte in Kurzform
-
-| Aktion | Wer |
+| | Begründung |
 |---|---|
-| Vorgang anlegen | Sales (eigene Muster), Training Admin, Teamleader, Admin |
-| Aus dem Pool übernehmen | jeder aktive Nutzer der Abteilung, sofern sichtbar |
-| Zuweisen / in den Pool zurücklegen | Teamleader der Abteilung, Admin (zurücklegen auch der Zuständige) |
-| Prüfpunkt erledigen | Zuständiger der Prüfpunkt-Abteilung (inkl. Vertretung), Admin |
-| Prüfpunkt kontrollieren | zweite Person der Abteilung, Admin — nie der Bearbeiter |
-| Prüfpunkt zurücksetzen | Zuständiger, Teamleader der Abteilung, Admin — mit Begründung, nur vor Gate-Freigabe |
-| Gate freigeben | Zuständiger oder Teamleader der empfangenden Abteilung, Admin |
-| Ausnahme beantragen | Zuständiger, Teamleader der Abteilung, Admin |
-| Ausnahme entscheiden | Director Training, Head of Training, Superadmin |
-| Verwerfen | Zuständiger, Teamleader, Admin — mit Begründung |
-| Nutzer anlegen | Superadmin |
-| Prüfpunkt-Katalog ändern | Superadmin |
-| Einstellungen, Muster, Zuordnungen | Admin, Superadmin |
+| **Ein Login** | Supabase Auth. Ein Konto je Person, ein Sperrvorgang beim Austritt |
+| **Zwei Schemas** | `public` trägt Nutzerkonto und Audit-Trail — beides hängt an der Anmeldung, nicht am Fachmodul. `pcc` trägt alles Fachliche. So bleibt die Rechteprüfung an einer Stelle und das Fachmodell frei beweglich |
+| **Rechte in der Datenbank** | Row Level Security statt Prüfungen im Anwendungscode. Was die Oberfläche nicht zeigt, gibt auch die API nicht heraus |
 
-## Sichtbarkeit
+Wer keine Rolle hat, sieht nichts: `users.role` darf NULL sein, und eine
+NULL-Rolle lässt keine einzige Policy greifen.
 
-- Sales: Vorgänge der zugeordneten Muster (auch im Pool), eigene Zuständigkeiten,
-  alles bei Teamleader-Rolle oder als Sales-Leitung. Vertretung erbt die Sicht
-  des Vertretenen.
-- Training Admin, ATO, Admins: alle Vorgänge.
-- Firmen-Threads: alle, die mindestens einen Vorgang der Firma sehen, plus
-  alle Teamleitungen. Vorgangs- und Trainee-Threads folgen dem Vorgang.
-- Audit-Trail: Admins alles, sonst nur Einträge zu sichtbaren Vorgängen.
+---
 
-## Views und Statusmodell
+## 2. Technologiestack
 
-`v_case_checkpoints`, `v_gates` und `v_cases` liefern je Ebene genau einen
-Anzeigezustand `display_state` aus `open`, `in_progress`, `done`, `overdue`
-(dominant) sowie `discarded` beim Vorgang. `v_pool` zeigt den Pool mit
-Liegedauer in Arbeitstagen, `v_pipeline` die Vorgangsbahn mit Bestand und
-Blockierern je Gate, `v_exception_stats` die Ausnahmen nach Abteilung, Muster
-und Prüfpunkt, `v_gate_lead_times` die Gate-Durchlaufzeiten.
-
-## Offene Punkte der Spec — Stand im Fundament
-
-| # | Punkt | Stand |
+| Schicht | Wahl | Begründung |
 |---|---|---|
-| 1 | Gate-3-Sperre | umgesetzt (`requires_gate_complete`, Test 7) |
-| 2 | Supabase-Region | Projekt noch nicht angelegt; Empfehlung EU/Frankfurt bleibt |
-| 3 | Hex-Codes und Logo | Farbwerte und Typografie aus dem Prototyp übernommen (`src/styles/theme.css`); Logo steht weiterhin aus |
-| 4 | Eskalationsstufen | `settings.escalation.contacts` je Abteilung, im Admin-Panel zu pflegen |
-| 5 | Sales-Leitung | `settings.function_holders.sales_lead` |
-| 6 | Course Supervisor Phenom, M2 | Fallback auf Head of Training aktiv (Test) |
-| 7 | Ablageort Kursakte | `settings.course_file.base_path`, noch leer |
-| 8, 10 | Aufbewahrungsfristen | `settings.retention`, noch leer; keine Löschlogik |
-| 9 | Regulatorische Referenzen | Katalog ohne Paragraphenverweise, Feld `evidence` vorbereitet |
-| 11 | Sales-Akzeptanz | Kennzahlen dafür: `v_pool` (Liegedauer Sales), `v_exception_stats` |
+| Frontend | React 19 + TypeScript + Vite | Bereits im Repository, komponentenbasiert, typsicher |
+| PWA | `vite-plugin-pwa` (Workbox) | Manifest, Service Worker, Auto-Update, Offline-Shell |
+| Zustand | TanStack Query + Supabase Realtime | Cache, Hintergrundaktualisierung, Konfliktbehandlung |
+| Oberfläche | eigene Komponenten auf den AAA-Design-Tokens | Kein UI-Framework: die Tokens stehen, der Look ist gesetzt |
+| Backend | Supabase (PostgreSQL, Auth, Realtime, Storage, Edge Functions) | Postgres mit RLS erzwingt Rechte **serverseitig** — Abschnitt 43 |
+| Geschäftslogik | PostgreSQL-Funktionen und Trigger | Regeln, die in der Datenbank stehen, sind über die API nicht umgehbar |
+| Hosting | Vercel oder Cloudflare Pages | HTTPS, globales CDN, Vorschau je Branch, Bereitstellung per Push |
+| Dateien | Supabase Storage plus externe Verweise | Abschnitt 27: SharePoint- und OneDrive-Links ohne Kopie |
 
-## Regelwerk je Prüfpunkt — Erweiterung gegenüber Schema 1.0.0
+**Bewusst nicht gewählt:** Microservices (Abschnitt 56 verlangt selbst einen
+modularen Monolithen), eigener Node-Server (verschöbe Rechteprüfung in
+Anwendungscode statt in die Datenbank), Firebase (kein relationales Modell,
+Abschnitt 42 verlangt Relationen).
 
-Das Admin-Panel der Sandbox vergibt je Prüfpunkt Regeln, die über die heutigen
-Spalten von `checkpoints` hinausgehen. Bewährt sich das im Prototyp, sind
-folgende Spalten zu ergänzen (Migration `20260904_checkpoint_rules.sql`):
+**Kosten:** Supabase Pro rund 25 USD im Monat je Projekt inklusive täglicher
+Backups und Point-in-Time-Recovery; Vercel Hobby genügt anfangs, Pro rund
+20 USD. Der freie Supabase-Tarif pausiert nach einer Woche Inaktivität und
+sichert nicht täglich — für ein System mit Auditpflicht untauglich.
 
-| Regel | Spalte | Wirkung | Schon im Schema |
+---
+
+## 3. Datenmodell
+
+Schema `pcc`. Alle Tabellen mit `id uuid`, `created_at`, `created_by`,
+`updated_at`, `updated_by`.
+
+### Kern
+
+```
+projects        key, name, description, objectives, scope, status, health,
+                pm_user_id, start_date, target_end_date, actual_end_date,
+                progress_mode (manual | derived), progress_manual,
+                archived_at, archived_by, template_id
+project_members project_id, user_id, project_role, responsibilities
+workstreams     project_id, name, description, owner_user_id, sort_order
+tasks           project_id, workstream_id, parent_task_id, ref (T-1042),
+                title, description, assignee_user_id, priority, status,
+                start_date, due_date, completed_at, progress,
+                progress_mode (manual | derived)
+milestones      project_id, workstream_id, ref, name, description, date,
+                owner_user_id, status, depends_on_milestone_id, notes
+risks           project_id, ref, title, description, category,
+                probability (1-5), impact (1-5),
+                score int GENERATED ALWAYS AS (probability * impact) STORED,
+                owner_user_id, mitigation, contingency, due_date, status
+issues          project_id, ref, title, description, owner_user_id,
+                priority, status, due_date, resolution
+decisions       project_id, ref, decided_on, topic, decision, maker_user_id,
+                participants uuid[], rationale, impact, task_id
+documents       project_id, title, description, kind (file | link),
+                storage_path, external_url, version, owner_user_id
+raci            project_id, subject_type (workstream|task|milestone),
+                subject_id, user_id, letter (R|A|C|I)
+comments        entity_type, entity_id, user_id, body, edited_at
+mentions        comment_id, user_id
+notifications   user_id, kind, entity_type, entity_id, payload, read_at,
+                email_status
+project_versions project_id, version (1.4), summary, created_by, created_at
+version_changes  version_id, entity_type, entity_id, field, old_value, new_value
+templates       name, description, payload jsonb
+```
+
+### An der Anmeldung, nicht am Fachmodul
+
+```
+public.users     id (= auth.users.id), name, email, role, active, pending,
+                 language, approved_at, approved_by, registered_at
+public.audit_log user_id, project_id, entity, entity_id, action,
+                 old_value, new_value, reason, created_at
+```
+
+### Bewusste Festlegungen
+
+1. **Risk Score als generierte Spalte** — nie im Anwendungscode gerechnet,
+   damit Filter und Sortierung serverseitig funktionieren und kein Client
+   eine abweichende Zahl schreiben kann (Abschnitt 24).
+2. **Fortschritt wahlweise gerechnet oder gesetzt** (`progress_mode`).
+   Abschnitt 21 will den Elternfortschritt optional aus Subtasks ableiten —
+   „optional" heißt: je Aufgabe entscheidbar, nicht global.
+3. **Verwerfen statt Löschen** — `archived_at` (Abschnitt 41). Endgültiges
+   Löschen ausschließlich Super Admin, über eine Funktion mit Audit-Eintrag.
+4. **Referenznummern** (`T-1042`, `R-14`) je Projekt aus einer Sequenz, damit
+   Menschen im Gespräch darauf zeigen können.
+5. **RACI als eigene Tabelle**, nicht als Feld an der Aufgabe: eine Aufgabe
+   hat genau ein A, aber beliebig viele C und I (Abschnitt 19).
+
+---
+
+## 4. Rechte (Abschnitt 5)
+
+Serverseitig durch Row Level Security. Kein einziger Rechtecheck verlässt
+sich auf das Frontend (Abschnitt 43).
+
+| Rolle | Projekte | Aufgaben, Risiken, Issues | Nutzer | System |
+|---|---|---|---|---|
+| **Super Admin** | alle, anlegen, archivieren, endgültig löschen | alle | freigeben, sperren, Rollen vergeben | Einstellungen, Versionen, Audit |
+| **Admin** | alle, anlegen, archivieren | alle | bearbeiten, keine Rollenvergabe, keine Anlage | Exporte |
+| **Project Manager** | eigene Projekte vollständig | in eigenen Projekten alles | Projektteam der eigenen Projekte | — |
+| **Contributor** | Projekte mit Mitgliedschaft lesen | zugewiesene bearbeiten, Issues melden, kommentieren | — | — |
+| **Viewer** | Projekte mit Mitgliedschaft lesen | lesen, exportieren | — | — |
+
+Umsetzung je Tabelle über drei Hilfsfunktionen:
+
+```sql
+pcc.can_read(project_id)         -- jeder freigegebene Nutzer, Archiv nur für Mitglieder
+pcc.can_contribute(project_id)   -- Contributor mit Mitgliedschaft, oder can_edit
+pcc.can_edit(project_id)         -- PM des Projekts, Admin oder Super Admin
+```
+
+**Registrierung und Freigabe (Abschnitt 4):** Selbstregistrierung ist erlaubt,
+erzeugt aber `active = false, pending = true`. Ohne Freigabe durch den Super
+Admin greift keine einzige RLS-Policy — der Nutzer sieht nichts. Die Freigabe
+läuft über eine Edge Function mit der Admin-API.
+
+> **Entschieden am 18.09.2026:** Selbstregistrierung ist erlaubt. Ein Trigger
+> auf `auth.users` legt das Profil gesperrt und ohne Rolle an; erst die Freigabe
+> durch den Super Admin über `pcc.approve_user()` schaltet es frei. Ein eigener
+> Guard verhindert, dass jemand Rolle, Freigabe oder Aktivstatus an sich selbst
+> ändert — sonst wäre die Registrierung ein Weg zum Super Admin.
+
+### Sichtbarkeit von Projekten
+
+**Entschieden am 18.09.2026:** Jeder freigegebene Nutzer liest alle nicht
+archivierten Projekte. Abschnitt 5 gibt dem Viewer ausdrücklich Leserecht auf
+Projekte, und ein Management-Dashboard mit Löchern wäre wertlos. Geändert wird
+weiterhin nur nach Rolle.
+
+Technisch heißt das: die SELECT-Policy prüft nur `active AND pcc_role IS NOT
+NULL`, die INSERT-, UPDATE- und DELETE-Policies prüfen `pcc.can_edit()`. Eine
+spätere Einschränkung je Projekt bliebe eine reine Erweiterung der
+SELECT-Policy um ein Feld `projects.restricted`.
+
+---
+
+## 5. Autosave, Echtzeit, Konflikte (Abschnitte 34, 35)
+
+**Autosave.** Kein Speichern-Knopf. Jede Feldänderung löst nach 600 ms
+Ruhe einen Schreibvorgang aus. Der Zustand steht sichtbar am Feld:
+`Gespeichert` / `Speichert …` / `Nicht gespeichert — erneut versuchen`.
+Bei Verbindungsverlust wandert die Änderung in eine lokale Warteschlange
+(IndexedDB) und wird bei Rückkehr abgespielt (Abschnitt 37).
+
+**Echtzeit.** Supabase Realtime auf den Tabellen des geöffneten Projekts.
+Eingehende Änderungen aktualisieren den Cache, ohne die Eingabe des Nutzers
+zu überschreiben: Ein Feld, in dem gerade getippt wird, bleibt unberührt und
+zeigt stattdessen einen Hinweis „von *Martin* geändert — übernehmen".
+
+**Konflikte.** Optimistisches Sperren über `updated_at`. Schreibt jemand auf
+einen veralteten Stand, weist die Funktion ab und die Oberfläche zeigt beide
+Fassungen nebeneinander zur Auswahl. Kein stilles Überschreiben.
+
+---
+
+## 6. Versionierung (Abschnitt 32)
+
+Nicht jede Feldänderung ist eine Version — sonst steht nach einer Woche
+Version 4.312 da und niemand liest sie mehr.
+
+**Regel, entschieden am 18.09.2026:** Eine Version entsteht bei fachlich
+bedeutsamen Ereignissen — Statuswechsel des Projekts, Verschiebung eines
+Meilensteins, Änderung des Enddatums, neues Risiko ab Score 15, Abschluss
+eines Workstreams, Freigabe durch den PM. Alles Übrige steht im Audit Trail
+und im Activity Log. Die Liste ist in `pcc.version_triggers` als Konfiguration
+hinterlegt, damit sie ohne Codeänderung erweitert werden kann.
+
+`version_changes` hält je Version die Einzeländerungen (Objekt, Feld, alt,
+neu). Wiederherstellung ist vorbereitet, aber nicht Teil der ersten Fassung:
+Die Daten reichen dafür, die Oberfläche kommt später.
+
+---
+
+## 7. Export (Abschnitte 38–40)
+
+| Ausgabe | Weg |
+|---|---|
+| **Excel** je Projekt, 13 Blätter | Edge Function mit `exceljs`, serverseitig erzeugt, damit Formatierung und Formeln stimmen und keine Daten am Client zusammengeklaubt werden |
+| **PDF** Management Report | Druckansicht im Browser für den schnellen Weg; serverseitig mit Playwright als Edge Function, sobald der Bericht per Mail verschickt werden soll |
+| **Dashboard-PDF** | dieselbe Druckansicht über die Dashboard-Route |
+
+Der Export prüft die Rechte erneut serverseitig: Ein Viewer exportiert nur,
+was er sehen darf.
+
+---
+
+## 7a. Dokumente (Abschnitt 27)
+
+**Entschieden am 18.09.2026:** Dokumente werden **in die Anwendung
+hochgeladen**, nicht nur verlinkt. Damit wird das Control Center zur führenden
+Ablage für Projektdokumente.
+
+Das ist bewusst gegen meine Empfehlung entschieden worden und zieht vier
+Pflichten nach sich, die sonst SharePoint getragen hätte:
+
+| Pflicht | Umsetzung |
+|---|---|
+| **Zugriffsschutz** | Supabase Storage Bucket `project-docs`, privat. Zugriff ausschließlich über signierte URLs mit kurzer Gültigkeit; die Storage-Policy prüft dieselbe Projektmitgliedschaft wie die Tabellen. Kein öffentlicher Bucket |
+| **Virenprüfung** | Upload landet zuerst in `quarantine/`, eine Edge Function prüft und verschiebt erst danach nach `project-docs/`. Bis dahin ist das Dokument als „in Prüfung" gekennzeichnet und nicht herunterladbar |
+| **Aufbewahrung** | Entschieden am 18.09.2026: **unbegrenzt**. Es gibt keine automatische Löschregel; der Speicherbedarf wächst mit jedem Projekt. Rechnen Sie mit rund 1 bis 3 GB je Jahr bei der heutigen Projektzahl, das entspricht im Supabase-Pro-Tarif etwa 0,02 USD je GB und Monat — wirtschaftlich unkritisch, aber bewusst einzuplanen |
+| **Sicherung** | Storage wird getrennt von der Datenbank gesichert. Supabase sichert Storage nicht im Datenbank-Backup mit — dafür ist ein eigener Abgleich in ein zweites Ziel einzurichten |
+
+Grenzen: 50 MB je Datei, erlaubte Typen PDF, Office, Bilder, Text. Größere
+Dateien und Videos bleiben extern; das Feld für einen externen Verweis bleibt
+deshalb erhalten und lässt sich je Dokument statt eines Uploads verwenden.
+
+Versionen eines Dokuments werden als eigene Zeilen geführt, nicht überschrieben:
+`documents.version` plus `supersedes_id`. Ein Dokument wird nie ersetzt,
+sondern abgelöst — sonst ist der Stand zum Zeitpunkt eines Audits nicht mehr
+rekonstruierbar.
+
+## 7b. Aufbewahrung und Löschung
+
+**Entschieden am 18.09.2026:** Projektdokumente und Audit-Trail werden
+**unbegrenzt** aufbewahrt. Keine automatische Löschung, kein Verfallsdatum.
+
+Davon unberührt bleibt eine Pflicht, die keine Aufbewahrungsregel aufhebt:
+**Löschverlangen nach Artikel 17 DSGVO.** Projektdokumente und Kommentare
+enthalten personenbezogene Daten — Namen, Verantwortlichkeiten, gelegentlich
+Beurteilungen. Verlangt eine Person die Löschung, muss die Anwendung sie
+ausführen können, ohne den Projektverlauf zu zerstören.
+
+Vorgesehener Weg, ausschließlich für den Super Admin:
+
+| Objekt | Behandlung |
+|---|---|
+| `users` | Konto deaktiviert, Name ersetzt durch „Ehemaliger Mitarbeiter (Nr.)", E-Mail geleert. Die ID bleibt, damit Zuordnungen nicht brechen |
+| `comments`, `documents` | Auf Antrag einzeln löschbar, mit Eintrag im Audit-Trail: wer, wann, auf welcher Grundlage |
+| `audit_log` | Einträge bleiben, der Personenbezug wird durch die Pseudonymisierung in `users` aufgelöst. Der Vorgang selbst bleibt nachvollziehbar |
+| `tasks`, `risks`, `decisions` | Zuordnung bleibt über die ID bestehen und zeigt den pseudonymisierten Namen |
+
+Damit ist das Prinzip gewahrt: **Was fachlich geschehen ist, bleibt
+nachvollziehbar; wer es war, ist auf Verlangen nicht mehr erkennbar.**
+
+## 8. PWA und Auto-Update (Abschnitte 36, 37)
+
+- Manifest mit Icons in 192, 512 und maskable, Splash über `theme_color`.
+- Service Worker mit `registerType: 'prompt'`: Bei neuer Fassung erscheint ein
+  dezenter Hinweis „Neue Version verfügbar — jetzt laden". Kein Neuladen
+  mitten in einer Eingabe.
+- Offline-Shell mit den zuletzt gesehenen Projekten; Schreibvorgänge in die
+  Warteschlange, Hinweis „Offline — Änderungen werden synchronisiert".
+- Versionsnummer aus `package.json`, im Build eingebettet, sichtbar im
+  Profilmenü: `Project Control Center v1.4.2`.
+
+---
+
+## 9. Was der Prototyp zeigt und was er nicht kann
+
+Der klickbare Prototyp zeigt Oberfläche, Abläufe und
+Informationsarchitektur. Er ist ausdrücklich **kein** Ersatz für die
+Implementierung nach Abschnitt 61.
+
+| Anforderung | Prototyp | Stand der Umsetzung |
+|---|---|---|
+| Oberfläche, Navigation, Dashboard | vollständig | Prototyp, Zielversion offen |
+| Rollen und Sichtbarkeit | im Frontend nachgebildet | **umgesetzt** als RLS in PostgreSQL (`20260918000400`) |
+| Anmeldung | Rollenwahl | **Datenbankseite umgesetzt**: Registrierungs-Trigger, Freigabe durch Super Admin; Supabase Auth folgt mit dem Projekt |
+| Persistenz | im Speicher, bis Neuladen | **Schema umgesetzt** (`20260918000100`), noch keine Cloud-Instanz |
+| Echtzeit, Autosave | nicht vorhanden | offen — braucht die Supabase-Instanz |
+| Audit und Versionen | nachgebildet | **umgesetzt**: gemeinsamer Trail mit Modulspalte, unveränderliche Versionstabellen |
+| Export | PDF echt, Excel als Text | offen — Edge Function |
+
+---
+
+## 10. Reihenfolge und Stand
+
+| Schritt | Inhalt | Stand |
+|---|---|---|
+| 1 | Datenmodell `pcc`, Nutzerkonto und Audit-Trail in `public` | **fertig** — `supabase/migrations/20260918000100`, lokal geprüft |
+| 2 | Registrierung, Freigabe durch Super Admin, Rollen, RLS | **fertig** — `…000200` bis `…000400` |
+| 3 | Kern: Projekte, Workstreams, Aufgaben, Teilaufgaben, Meilensteine | **Datenbank fertig**, Oberfläche offen |
+| 4 | Risiken, Issues, Decisions, RACI | **Datenbank fertig**, Oberfläche offen |
+| 5 | Dashboard, Timeline, Suche, Filter | Sichten fertig (`…000500`), Oberfläche offen |
+| 6 | Kommentare, Benachrichtigungen, Dokumente mit Upload, Activity, Audit | **Datenbank fertig**; Storage-Bucket und Virenprüfung brauchen die Instanz |
+| 7 | Versionierung, Autosave, Echtzeit, Konfliktbehandlung | Versionierung fertig; Echtzeit braucht die Instanz |
+| 8 | Export Excel und PDF, Dashboard-Bericht | offen, 2 Tage |
+| 9 | PWA, Offline, Auto-Update | Gerüst steht, Ausbau offen, 1–2 Tage |
+| 10 | Oberfläche auf die Datenbank heben, Prototyp ablösen | offen, 8–10 Tage |
+| 11 | Tests nach Abschnitt 59, Sicherheitsdurchsicht, Bereitstellung | SQL-Tests laufen, Oberflächentests offen |
+
+Zusammen rund **drei bis vier Wochen** bis zu der in Abschnitt 60 aufgeführten
+Definition of Done.
+
+### Warum das Supabase-Projekt kein Hindernis war
+
+Abschnitt 61 des Entwicklungsauftrags verlangt ausdrücklich eine echte
+Umsetzung und keinen Mockup, das Supabase-Projekt sollte aber später kommen.
+
+Gewählter Weg: **die Datenbank wird vollständig gebaut, geprüft und im
+Repository versioniert, nur eben noch nicht in der Cloud betrieben.** Die
+Migrationen laufen gegen ein lokales PostgreSQL 15 durch, Policies und Trigger
+werden dort unter echten Nutzerkontexten getestet. Sobald das Supabase-Projekt
+besteht, ist das Einspielen ein einziger Befehl (`supabase db push`), und die
+Tests laufen unverändert gegen die Instanz.
+
+Das heißt auch: die Oberfläche bleibt bis dahin der Prototyp. Sie an eine
+Datenbank anzuschließen, die es noch nicht gibt, wäre Arbeit auf Verdacht.
+
+---
+
+## 11. Offene Punkte
+
+### Entschieden am 18.09.2026
+
+| # | Punkt | Entscheidung |
+|---|---|---|
+| 1 | Selbstregistrierung | erlaubt, Zugang erst nach Freigabe durch den Super Admin |
+| 2 | Sichtbarkeit von Projekten | jeder freigegebene Nutzer liest alle nicht archivierten Projekte |
+| 3 | Auslöser für eine neue Version | nur fachlich bedeutsame Ereignisse, Liste in Abschnitt 6 |
+| 4 | Dokumente | Upload in die Anwendung, Folgen in Abschnitt 7a |
+| 5 | Aufbewahrung von Dokumenten, Projektdaten und Audit | unbegrenzt, Löschweg nach DSGVO in Abschnitt 7b |
+
+### Noch offen
+
+| # | Punkt | Braucht | Dringlichkeit |
 |---|---|---|---|
-| Pflicht / optional | `mandatory` | ohne den Punkt keine Gate-Freigabe | ja |
-| Vier-Augen-Pflicht | `four_eyes` | Erledigen und Kontrollieren durch zwei Personen | ja |
-| Frist und Anker | `deadline_days`, `deadline_anchor` | Arbeitstage vor Kursbeginn bzw. nach Anfrage oder Kursende | ja |
-| Erst nach allen übrigen Pflichtpunkten | `requires_gate_complete` | Sperre des Abschlussnachweises | ja |
-| Musterfilter | `aircraft_type_filter` | Punkt gilt nur für bestimmte Muster | ja |
-| Aktiv / deaktiviert | `active` | wirkt nur auf neu angelegte Vorgänge | ja |
-| **Sperrt nachfolgende Punkte** | `blocks_following bool` | solange offen, ist kein späterer Punkt desselben Gates erledigbar | **nein** |
-| **Vorbedingung** | `depends_on uuid` | erst möglich, wenn ein bestimmter anderer Punkt erledigt ist | **nein** |
-| **Kurstypfilter** | `course_type_filter text[]` | Punkt gilt nur für bestimmte Kurstypen, z. B. Prüfer nur beim Type Rating | **nein** |
-| **Nur Teamleitung** | `role_required user_role` | nur die Teamleitung der Abteilung darf abhaken | **nein** |
-| **Nachweis verpflichtend** | `evidence_required bool` | beim Erledigen ist der Nachweis zu erfassen (landet in `case_checkpoints.note`) | **nein** |
-
-`blocks_following` und `depends_on` sind bewusst beide vorgesehen: Ersteres ist
-ein Schalter für den häufigen Fall „dieser Punkt kommt zuerst", Letzteres die
-genaue Angabe einer einzelnen Abhängigkeit. Beide werden in
-`complete_checkpoint()` geprüft und melden den blockierenden Punkt im Klartext.
-
-**Katalogänderungen und laufende Vorgänge.** Der Katalog wird je Vorgang bei der
-Anlage festgehalten; spätere Änderungen wirken nur auf neue Vorgänge. Weil das
-im Betrieb zu eng sein kann, bietet das Anlegen eines Prüfpunkts die Option
-„auf laufende Vorgänge anwenden" — abgeschlossene und verworfene Vorgänge
-bleiben ausgenommen. In der Datenbank entspricht das einem gezielten
-`instantiate_case_checkpoints()` für die betroffenen Vorgänge, mit Eintrag im
-Audit-Trail.
-
-## Offene Entscheidung: Vier-Augen-Prinzip an Gate 3
-
-Bei Gate 1 und Gate 2 empfängt eine andere Abteilung, als geliefert hat — die
-Gate-Freigabe ist dort automatisch ein zweites Augenpaar. Bei **Gate 3 nicht:**
-Training Admin empfängt von ATO, hat in Gate 3 aber selbst zwei Pflichtpunkte
-(Records übergeben, Zertifikat ausstellen). Dieselbe Person kann beide erledigen
-und anschließend das Gate freigeben.
-
-Der ursprüngliche Prototyp löste das mit einem eigenen Abnahme-Prüfpunkt der
-empfangenden Abteilung mit Vier-Augen-Pflicht. Drei Wege:
-
-1. **Freigabe darf nicht von der Person kommen, die einen Pflichtpunkt des Gates
-   erledigt hat.** Kleinste Änderung, eine zusätzliche Prüfung in `release_gate`.
-   Empfohlen.
-2. Abnahme-Prüfpunkt je Gate wie im Prototyp — dokumentiert die Abnahme
-   ausdrücklich, erfasst sie aber neben `gates.released_by` ein zweites Mal.
-3. Belassen und über den Audit-Trail nachhalten. Nicht empfohlen: die Prüfung
-   wäre dann nachträglich statt sperrend, was dem Grundgedanken widerspricht.
-
-## Export
-
-Die Spec verlangt Export der gefilterten Sicht als PDF und Excel sowie einen
-je Vorgang, Zeitraum, Person oder Abteilung exportierbaren Audit-Trail
-(Abschnitt 13).
-
-- **PDF** entsteht in der Sandbox über eine eigene Druckansicht: die
-  Bildschirmoberfläche wird per `@media print` ausgeblendet und ein eigens
-  aufgebautes Dokument gedruckt. Das hat gegenüber einer PDF-Bibliothek den
-  Vorteil, dass Kopf, Fußzeile, Seitenumbrüche und wiederholte Tabellenköpfe
-  vom Browser übernommen werden. Für die Zielversion bleibt das der einfachste
-  Weg; erst wenn serverseitig erzeugte PDFs gebraucht werden (etwa als Anhang
-  einer Mail), lohnt eine Edge Function mit einer Rendering-Bibliothek.
-- **Excel** liefert die Sandbox als tabulatorgetrennten Text zum Einfügen,
-  weil die Artifact-Vorschau Dateidownloads unterbindet. In der Zielversion
-  wird daraus ein echter `.xlsx`-Download.
-- Exportierbar sind: Vorgangsliste in der jeweils gefilterten Sicht,
-  Ausnahmen, Prüfpunkt-Katalog, Nutzer, Firmen, Trainees, Prüfpunkte und
-  Audit-Trail eines Vorgangs sowie die vollständige Vorgangsakte als PDF.
-- Der Audit-Export je Zeitraum, Person und Abteilung ist umgesetzt. In der
-  Zielversion liest die Ansicht `audit_log` mit den Filtern auf `created_at`,
-  `user_id` und der Abteilung des handelnden Nutzers; die RLS-Policy
-  `audit_log_select` beschränkt die Zeilen bereits heute auf Vorgänge im Rahmen
-  der eigenen Sichtbarkeit, Admins sehen alles. Für große Zeiträume ist eine
-  Seitenaufteilung nachzurüsten, der Index `audit_log_created_idx` liegt vor.
-
-## Logins und Rollen
-
-Die E-Mail-Adresse in `users.email` ist der Login. Angelegt wird ausschließlich
-durch den Superadmin: In der Zielversion legt eine Edge Function mit der
-Supabase Admin API den Auth-Nutzer an und verschickt die Einladung, das Profil
-in `public.users` entsteht im selben Schritt. Der Guard-Trigger
-`tg_users_role_guard` erzwingt bereits heute, dass nur ein Superadmin Nutzer
-anlegt und die Superadmin-Rolle vergibt; ergänzt werden sollte, dass ein
-Superadmin sich die eigene Rolle nicht entziehen kann, damit kein Projekt ohne
-Superadmin zurückbleibt.
-
-## Nächste Ausbauschritte
-
-1. Vorgangsakte im Frontend: Gates, Prüfpunkte, Erledigen/Kontrollieren,
-   Ausnahmen, Kommunikation mit Erwähnungen.
-2. Meine Vorgänge / Alle Vorgänge mit Filterleiste (URL-Zustand), Sortierung,
-   Export PDF/Excel.
-3. Dashboard mit Vorgangsbahn und Kennzahlen aus `v_pipeline`,
-   `v_exception_stats`, `v_gate_lead_times`.
-4. Admin-Panel: Nutzer (über Supabase Admin API in einer Edge Function),
-   Katalog, Zuordnungen, Vertretungen, Einstellungen, Mailfehler, Audit-Log.
-5. Edge Functions: E-Mail-Versand, Tagesjob-Aufruf, Nutzeranlage.
-6. Feiertagskalender für Arbeitstage.
+| 6 | Projektschlüssel: fortlaufend oder sprechend (`SIM-26`) | Ihre Vorgabe | gering, im Prototyp sprechend |
+| 7 | Microsoft Entra ID als Anmeldeweg ab wann | Ihre IT-Planung | gering, Architektur hält es offen |
+| 8 | Supabase-Projekt anlegen (EU/Frankfurt, Pro-Tarif) | Ihre Freigabe und ein Konto — rund 25 USD im Monat | **hoch**: Migrationen, Rechte und Tests liegen fertig vor und warten nur auf die Instanz |

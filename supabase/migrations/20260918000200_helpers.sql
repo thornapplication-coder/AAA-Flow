@@ -2,32 +2,16 @@
 -- Project Control Center — Migration 2/5: Hilfsfunktionen
 -- Identität, Rollen, Sichtbarkeit, Referenznummern, Fortschritt, Gesamtlage
 -- Alle Sichtbarkeitsfunktionen sind SECURITY DEFINER, damit RLS-Policies sie
--- ohne Rekursion nutzen können — wie in Flow bewährt.
+-- ohne Rekursion und ohne Rechteschleife nutzen können.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- Flow-Zugang neu abgegrenzt
--- Bisher galt: aktives Konto = Flow-Nutzer. Seit das Control Center eigene
--- Konten kennt, reicht das nicht mehr. Wer keine Flow-Rolle hat, sieht in Flow
--- nichts — auch dann nicht, wenn sein Konto aktiv ist.
--- -----------------------------------------------------------------------------
-create or replace function public.is_active_user()
-returns boolean
-language sql stable security definer set search_path = public as $$
-  select exists (
-    select 1 from public.users
-    where id = auth.uid() and active and role is not null and department is not null
-  );
-$$;
-comment on function public.is_active_user() is 'Zugang zum Modul AAA Flow: aktives Konto mit Flow-Rolle und Abteilung.';
-
--- -----------------------------------------------------------------------------
--- Identität und Rollen im Control Center
+-- Identität und Rollen
 -- -----------------------------------------------------------------------------
 create or replace function pcc.my_role()
 returns pcc.user_role
 language sql stable security definer set search_path = public, pcc as $$
-  select pcc_role from public.users
+  select role from public.users
   where id = auth.uid() and active and not pending;
 $$;
 

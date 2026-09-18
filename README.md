@@ -1,77 +1,88 @@
-# AAA Flow und Project Control Center
+# Project Control Center
 
-Zwei Module einer Anwendung mit gemeinsamer Anmeldung, gemeinsamen Nutzern und
-gemeinsamem Design: **AAA Flow** steuert Trainingsvorgänge über drei Gates,
-das **Project Control Center** steuert Projekte auf Managementebene. Die
-Architektur des Control Centers liegt in
-[`docs/PCC-ARCHITECTURE.md`](docs/PCC-ARCHITECTURE.md).
+Projektsteuerung der Aviation Academy Austria: Projekte, Workstreams, Aufgaben,
+Meilensteine, Risiken, Issues und Entscheidungen an einer Stelle — mit
+Fortschritt und Gesamtlage, die aus den Daten gerechnet und nicht von Hand
+gepflegt werden.
 
-## AAA Flow
+Architektur, Datenmodell und Entscheidungen stehen in
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), der Versionsstand in
+[`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 
-Gate-Steuerung für Trainingsvorgänge der Aviation Academy Austria (AAA):
-von der Kundenanfrage bis zum vollständig abgelegten Trainingsnachweis über
-Sales, Training Admin und ATO hinweg. Ein Vorgang erreicht den nächsten
-Schritt erst, wenn die Pflichtprüfpunkte der aktuellen Stufe erledigt sind.
+## Grundsatz
 
-Die vollständige Spezifikation liegt in [`docs/SPEC.md`](docs/SPEC.md),
-Architekturentscheidungen und Annahmen in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md),
-der Versionsstand in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
+Die Regeln stehen in der Datenbank, nicht in der Oberfläche. Row Level Security
+entscheidet, wer was sieht und ändert; Trigger und Funktionen erzwingen den
+Rest. Was die Oberfläche nicht anbietet, gibt auch die API nicht heraus.
 
 ## Stack
 
 | Schicht | Technologie |
 |---|---|
-| Backend | Supabase (PostgreSQL, Auth, Row Level Security), Region EU/Frankfurt empfohlen |
+| Backend | Supabase (PostgreSQL, Auth, Row Level Security, Storage), Region EU/Frankfurt |
 | Geschäftslogik | PostgreSQL-Funktionen und Trigger (`supabase/migrations`) |
 | Frontend | Vite, React 19, TypeScript, PWA (`vite-plugin-pwa`) |
 | Sprachen | Deutsch / Englisch je Nutzer (`react-i18next`) |
 | Tests | SQL-Testsuite gegen PostgreSQL (`supabase/tests`), CI über GitHub Actions |
 
+## Was in der Datenbank steckt
+
+- **Rollen:** Super Admin, Admin, Project Manager, Contributor, Viewer. Wer
+  keine Rolle hat, sieht nichts — auch nicht mit gültigem Token.
+- **Selbstregistrierung mit Freigabe:** Die Anmeldung erzeugt ein gesperrtes
+  Profil; erst der Super Admin schaltet es frei.
+- **Gerechnet statt gepflegt:** Fortschritt, Gesamtlage und Risk Score kommen
+  aus der Datenbank. Der Score ist eine generierte Spalte und von Hand nicht
+  setzbar.
+- **Versionierung mit Augenmaß:** Eine neue Projektversion entsteht nur bei
+  fachlich bedeutsamen Ereignissen — die Liste steht als Konfiguration in
+  `pcc.version_triggers`, nicht im Code.
+- **Dokumente:** Quarantäne bis zur Virenprüfung, 50 MB je Datei, Datei oder
+  externer Verweis, und eine neue Fassung löst die alte ab, statt sie zu
+  überschreiben.
+- **Audit-Trail:** jede Änderung mit Wer, Wann, Vorher, Nachher. Kein Weg in
+  der Anwendung ändert oder löscht einen Eintrag.
+- **Löschverlangen nach Artikel 17 DSGVO:** `pcc.anonymise_user()`
+  pseudonymisiert das Konto; die fachliche Zuordnung bleibt über die ID
+  bestehen.
+
 ## Sandbox
 
-`sandbox/AAA-Flow-Sandbox.html` ist ein klickbarer Prototyp mit Demodaten, ohne
-Backend. Er dient dazu, Oberfläche und Bedienung zu entscheiden, bevor sie gegen
-Supabase gebaut werden. Einfach im Browser öffnen.
+`sandbox/Control-Center-Sandbox.html` ist ein klickbarer Prototyp mit
+Demodaten, ohne Backend — einfach im Browser öffnen. Er dient dazu, Oberfläche
+und Bedienung zu entscheiden, bevor sie gegen Supabase gebaut werden.
 
-Enthalten sind: Vorgang, Trainee und Firma anlegen; Vorgangsakte mit den drei
-Gates, Gate-Sperre, Vier-Augen-Prinzip, Gate-3-Sperre des Abschlussnachweises,
-Ausnahmen mit Freigabe; Kommunikation auf den Ebenen Vorgang, Trainee und Firma;
-Audit-Trail, Pool mit Liegedauer, Vorgangsbahn und Stammdaten. Dazu ein
-Admin-Panel für den Superadmin: Prüfpunkte anlegen und mit Regeln versehen,
-Einstellungen und Nutzerverwaltung.
+Enthalten sind Dashboard mit Kennzahlen und Management-Timeline, Projektliste
+mit Filtern, Projektakte mit Überblick, Timeline, Aufgaben samt Teilaufgaben,
+Risiken mit 5×5-Matrix, Issues, Entscheidungen, Team und RACI, Dokumente,
+Aktivität und Versionsverlauf. Dazu Aufgaben-, Risiko- und Meilensteinlisten
+über alle Projekte hinweg sowie ein Berichtsbereich.
+
 Der Einstieg erfolgt über einen Anmeldebildschirm; die Schnellwahl darunter
 lässt die Rechte aller Rollen durchspielen. Die Sandbox-Leiste am unteren Rand
 verschiebt das simulierte Datum um 1, 8 oder 31 Tage — damit werden Fristen,
-Überfälligkeit, Liegedauer im Pool und der Statuswechsel bei Kursbeginn
-erlebbar. Zurücksetzen stellt den Ausgangszustand her.
+Überfälligkeit und die Gesamtlage erlebbar. Zurücksetzen stellt den
+Ausgangszustand her.
 
 Exportiert wird über **PDF** (Druckansicht, in jeder Ansicht) und **Excel**
-(überall dort, wo die Ansicht eine Liste ist). Der Audit-Trail ist je Vorgang
-und über die Ansicht **Audit-Trail** auch nach Zeitraum, Person und Abteilung
-auswertbar. Die Vorgangsakte lässt sich als
-vollständiges PDF mit Gates, Bearbeitern, Ausnahmen, Audit-Trail und
-Unterschriftenzeile ausgeben.
+(überall dort, wo die Ansicht eine Liste ist).
 
 Die Ansicht ist für Desktop ausgelegt und nach unten reduziert: auf dem Tablet
-wandert die Navigation in eine Leiste unter die Kopfzeile, auf dem Handy tritt an
-die Stelle der Tabelle eine Kartenliste. Gates, Kommunikation und die Übernahme
-aus dem Pool bleiben dort vollständig bedienbar.
+wandert die Navigation in eine Leiste unter die Kopfzeile, auf dem Telefon
+tritt an die Stelle der Tabelle eine Kartenliste.
 
-Die Sperrlogik im Prototyp spiegelt `supabase/migrations/20260902000300_logic.sql`.
-Weichen beide voneinander ab, gilt die Datenbank. `AAA-Flow-Sandbox-v0.html` ist
-der ursprüngliche Prototyp und bleibt als Referenz liegen.
+Weichen Prototyp und Datenbank voneinander ab, gilt die Datenbank.
 
 ## Struktur
 
 ```
-docs/                    Spezifikation, Architektur, Changelog
+docs/                    Architektur und Changelog
 sandbox/                 Klickbarer Prototyp mit Demodaten, ohne Backend
-supabase/migrations/     Schema 1.0.0 in fünf Migrationen (Schema, Helfer, Logik, RLS, Views)
-supabase/seed.sql        Muster, Prüfpunkt-Katalog Gate 1–3, Einstellungen
-supabase/tests/          SQL-Tests für Gate-Sperre, Vier-Augen, Pool, Sichtbarkeit, Kommunikation
+supabase/migrations/     Schema 1.0.0 in fünf Migrationen (Schema, Helfer, Logik, RLS, Sichten)
+supabase/seed.sql        Versionsauslöser, Einstellungen, erste Projektvorlage
+supabase/tests/          SQL-Tests für Rechte, Versionierung, Gesamtlage, Dokumente, Löschweg
 scripts/db-check.sh      Migrationen + Seed + Tests gegen eine lokale PostgreSQL-Instanz
-scripts/bootstrap_superadmin.sql   Ersten Superadmin anlegen
-src/                     Frontend-Gerüst (Auth, Routing, i18n, Theme, Pool-Ansicht)
+src/                     Frontend-Gerüst (Auth, Routing, i18n, Theme, Projektübersicht)
 ```
 
 ## Lokale Entwicklung
@@ -87,8 +98,8 @@ npm run typecheck
 npm run build
 ```
 
-Datenbank prüfen, ohne Supabase-Projekt (legt die Datenbank `aaa_flow_check`
-an, spielt Migrationen, beide Seeds und beide Testdateien ein — 207 Prüfungen):
+Datenbank prüfen, ohne Supabase-Projekt (legt die Datenbank `pcc_check` an und
+spielt Migrationen, Seed und Tests ein):
 
 ```bash
 PGHOST=localhost PGUSER=postgres PGPASSWORD=... npm run db:check
@@ -101,32 +112,35 @@ Mit Supabase CLI und Docker geht alternativ `supabase start` und
 
 1. Projekt in der Organisation anlegen, Region **EU (Frankfurt)**.
 2. `supabase link --project-ref <ref>` und `supabase db push`, anschließend
-   `supabase/seed.sql` und `supabase/seed_pcc.sql` im SQL-Editor ausführen.
-   Die Migrationen legen beide Module an: AAA Flow in `public`, das Project
-   Control Center in `pcc`. Gemeinsam genutzt werden `public.users` (ein Konto,
-   getrennte Rollen je Modul) und `public.audit_log` (ein Trail, Spalte
-   `module`).
-3. Ersten Auth-Nutzer im Dashboard anlegen (Authentication → Users), dann
-   `scripts/bootstrap_superadmin.sql` mit dessen UUID im SQL-Editor ausführen.
-   Für Flow bleibt die Selbstregistrierung ausgeschlossen; alle weiteren
-   Flow-Nutzer legt der Superadmin an. Im Control Center ist sie erlaubt: Die
-   Anmeldung erzeugt ein gesperrtes Profil ohne Rolle, das der Super Admin über
-   `pcc.approve_user()` freigibt.
-4. Funktionsträger und Eskalationsstufen in `settings` eintragen
-   (`function_holders`, `escalation`), Musterzuordnungen in `type_assignments`.
+   `supabase/seed.sql` im SQL-Editor ausführen. Nutzerkonto und Audit-Trail
+   liegen in `public`, alles Fachliche in `pcc`; beide Schemas sind in
+   `supabase/config.toml` für die API freigegeben.
+3. Ersten Nutzer über die Anmeldung registrieren, dann im SQL-Editor zum Super
+   Admin machen:
+   ```sql
+   update public.users
+      set role = 'super_admin', active = true, pending = false, approved_at = now()
+    where email = '<ihre-adresse>';
+   ```
+   Alle weiteren Konten gibt dieser Super Admin über `pcc.approve_user()` frei.
+4. Storage-Bucket `project-docs` **privat** anlegen (Abschnitt 7a der
+   Architektur): Zugriff ausschließlich über signierte URLs, Upload zunächst
+   nach `quarantine/`.
 5. Tagesjob: `pg_cron` im Dashboard aktivieren (die Migration richtet den Job
-   `aaa_flow_daily` dann selbst ein) oder `public.run_daily_jobs()` täglich aus
-   einer Edge Function aufrufen.
-6. Automatisches Datenbank-Backup im Projekt aktivieren (Pflicht, Spec Abschnitt 3).
+   `pcc_daily` dann selbst ein) oder `pcc.run_daily_jobs()` täglich aus einer
+   Edge Function aufrufen.
+6. Automatisches Datenbank-Backup aktivieren; Storage wird davon **nicht**
+   erfasst und braucht einen eigenen Abgleich (Abschnitt 7a).
 7. `.env` mit `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` befüllen.
 
 ## Konventionen
 
-- Alle Statuswechsel, Gate-Freigaben, Zuweisungen und Prüfpunkt-Änderungen
-  laufen über die Funktionen in `supabase/migrations/20260902000300_logic.sql`;
-  direkte Schreibzugriffe auf diese Tabellen weisen die Guard-Trigger ab.
-- Fehlermeldungen aus der Datenbank tragen ein Präfix (`AAA_FLOW_AUTH`,
-  `AAA_FLOW_GATE`, `AAA_FLOW_FOUR_EYES`, `AAA_FLOW_STATE`, `AAA_FLOW_GUARD`,
-  `AAA_FLOW_IMMUTABLE`), damit das Frontend sie gezielt übersetzen kann.
+- Projekte anlegen, archivieren, endgültig löschen, Konten freigeben,
+  Kommentare setzen und Dokumente ablösen laufen über die Funktionen in
+  `supabase/migrations/20260918000300_logic.sql`; direkte Schreibzugriffe weisen
+  Policies und Guard-Trigger ab.
+- Fehlermeldungen aus der Datenbank tragen ein Präfix (`PCC_AUTH`,
+  `PCC_STATE`, `PCC_ARCHIVED`, `PCC_IMMUTABLE`), damit die Oberfläche sie
+  gezielt übersetzen kann.
 - Listen und Dropdowns werden alphabetisch sortiert.
 - Farben ausschließlich über die Tokens in `src/styles/theme.css`.

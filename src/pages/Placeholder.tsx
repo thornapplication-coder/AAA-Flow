@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 
 // Platzhalter für Bereiche, die im nächsten Ausbauschritt folgen
-// (Meine Vorgänge, Alle Vorgänge, Vorgangsakte, Dashboard, Admin-Panel).
+// (Dashboard, Projektakte, Aufgaben, Risiken, Berichte, Administration).
 export function Placeholder({ titleKey }: { titleKey: string }) {
   const { t } = useTranslation()
   return (

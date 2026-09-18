@@ -35,7 +35,7 @@ export function LoginPage() {
             {t('auth.login')}
           </button>
         </form>
-        <p className="muted" style={{ fontSize: 13, marginBottom: 0 }}>{t('auth.noSelfSignup')}</p>
+        <p className="muted" style={{ fontSize: 13, marginBottom: 0 }}>{t('auth.signup')}</p>
       </div>
     </div>
   )

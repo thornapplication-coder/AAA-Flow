@@ -1,13 +1,14 @@
 -- =============================================================================
 -- Project Control Center — Schema 1.0.0
--- Migration 1/5: Schema, Enums, gemeinsame Tabellen, Tabellen, Indizes
--- Referenz: docs/PCC-ARCHITECTURE.md Abschnitte 1, 3, 4, 6, 7a
+-- Migration 1/5: Erweiterungen, gemeinsame Tabellen, Enums, Tabellen, Indizes
+-- Referenz: docs/ARCHITECTURE.md Abschnitte 3, 4, 6, 7a
 --
--- Grundsatz aus Abschnitt 1: eine Datenbank, zwei Module. Flow liegt in
--- public.*, das Control Center in pcc.*. Gemeinsam genutzt werden genau zwei
--- Tabellen: public.users (ein Konto je Person, getrennte Rollen je Modul) und
--- public.audit_log (ein Trail, Spalte module trennt die Herkunft).
+-- Aufteilung: Nutzerkonto und Audit-Trail liegen in public, weil sie an der
+-- Anmeldung hängen und nicht am Fachmodul. Alles Fachliche liegt in pcc.
 -- =============================================================================
+
+create extension if not exists "pgcrypto";
+create extension if not exists "pg_trgm";   -- Volltextsuche über Projekte, Aufgaben, Risiken
 
 create schema if not exists pcc;
 
@@ -37,48 +38,95 @@ create type pcc.raci_letter as enum ('R', 'A', 'C', 'I');
 create type pcc.entity_type as enum (
   'project', 'workstream', 'task', 'milestone', 'risk', 'issue', 'decision', 'document'
 );
+-- Zustellung der Benachrichtigung per E-Mail (Abschnitt 29)
+create type pcc.email_state as enum ('pending', 'sent', 'failed', 'skipped');
+
 create type pcc.notification_kind as enum (
   'assigned', 'mention', 'comment', 'due_soon', 'overdue', 'status_change',
   'milestone', 'risk_critical', 'approval'
 );
 
 -- -----------------------------------------------------------------------------
--- Gemeinsame Tabellen erweitern
+-- Nutzerkonten
+-- Abschnitt 4: Selbstregistrierung ist erlaubt, erzeugt aber ein gesperrtes
+-- Konto ohne Rolle. Eine NULL-Rolle sperrt die Anwendung vollständig, weil
+-- keine einzige Policy greift.
 -- -----------------------------------------------------------------------------
--- Abschnitt 4: Eine Person kann in Flow Mitarbeiter und im Control Center
--- Project Manager sein — oder nur in einem der Module überhaupt vorkommen.
--- Deshalb dürfen Flow-Rolle und Flow-Abteilung jetzt NULL sein. Eine NULL-Rolle
--- sperrt das jeweilige Modul vollständig, weil keine Policy greift.
-alter table public.users
-  alter column department drop not null,
-  alter column role       drop not null,
-  -- Kein Standardwert mehr: eine Flow-Rolle wird vergeben, nicht geerbt.
-  alter column role       drop default,
-  add column pcc_role     pcc.user_role,
-  add column pending      boolean not null default false,
-  add column approved_at  timestamptz,
-  add column approved_by  uuid references public.users (id),
-  add column registered_at timestamptz;
+create type public.ui_language as enum ('de', 'en');
 
-comment on column public.users.role is 'Rolle im Modul AAA Flow. NULL: kein Zugang zu Flow.';
-comment on column public.users.department is 'Abteilung im Modul AAA Flow. NULL: kein Zugang zu Flow.';
-comment on column public.users.pcc_role is 'Rolle im Modul Project Control Center. NULL: kein Zugang zum Control Center.';
-comment on column public.users.pending is 'Selbstregistrierung, noch nicht durch den Super Admin freigegeben (Abschnitt 4).';
+create table public.users (
+  id            uuid primary key references auth.users (id) on delete cascade,
+  name          text not null check (length(trim(name)) > 0),
+  email         text not null unique,
+  role          pcc.user_role,
+  active        boolean not null default false,
+  pending       boolean not null default true,
+  language      public.ui_language not null default 'de',
+  approved_at   timestamptz,
+  approved_by   uuid references public.users (id),
+  registered_at timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+comment on table public.users is 'Nutzerprofil. Entsteht bei der Anmeldung gesperrt und ohne Rolle; freigegeben wird durch den Super Admin.';
+comment on column public.users.role is 'Rolle im Project Control Center. NULL: kein Zugang.';
+comment on column public.users.pending is 'Selbstregistrierung, noch nicht freigegeben (Abschnitt 4).';
+create index users_pending_idx on public.users (pending) where pending;
 
--- Ein Konto ohne jede Rolle ist ein Konto ohne Zugang. Das ist erlaubt (frisch
--- registriert), muss aber sichtbar bleiben.
-alter table public.users
-  add constraint users_flow_role_pair
-  check ((role is null) = (department is null));
-
-alter table public.audit_log
-  add column module text not null default 'flow',
-  add column project_id uuid;
-alter table public.audit_log
-  add constraint audit_log_module_check check (module in ('flow', 'pcc'));
-create index audit_log_module_idx on public.audit_log (module, created_at);
+-- -----------------------------------------------------------------------------
+-- Audit-Trail. Unveränderlich, nicht löschbar (RLS und Trigger).
+-- -----------------------------------------------------------------------------
+create table public.audit_log (
+  id          bigint generated always as identity primary key,
+  user_id     uuid,
+  project_id  uuid,
+  entity      text not null,
+  entity_id   text not null,
+  action      text not null,
+  old_value   jsonb,
+  new_value   jsonb,
+  reason      text,
+  created_at  timestamptz not null default now()
+);
+comment on table public.audit_log is 'Vollständiger Audit-Trail. Jede Änderung mit Wer, Wann, Was, Vorher, Nachher.';
+create index audit_log_entity_idx on public.audit_log (entity, entity_id, created_at);
 create index audit_log_project_idx on public.audit_log (project_id, created_at);
-comment on column public.audit_log.module is 'Herkunftsmodul. Der Trail ist gemeinsam, die Auswertung getrennt.';
+create index audit_log_user_idx on public.audit_log (user_id, created_at);
+create index audit_log_created_idx on public.audit_log (created_at);
+
+-- -----------------------------------------------------------------------------
+-- Interner Schreibmodus
+-- Guard-Trigger sollen Nutzer bremsen, nicht die eigenen Funktionen. Eine
+-- transaktionslokale Einstellung schaltet sie für den Aufruf einer geprüften
+-- Funktion frei. Über die API ist sie nicht erreichbar.
+-- -----------------------------------------------------------------------------
+create or replace function public.internal_write_enabled()
+returns boolean
+language sql stable as $$
+  select coalesce(current_setting('app.internal_write', true), '') = 'on';
+$$;
+
+create or replace function public.enable_internal_write()
+returns void
+language sql volatile as $$
+  select set_config('app.internal_write', 'on', true);
+$$;
+
+create or replace function public.disable_internal_write()
+returns void
+language sql volatile as $$
+  select set_config('app.internal_write', '', true);
+$$;
+
+create or replace function public.tg_set_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at := now();
+  return new;
+end $$;
+
+create trigger users_updated_at before update on public.users
+  for each row execute function public.tg_set_updated_at();
 
 -- -----------------------------------------------------------------------------
 -- Projekte
@@ -369,7 +417,7 @@ create table pcc.notifications (
   title       text not null,
   body        text,
   read_at     timestamptz,
-  email_state public.email_state not null default 'pending',
+  email_state pcc.email_state not null default 'pending',
   created_at  timestamptz not null default now()
 );
 create index notifications_user_idx on pcc.notifications (user_id, read_at, created_at desc);
@@ -419,6 +467,14 @@ create table pcc.ref_counters (
   last_value integer not null default 0,
   primary key (project_id, prefix)
 );
+
+create table pcc.changelog (
+  version      text primary key,
+  released_on  date not null default current_date,
+  notes_de     text not null,
+  notes_en     text not null
+);
+comment on table pcc.changelog is 'Versionsstand und Änderungshistorie, sichtbar im Bereich des Super Admins.';
 
 create table pcc.settings (
   key         text primary key,

@@ -1,11 +1,9 @@
-/* AAA Flow — Design-Tokens.
-   Visuell konsistent zu AAA Connect: dunkelblaue Farbtöne, Kachelstruktur.
-   Die endgültigen Hex-Codes und das Logo werden nachgeliefert (Spec 15, Punkt 3);
-   bis dahin gelten die Platzhalter unten. Alle Farben nur über Tokens verwenden. */
+/* Project Control Center — Design-Tokens.
+   Dunkelblaue Farbtöne, Kachelstruktur. Die endgültigen Hex-Codes und das Logo
+   werden nachgeliefert; bis dahin gelten die Werte unten. Farben ausschließlich
+   über diese Tokens verwenden. */
 :root {
-  /* Farbwerte übernommen aus dem Prototyp (sandbox/AAA-Flow-Sandbox.html),
-     abgestimmt auf AAA Connect. Endgültige Freigabe mit dem Logo steht aus
-     (Spec Abschnitt 15, Punkt 3). Farben ausschließlich über diese Tokens. */
+  /* Farbwerte übernommen aus dem Prototyp in sandbox/. */
   --aaa-navy-900: #0C1B2E;
   --aaa-navy-800: #12283F;
   --aaa-navy-700: #1B3A5A;

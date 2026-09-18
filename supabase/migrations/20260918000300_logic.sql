@@ -8,7 +8,7 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- Audit. Ein gemeinsamer Trail mit Flow, getrennt über die Spalte module.
+-- Audit. Ein Trail für die ganze Anwendung, gespeist aus Triggern.
 -- -----------------------------------------------------------------------------
 create or replace function pcc.tg_audit()
 returns trigger
@@ -21,11 +21,10 @@ begin
   if tg_op = 'UPDATE' and v_old = v_new then
     return null;
   end if;
-  insert into public.audit_log (user_id, project_id, module, entity, entity_id, action,
+  insert into public.audit_log (user_id, project_id, entity, entity_id, action,
                                 old_value, new_value, reason)
   values (auth.uid(),
           nullif(coalesce(v_row ->> 'project_id', case when tg_table_name = 'projects' then v_row ->> 'id' end), '')::uuid,
-          'pcc',
           'pcc.' || tg_table_name,
           coalesce(v_row ->> 'id', concat_ws(':', v_row ->> 'project_id', v_row ->> 'user_id',
                                              v_row ->> 'comment_id', v_row ->> 'key')),
@@ -44,6 +43,36 @@ begin
     execute format('create trigger %I_audit after insert or update or delete on pcc.%I for each row execute function pcc.tg_audit()', t, t);
   end loop;
 end $$;
+
+-- -----------------------------------------------------------------------------
+-- Unveränderlichkeit
+-- Der Audit-Trail kennt keine Ausnahme. Versionen schon: das endgültige Löschen
+-- eines Projekts durch den Super Admin nimmt sie mit und hinterlässt selbst
+-- einen Eintrag im Trail.
+-- -----------------------------------------------------------------------------
+create or replace function pcc.tg_immutable()
+returns trigger
+language plpgsql as $$
+begin
+  raise exception 'PCC_IMMUTABLE: % darf nicht geändert oder gelöscht werden', tg_table_name
+    using errcode = 'P0001';
+end $$;
+
+create or replace function pcc.tg_immutable_unless_purge()
+returns trigger
+language plpgsql as $$
+begin
+  if public.internal_write_enabled() then
+    return coalesce(new, old);
+  end if;
+  raise exception 'PCC_IMMUTABLE: % darf nicht geändert oder gelöscht werden', tg_table_name
+    using errcode = 'P0001';
+end $$;
+
+create trigger project_versions_immutable before update or delete on pcc.project_versions
+  for each row execute function pcc.tg_immutable_unless_purge();
+create trigger version_changes_immutable before update or delete on pcc.version_changes
+  for each row execute function pcc.tg_immutable_unless_purge();
 
 -- -----------------------------------------------------------------------------
 -- Referenznummern werden beim Anlegen vergeben und sind danach unveränderlich.
@@ -384,7 +413,7 @@ language plpgsql security definer set search_path = public as $$
 declare v_was_on boolean := public.internal_write_enabled();
 begin
   -- Das Profil entsteht ohne Rolle und gesperrt. Es ist kein Anlegen durch
-  -- einen Admin, deshalb der interne Schreibmodus um den Flow-Guard herum.
+  -- einen Admin, deshalb der interne Schreibmodus um den Rollen-Guard herum.
   if not v_was_on then perform public.enable_internal_write(); end if;
   insert into public.users (id, name, email, active, pending, registered_at)
   values (new.id,
@@ -400,9 +429,9 @@ comment on function public.tg_auth_user_registered() is
 create trigger auth_user_registered after insert on auth.users
   for each row execute function public.tg_auth_user_registered();
 
--- Die Rolle im Control Center gehört nicht zu den Feldern, die jemand an sich
--- selbst ändern darf. Der Flow-Guard kennt sie nicht, also steht hier ein
--- eigener — sonst wäre die Selbstregistrierung ein Weg zum Super Admin.
+-- Rolle, Freigabe und Aktivstatus gehören nicht zu den Feldern, die jemand an
+-- sich selbst ändern darf — sonst wäre die Selbstregistrierung ein Weg zum
+-- Super Admin. Name und Sprache darf jeder an sich selbst pflegen.
 create or replace function pcc.tg_users_role_guard()
 returns trigger
 language plpgsql security definer set search_path = public, pcc as $$
@@ -410,11 +439,13 @@ begin
   if public.internal_write_enabled() or pcc.is_super_admin() then
     return new;
   end if;
-  if new.pcc_role is distinct from old.pcc_role
+  if new.role is distinct from old.role
+     or new.active is distinct from old.active
      or new.pending is distinct from old.pending
+     or new.email is distinct from old.email
      or new.approved_at is distinct from old.approved_at
      or new.approved_by is distinct from old.approved_by then
-    raise exception 'PCC_AUTH: Die Rolle im Control Center vergibt nur der Super Admin' using errcode = 'P0001';
+    raise exception 'PCC_AUTH: Rolle, Freigabe und Zugang vergibt nur der Super Admin' using errcode = 'P0001';
   end if;
   return new;
 end $$;
@@ -433,12 +464,9 @@ begin
   if not pcc.is_super_admin() then
     raise exception 'PCC_AUTH: Nur der Super Admin gibt Konten frei' using errcode = 'P0001';
   end if;
-  -- Die Freigabe ändert Name und Aktivstatus; der Flow-Guard lässt das nur
-  -- einem Flow-Admin durch. Der Super Admin des Control Centers ist aber nicht
-  -- zwingend einer, deshalb der interne Schreibmodus.
   perform public.enable_internal_write();
   update public.users
-     set pcc_role    = p_role,
+     set role    = p_role,
          name        = coalesce(nullif(trim(p_name), ''), name),
          active      = true,
          pending     = false,
@@ -467,7 +495,7 @@ begin
     raise exception 'PCC_STATE: Der Super Admin kann sich nicht selbst herabstufen' using errcode = 'P0001';
   end if;
   perform public.enable_internal_write();
-  update public.users set pcc_role = p_role where id = p_user_id returning * into v_user;
+  update public.users set role = p_role where id = p_user_id returning * into v_user;
   perform public.disable_internal_write();
   return v_user;
 end $$;
@@ -492,13 +520,12 @@ begin
      set name       = 'Ehemaliger Mitarbeiter (' || v_seq || ')',
          email      = 'geloescht+' || p_user_id::text || '@invalid',
          active     = false,
-         pcc_role   = null,
-         role       = null,
-         department = null
+         pending    = false,
+         role       = null
    where id = p_user_id;
   perform public.disable_internal_write();
-  insert into public.audit_log (user_id, module, entity, entity_id, action, reason)
-  values (auth.uid(), 'pcc', 'public.users', p_user_id::text, 'anonymise', p_reason);
+  insert into public.audit_log (user_id, entity, entity_id, action, reason)
+  values (auth.uid(), 'public.users', p_user_id::text, 'anonymise', p_reason);
   perform set_config('app.audit_reason', '', true);
 end $$;
 
@@ -528,7 +555,7 @@ begin
   if not (pcc.is_admin() or pcc.my_role() = 'pm') then
     raise exception 'PCC_AUTH: Projekte legen Projektleitung, Admin oder Super Admin an' using errcode = 'P0001';
   end if;
-  if not exists (select 1 from public.users where id = v_pm and active and pcc_role is not null) then
+  if not exists (select 1 from public.users where id = v_pm and active and role is not null) then
     raise exception 'PCC_STATE: Die Projektleitung muss ein freigegebenes Konto im Control Center sein' using errcode = 'P0001';
   end if;
 
@@ -666,8 +693,8 @@ begin
   delete from pcc.projects where id = p_project_id;
   perform set_config('app.audit_reason', '', true);
   perform public.disable_internal_write();
-  insert into public.audit_log (user_id, project_id, module, entity, entity_id, action, reason)
-  values (auth.uid(), p_project_id, 'pcc', 'pcc.projects', v_key, 'purge', p_reason);
+  insert into public.audit_log (user_id, project_id, entity, entity_id, action, reason)
+  values (auth.uid(), p_project_id, 'pcc.projects', v_key, 'purge', p_reason);
 end $$;
 
 -- -----------------------------------------------------------------------------

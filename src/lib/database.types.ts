@@ -2,20 +2,26 @@
 // den Migrationen in supabase/migrations abgeglichen. Kann später durch
 // `supabase gen types typescript` ersetzt werden.
 
-export type Department = 'sales' | 'training_admin' | 'ato'
-export type UserRole = 'superadmin' | 'admin' | 'teamleader' | 'staff'
+export type UserRole = 'super_admin' | 'admin' | 'pm' | 'contributor' | 'viewer'
 export type UiLanguage = 'de' | 'en'
-export type CaseStatus = 'enquiry' | 'booked' | 'released' | 'in_progress' | 'completed' | 'discarded'
-export type CheckpointState = 'open' | 'completed' | 'verified'
-export type GateState = 'open' | 'in_progress' | 'released'
-export type ExceptionState = 'requested' | 'approved' | 'rejected'
-export type MessageScope = 'case' | 'trainee' | 'company'
-export type NotificationType =
-  | 'reminder' | 'escalation' | 'escalation_level2' | 'pool_stale' | 'mention'
-  | 'gate_released' | 'exception_requested' | 'exception_decided' | 'assignment'
+export type ProjectStatus =
+  | 'not_started' | 'started' | 'on_track' | 'at_risk' | 'delayed' | 'cancelled' | 'completed'
+export type Health = 'green' | 'amber' | 'red'
+export type TaskStatus = 'not_started' | 'in_progress' | 'blocked' | 'completed' | 'cancelled'
+export type Priority = 'low' | 'medium' | 'high' | 'critical'
+export type MilestoneStatus = 'planned' | 'in_progress' | 'completed' | 'delayed'
+export type RiskStatus = 'open' | 'monitoring' | 'mitigated' | 'closed' | 'accepted'
+export type IssueStatus = 'open' | 'in_progress' | 'blocked' | 'resolved' | 'closed'
+export type ProgressMode = 'manual' | 'derived'
+export type DocumentKind = 'file' | 'link'
+export type ScanState = 'pending' | 'clean' | 'infected'
+export type RaciLetter = 'R' | 'A' | 'C' | 'I'
+export type EntityType =
+  | 'project' | 'workstream' | 'task' | 'milestone' | 'risk' | 'issue' | 'decision' | 'document'
+export type NotificationKind =
+  | 'assigned' | 'mention' | 'comment' | 'due_soon' | 'overdue'
+  | 'status_change' | 'milestone' | 'risk_critical' | 'approval'
 export type EmailState = 'pending' | 'sent' | 'failed' | 'skipped'
-/** Einheitliches Statusmodell der Oberfläche (Spec 13). */
-export type DisplayState = 'open' | 'in_progress' | 'done' | 'overdue' | 'discarded'
 
 type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
@@ -28,186 +34,165 @@ type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
 type View<Row> = { Row: Row; Relationships: [] }
 
 export type User = {
-  id: string; name: string; email: string; department: Department; role: UserRole
-  active: boolean; language: UiLanguage; created_at: string; updated_at: string
+  id: string; name: string; email: string; role: UserRole | null
+  active: boolean; pending: boolean; language: UiLanguage
+  approved_at: string | null; approved_by: string | null; registered_at: string | null
+  created_at: string; updated_at: string
 }
-export type AircraftType = { id: string; code: string; name: string; active: boolean }
-export type TypeAssignment = { user_id: string; aircraft_type_id: string; department: Department; created_at: string }
-export type Deputy = {
-  id: string; user_id: string; deputy_user_id: string; valid_from: string; valid_to: string
-  created_by: string | null; created_at: string
+
+export type Project = {
+  id: string; key: string; name: string; description: string | null
+  objectives: string | null; scope: string | null
+  status: ProjectStatus; pm_user_id: string; sponsor_user_id: string | null
+  start_date: string | null; target_end_date: string | null; actual_end_date: string | null
+  progress_mode: ProgressMode; progress_manual: number; template_id: string | null
+  version_major: number; version_minor: number
+  archived_at: string | null; archived_by: string | null
+  created_at: string; created_by: string | null; updated_at: string; updated_by: string | null
 }
-export type Company = { id: string; name: string; active: boolean; created_at: string }
-export type Trainee = {
-  id: string; name: string; date_of_birth: string | null; email: string | null
-  company_id: string | null; active: boolean; created_at: string
+
+export type ProjectMember = {
+  project_id: string; user_id: string; project_role: string
+  responsibilities: string | null; created_at: string; created_by: string | null
 }
-export type Checkpoint = {
-  id: string; code: string; gate_no: 1 | 2 | 3; department: Department; label_de: string; label_en: string
-  mandatory: boolean; four_eyes: boolean; evidence: string | null; deadline_days: number | null
-  deadline_anchor: 'course_start' | 'enquiry_date' | 'course_end'; requires_gate_complete: boolean
-  aircraft_type_filter: string[] | null; sort_order: number; active: boolean; created_at: string; updated_at: string
+
+export type Workstream = {
+  id: string; project_id: string; name: string; description: string | null
+  owner_user_id: string | null; sort_order: number; completed_at: string | null
+  created_at: string; created_by: string | null; updated_at: string; updated_by: string | null
 }
-export type Case = {
-  id: string; case_number: string; status: CaseStatus; trainee_id: string; company_id: string
-  aircraft_type_id: string; course_type: string; enquiry_date: string; course_start: string | null
-  course_end: string | null; instructor: string | null; examiner: string | null; fstd_slot: string | null
-  closed_reason: string | null; created_by: string | null; created_at: string; updated_at: string
+
+export type Task = {
+  id: string; project_id: string; workstream_id: string | null; parent_task_id: string | null
+  ref: string; title: string; description: string | null
+  assignee_user_id: string | null; priority: Priority; status: TaskStatus
+  start_date: string | null; due_date: string | null; completed_at: string | null
+  progress: number; progress_mode: ProgressMode; sort_order: number
+  created_at: string; created_by: string | null; updated_at: string; updated_by: string | null
 }
-export type CaseAssignment = {
-  case_id: string; department: Department; user_id: string | null; assigned_at: string | null
-  pool_since: string; stale_notified_at: string | null
+
+export type Milestone = {
+  id: string; project_id: string; workstream_id: string | null; ref: string
+  name: string; description: string | null; due_date: string; baseline_date: string | null
+  owner_user_id: string | null; status: MilestoneStatus
+  depends_on_milestone_id: string | null; completed_at: string | null; notes: string | null
+  created_at: string; created_by: string | null; updated_at: string; updated_by: string | null
 }
-export type Gate = { case_id: string; gate_no: 1 | 2 | 3; status: GateState; released_by: string | null; released_at: string | null }
-export type CaseCheckpoint = {
-  id: string; case_id: string; checkpoint_id: string; status: CheckpointState; due_at: string | null
-  completed_by: string | null; completed_at: string | null; verified_by: string | null; verified_at: string | null
-  note: string | null
+
+export type Risk = {
+  id: string; project_id: string; ref: string; title: string; description: string | null
+  category: string | null; probability: number; impact: number
+  /** Generierte Spalte: probability * impact. Nie im Client rechnen. */
+  score: number
+  owner_user_id: string | null; mitigation: string | null; contingency: string | null
+  due_date: string | null; status: RiskStatus; closed_at: string | null
+  created_at: string; created_by: string | null; updated_at: string; updated_by: string | null
 }
-export type CaseException = {
-  id: string; case_id: string; gate_no: 1 | 2 | 3; checkpoint_id: string; reason: string; status: ExceptionState
-  requested_by: string; requested_at: string; decided_by: string | null; decided_at: string | null
-  decision_note: string | null
+
+export type Issue = {
+  id: string; project_id: string; ref: string; title: string; description: string | null
+  owner_user_id: string | null; priority: Priority; status: IssueStatus
+  due_date: string | null; resolution: string | null; resolved_at: string | null
+  risk_id: string | null
+  created_at: string; created_by: string | null; updated_at: string; updated_by: string | null
 }
+
+export type Decision = {
+  id: string; project_id: string; ref: string; decided_on: string
+  topic: string; decision: string; maker_user_id: string | null; participants: string[]
+  rationale: string | null; impact: string | null; task_id: string | null
+  created_at: string; created_by: string | null; updated_at: string; updated_by: string | null
+}
+
+export type ProjectDocument = {
+  id: string; project_id: string; entity_type: EntityType; entity_id: string | null
+  title: string; description: string | null; kind: DocumentKind
+  storage_path: string | null; external_url: string | null
+  mime_type: string | null; size_bytes: number | null; scan_state: ScanState
+  version: number; supersedes_id: string | null; owner_user_id: string | null
+  deleted_at: string | null; deleted_by: string | null; deleted_reason: string | null
+  created_at: string; created_by: string | null; updated_at: string; updated_by: string | null
+}
+
+export type Comment = {
+  id: string; project_id: string; entity_type: EntityType; entity_id: string
+  user_id: string; body: string; edited_at: string | null
+  deleted_at: string | null; deleted_by: string | null; deleted_reason: string | null
+  created_at: string
+}
+
 export type Notification = {
-  id: string; user_id: string; case_id: string | null; type: NotificationType; payload: Json; due_at: string
-  sent_at: string | null; read_at: string | null; escalated: boolean; email_status: EmailState
-  email_error: string | null; created_at: string
+  id: string; user_id: string; project_id: string | null; kind: NotificationKind
+  entity_type: EntityType | null; entity_id: string | null
+  title: string; body: string | null; read_at: string | null
+  email_state: EmailState; created_at: string
 }
-export type Message = {
-  id: string; scope: MessageScope; scope_id: string; user_id: string; body: string
-  checkpoint_id: string | null; created_at: string; edited_at: string | null
+
+export type ProjectVersion = {
+  id: string; project_id: string; version: string; trigger_code: string | null
+  summary: string; created_by: string | null; created_at: string
 }
-export type MessageEdit = { id: string; message_id: string; previous_body: string; edited_by: string; edited_at: string }
-export type MessageMention = { message_id: string; user_id: string | null; department: Department | null }
-export type ThreadRead = { user_id: string; scope: MessageScope; scope_id: string; last_read_at: string }
+
 export type AuditEntry = {
-  id: number; user_id: string | null; case_id: string | null; entity: string; entity_id: string; action: string
+  id: number; user_id: string | null; project_id: string | null
+  entity: string; entity_id: string; action: string
   old_value: Json | null; new_value: Json | null; reason: string | null; created_at: string
 }
-export type Setting = { key: string; value: Json; description: string | null; updated_by: string | null; updated_at: string }
-export type ChangelogEntry = { version: string; released_on: string; notes_de: string; notes_en: string }
 
-export type CaseOverview = Case & {
-  trainee_name: string; trainee_dob: string | null; company_name: string; aircraft_type: string
-  sales_user_id: string | null; sales_user_name: string | null
-  training_admin_user_id: string | null; training_admin_user_name: string | null
-  ato_user_id: string | null; ato_user_name: string | null
-  gate1_state: DisplayState | null; gate2_state: DisplayState | null; gate3_state: DisplayState | null
-  current_gate: 1 | 2 | 3 | null
-  next_checkpoint_id: string | null; next_task_de: string | null; next_task_en: string | null
-  next_task_department: Department | null; next_task_due_at: string | null
-  is_overdue: boolean; has_exception: boolean; has_open_exception_request: boolean; has_pool_entry: boolean
-  display_state: DisplayState
+/** Zeile aus pcc.v_projects: Projekt samt gerechneter Kennzahlen. */
+export type ProjectOverview = {
+  id: string; key: string; name: string; description: string | null
+  objectives: string | null; scope: string | null; status: ProjectStatus
+  pm_user_id: string; pm_name: string | null; sponsor_user_id: string | null
+  start_date: string | null; target_end_date: string | null; actual_end_date: string | null
+  archived: boolean; version: string
+  progress: number; health: Health
+  task_count: number; overdue_tasks: number
+  open_risks: number; critical_risks: number; open_issues: number
+  team_size: number; next_milestone_date: string | null; next_milestone: string | null
+  created_at: string; updated_at: string
 }
-export type PoolEntry = {
-  department: Department; pool_since: string; business_days_in_pool: number; is_stale: boolean
-  case_id: string; case_number: string; status: CaseStatus; trainee_name: string; company_name: string
-  aircraft_type: string; aircraft_type_id: string; course_type: string; course_start: string | null
-  next_task_de: string | null; next_task_en: string | null; next_task_department: Department | null
-  next_task_due_at: string | null; display_state: DisplayState
+
+/** Zeile aus pcc.v_dashboard: eine Zeile über alle sichtbaren Projekte. */
+export type DashboardTotals = {
+  projects_total: number; projects_active: number
+  projects_on_track: number; projects_at_risk: number; projects_delayed: number
+  projects_completed: number; projects_red: number; projects_amber: number
+  open_risks: number; critical_risks: number; open_issues: number; overdue_tasks: number
 }
-export type CaseCheckpointView = CaseCheckpoint & {
-  code: string; gate_no: 1 | 2 | 3; department: Department; label_de: string; label_en: string
-  mandatory: boolean; four_eyes: boolean; evidence: string | null; requires_gate_complete: boolean
-  sort_order: number; has_exception: boolean; exception_requested: boolean; is_overdue: boolean
-  display_state: DisplayState
-}
-export type GateView = Gate & {
-  release_department: Department; open_mandatory: number; total_mandatory: number
-  is_overdue: boolean | null; display_state: DisplayState
-}
-export type Pipeline = {
-  enquiry: number; gate1_blocking: number; booked: number; gate2_blocking: number; in_progress: number
-  gate3_blocking: number; completed: number; open_cases: number; overdue_cases: number; pool_cases: number
-  completed_30d: number; exceptions_30d: number; gate3_warnings: number
-}
-export type ExceptionStat = {
-  department: Department; aircraft_type: string; checkpoint_code: string; label_de: string; label_en: string
-  approved: number; rejected: number; pending: number; last_requested_at: string | null
-}
-export type GateLeadTime = {
-  case_id: string; case_number: string; aircraft_type: string
-  days_to_gate1: number | null; days_gate1_to_gate2: number | null; days_gate2_to_gate3: number | null
-}
-export type UnreadThread = { scope: MessageScope; scope_id: string; unread: number }
 
 export type Database = {
   public: {
     Tables: {
       users: Table<User>
-      aircraft_types: Table<AircraftType>
-      type_assignments: Table<TypeAssignment>
-      deputies: Table<Deputy>
-      companies: Table<Company>
-      trainees: Table<Trainee>
-      checkpoints: Table<Checkpoint>
-      cases: Table<Case>
-      case_assignments: Table<CaseAssignment>
-      gates: Table<Gate>
-      case_checkpoints: Table<CaseCheckpoint>
-      exceptions: Table<CaseException>
-      notifications: Table<Notification>
-      messages: Table<Message>
-      message_edits: Table<MessageEdit>
-      message_mentions: Table<MessageMention>
-      thread_reads: Table<ThreadRead>
       audit_log: Table<AuditEntry>
-      settings: Table<Setting>
-      changelog: Table<ChangelogEntry>
+    }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
+  }
+  pcc: {
+    Tables: {
+      projects: Table<Project>
+      project_members: Table<ProjectMember>
+      workstreams: Table<Workstream>
+      tasks: Table<Task>
+      milestones: Table<Milestone>
+      risks: Table<Risk>
+      issues: Table<Issue>
+      decisions: Table<Decision>
+      documents: Table<ProjectDocument>
+      comments: Table<Comment>
+      notifications: Table<Notification>
+      project_versions: Table<ProjectVersion>
     }
     Views: {
-      v_cases: View<CaseOverview>
-      v_pool: View<PoolEntry>
-      v_case_checkpoints: View<CaseCheckpointView>
-      v_gates: View<GateView>
-      v_pipeline: View<Pipeline>
-      v_exception_stats: View<ExceptionStat>
-      v_gate_lead_times: View<GateLeadTime>
-      v_unread_threads: View<UnreadThread>
+      v_projects: View<ProjectOverview>
+      v_dashboard: View<DashboardTotals>
     }
-    Functions: {
-      create_case: {
-        Args: {
-          p_trainee_id: string; p_company_id: string; p_aircraft_type_id: string; p_course_type: string
-          p_enquiry_date?: string; p_course_start?: string | null; p_course_end?: string | null
-        }
-        Returns: string
-      }
-      claim_case: { Args: { p_case_id: string }; Returns: undefined }
-      assign_case: { Args: { p_case_id: string; p_department: Department; p_user_id: string }; Returns: undefined }
-      release_to_pool: { Args: { p_case_id: string; p_department: Department }; Returns: undefined }
-      complete_checkpoint: { Args: { p_case_checkpoint_id: string; p_note?: string | null }; Returns: CaseCheckpoint }
-      verify_checkpoint: { Args: { p_case_checkpoint_id: string; p_note?: string | null }; Returns: CaseCheckpoint }
-      reset_checkpoint: { Args: { p_case_checkpoint_id: string; p_reason: string }; Returns: CaseCheckpoint }
-      release_gate: { Args: { p_case_id: string; p_gate_no: 1 | 2 | 3 }; Returns: Gate }
-      discard_case: { Args: { p_case_id: string; p_reason: string }; Returns: undefined }
-      request_exception: { Args: { p_case_id: string; p_checkpoint_id: string; p_reason: string }; Returns: CaseException }
-      decide_exception: { Args: { p_exception_id: string; p_approve: boolean; p_note?: string | null }; Returns: CaseException }
-      copy_course_fields: { Args: { p_source_case_id: string }; Returns: number }
-      post_message: {
-        Args: {
-          p_scope: MessageScope; p_scope_id: string; p_body: string; p_checkpoint_id?: string | null
-          p_mention_user_ids?: string[]; p_mention_departments?: Department[]
-        }
-        Returns: Message
-      }
-      mark_thread_read: { Args: { p_scope: MessageScope; p_scope_id: string }; Returns: undefined }
-      mark_notifications_read: { Args: { p_ids: string[] }; Returns: number }
-      add_business_days: { Args: { p_date: string; p_days: number }; Returns: string }
-    }
-    Enums: {
-      department: Department
-      user_role: UserRole
-      ui_language: UiLanguage
-      case_status: CaseStatus
-      checkpoint_state: CheckpointState
-      gate_state: GateState
-      exception_state: ExceptionState
-      message_scope: MessageScope
-      notification_type: NotificationType
-      email_state: EmailState
-    }
+    Functions: Record<string, never>
+    Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }
 }

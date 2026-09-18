@@ -26,7 +26,8 @@ begin
   foreach t in array array['templates','projects','project_members','workstreams','tasks',
                            'milestones','risks','issues','decisions','raci','documents',
                            'comments','mentions','notifications','version_triggers',
-                           'project_versions','version_changes','ref_counters','settings']
+                           'project_versions','version_changes','ref_counters','settings',
+                           'changelog']
   loop
     execute format('alter table pcc.%I enable row level security', t);
     execute format('alter table pcc.%I force row level security', t);
@@ -34,16 +35,37 @@ begin
 end $$;
 
 -- -----------------------------------------------------------------------------
--- Gemeinsame Tabellen: Zugang aus dem Control Center heraus
--- Die Flow-Policies bleiben unverändert; hier kommen eigene hinzu. Policies
--- sind additiv, ein Flow-Nutzer verliert dadurch nichts.
+-- Nutzerkonten und Audit-Trail
+-- Ein freigegebener Nutzer sieht die Namen seiner Kolleginnen und Kollegen —
+-- ohne das ließe sich keine Zuständigkeit anzeigen. Ändern darf er an sich
+-- selbst nur Name und Sprache; alles Weitere hält der Guard in Migration 3 auf.
 -- -----------------------------------------------------------------------------
-create policy users_select_pcc on public.users for select to authenticated
-  using (pcc.is_user());
+alter table public.users enable row level security;
+alter table public.users force row level security;
+alter table public.audit_log enable row level security;
+alter table public.audit_log force row level security;
+revoke all on public.users, public.audit_log from anon;
+grant select on public.users, public.audit_log to authenticated;
+grant update on public.users to authenticated;
 
-create policy audit_log_select_pcc on public.audit_log for select to authenticated
-  using (module = 'pcc' and (pcc.is_admin()
-      or (project_id is not null and pcc.can_read(project_id))));
+create policy users_select on public.users for select to authenticated
+  using (pcc.is_user() or id = auth.uid());
+create policy users_update on public.users for update to authenticated
+  using (pcc.is_super_admin() or id = auth.uid())
+  with check (pcc.is_super_admin() or id = auth.uid());
+-- Kein Insert und kein Delete: Konten entstehen bei der Anmeldung und werden
+-- gesperrt oder pseudonymisiert, nie gelöscht (Abschnitt 7b).
+
+-- Der Trail eines Projekts ist dessen Aktivitätsprotokoll und für jeden Leser
+-- sichtbar. Einträge ohne Projektbezug — Konten, Rollen, Löschverlangen —
+-- bleiben der Admin-Ebene vorbehalten.
+create policy audit_log_select on public.audit_log for select to authenticated
+  using (pcc.is_admin()
+      or (project_id is not null and pcc.can_read(project_id)));
+
+create trigger audit_log_immutable before update or delete on public.audit_log
+  for each row execute function pcc.tg_immutable();
+comment on table public.audit_log is 'Vollständiger Audit-Trail. Kein Weg in der Anwendung ändert oder löscht einen Eintrag.';
 
 -- -----------------------------------------------------------------------------
 -- Projekte
@@ -169,6 +191,9 @@ create policy templates_select on pcc.templates for select to authenticated
 create policy templates_write on pcc.templates for all to authenticated
   using (pcc.is_admin()) with check (pcc.is_admin());
 
+create policy changelog_select on pcc.changelog for select to authenticated
+  using (pcc.is_user());
+
 create policy settings_select on pcc.settings for select to authenticated
   using (pcc.is_user());
 create policy settings_update on pcc.settings for update to authenticated
@@ -176,28 +201,6 @@ create policy settings_update on pcc.settings for update to authenticated
 
 -- ref_counters und mentions bekommen bewusst keine Schreib-Policy: beide werden
 -- ausschließlich von SECURITY-DEFINER-Funktionen gepflegt.
-
--- -----------------------------------------------------------------------------
--- Unveränderlichkeit
--- -----------------------------------------------------------------------------
--- Versionen sind unveränderlich. Einzige Ausnahme: das endgültige Löschen eines
--- Projekts durch den Super Admin, das über den internen Schreibmodus läuft und
--- selbst einen Eintrag im Audit-Trail hinterlässt.
-create or replace function pcc.tg_immutable()
-returns trigger
-language plpgsql as $$
-begin
-  if public.internal_write_enabled() then
-    return coalesce(new, old);
-  end if;
-  raise exception 'PCC_IMMUTABLE: % darf nicht geändert oder gelöscht werden', tg_table_name
-    using errcode = 'P0001';
-end $$;
-
-create trigger project_versions_immutable before update or delete on pcc.project_versions
-  for each row execute function pcc.tg_immutable();
-create trigger version_changes_immutable before update or delete on pcc.version_changes
-  for each row execute function pcc.tg_immutable();
 
 -- -----------------------------------------------------------------------------
 -- Ausführungsrechte

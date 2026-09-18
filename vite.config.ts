@@ -2,9 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Standalone PWA (Spec Abschnitt 3). Desktop ist Leitplattform, Tablet und
-// iPhone werden reduziert bedient. Icons und Farben werden mit dem Logo
-// nachgeliefert (Spec Abschnitt 15, Punkt 3).
+// Standalone PWA (Abschnitt 8 der Architektur). Desktop ist Leitplattform,
+// Tablet und Telefon werden reduziert bedient. Icons und Farben werden mit dem
+// Logo nachgeliefert.
 export default defineConfig({
   plugins: [
     react(),
@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'AAA Flow',
-        short_name: 'AAA Flow',
-        description: 'Gate-Steuerung für Trainingsvorgänge — Aviation Academy Austria',
+        name: 'Project Control Center',
+        short_name: 'Control Center',
+        description: 'Projektsteuerung der Aviation Academy Austria',
         lang: 'de',
         display: 'standalone',
         start_url: '/',

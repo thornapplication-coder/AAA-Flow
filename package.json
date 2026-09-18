@@ -1,8 +1,8 @@
 {
-  "name": "aaa-flow",
+  "name": "project-control-center",
   "private": true,
   "version": "1.0.0",
-  "description": "AAA Flow — Gate-Steuerung für Trainingsvorgänge der Aviation Academy Austria",
+  "description": "Project Control Center — Projektsteuerung der Aviation Academy Austria",
   "type": "module",
   "scripts": {
     "dev": "vite",

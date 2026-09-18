@@ -1,248 +1,65 @@
 # Changelog
 
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
-in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
+in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
-## 2.1.0 — 2026-09-18
+## 1.0.0 — 2026-09-18
 
-Das Control Center hat eine echte Datenbank. Nicht mehr nachgebildet, sondern
-mit erzwungenen Regeln — und lokal gegen PostgreSQL geprüft.
+Erste Fassung des Project Control Centers: Datenmodell, Rechte und
+Geschäftslogik in PostgreSQL, dazu ein klickbarer Prototyp der Oberfläche.
 
-- **Schema `pcc`** mit 19 Tabellen: Projekte, Projektteam, Workstreams,
+### Datenbank
+
+- **Schema `pcc`** mit 20 Tabellen: Projekte, Projektteam, Workstreams,
   Aufgaben mit Teilaufgaben, Meilensteine, Risiken, Issues, Entscheidungen,
   RACI, Dokumente, Kommentare, Erwähnungen, Benachrichtigungen, Versionen,
-  Versionsänderungen, Vorlagen, Referenzzähler, Einstellungen, Versionsauslöser.
-- **Ein Konto, zwei Module.** `public.users` trägt jetzt `role` (Flow) und
-  `pcc_role` (Control Center) getrennt, beide dürfen leer sein. Eine leere
-  Rolle sperrt das jeweilige Modul vollständig — geprüft in beide Richtungen.
-- **Selbstregistrierung** nach Abschnitt 4: ein Trigger auf `auth.users` legt
-  ein gesperrtes Profil ohne Rolle an. Ohne Freigabe durch den Super Admin
-  greift keine einzige Policy. Ein eigener Guard verhindert, dass sich jemand
-  die eigene Rolle setzt.
-- **Row Level Security** auf allen Tabellen des Schemas. Der Contributor
-  bearbeitet, was ihm zugewiesen ist; der Viewer liest und exportiert; die
-  Projektleitung führt ihr Projekt; archivierte Projekte sind schreibgeschützt.
-- **Risk Score** als generierte Spalte — von Hand nicht setzbar.
-- **Versionierung** nach Abschnitt 6: eine neue Version entsteht nur bei
-  Statuswechsel, verschobenem oder erreichtem Meilenstein, Zieltermin­änderung,
-  Risiko ab Score 15 oder abgeschlossenem Workstream. Die Liste steht als
-  Konfiguration in `pcc.version_triggers`. Versionen sind unveränderlich.
-- **Gesamtlage und Fortschritt** werden gerechnet, nie gespeichert. Rot bleibt
-  selten: verzögert, überfälliger Meilenstein oder zwei kritische Risiken.
-- **Dokumente** nach Abschnitt 7a: Quarantäne bis zur Virenprüfung, 50 MB je
-  Datei, Datei oder Verweis — nie beides, und eine neue Fassung löst die alte
-  über `supersedes_id` ab, statt sie zu überschreiben.
-- **Löschweg nach Artikel 17 DSGVO** als Funktion: `pcc.anonymise_user()`
-  pseudonymisiert das Konto, die fachliche Zuordnung bleibt über die ID
-  bestehen, der Audit-Trail bleibt.
+  Versionsänderungen, Vorlagen, Versionsauslöser, Referenzzähler, Einstellungen
+  und Changelog. Nutzerkonto und Audit-Trail liegen in `public`, weil beides an
+  der Anmeldung hängt und nicht am Fachmodell.
+- **Rollen und Sichtbarkeit** über Row Level Security auf jeder Tabelle. Der
+  Contributor bearbeitet, was ihm zugewiesen ist; der Viewer liest und
+  exportiert; die Projektleitung führt ihr Projekt; archivierte Projekte sind
+  schreibgeschützt. Eine NULL-Rolle sperrt die Anwendung vollständig.
+- **Selbstregistrierung mit Freigabe:** Ein Trigger auf `auth.users` legt ein
+  gesperrtes Profil ohne Rolle an. Ein eigener Guard verhindert, dass jemand
+  Rolle, Freigabe oder Aktivstatus an sich selbst ändert.
+- **Risk Score** als generierte Spalte — von Hand nicht setzbar, damit Filter
+  und Sortierung serverseitig stimmen.
+- **Fortschritt** je Aufgabe wahlweise gerechnet oder gesetzt (`progress_mode`),
+  **Gesamtlage** immer gerechnet. Rot bleibt selten: verzögert, überfälliger
+  Meilenstein oder zwei kritische Risiken.
+- **Versionierung** nur bei fachlich bedeutsamen Ereignissen — Statuswechsel,
+  verschobener oder erreichter Meilenstein, geänderter Zieltermin, Risiko ab
+  Score 15, abgeschlossener Workstream. Die Liste steht als Konfiguration in
+  `pcc.version_triggers`. Versionen sind unveränderlich.
+- **Dokumente:** Quarantäne bis zur Virenprüfung, 50 MB je Datei, Datei oder
+  externer Verweis — nie beides. Eine neue Fassung löst die alte über
+  `supersedes_id` ab, statt sie zu überschreiben.
+- **Audit-Trail** aus Triggern, gegen Änderung und Löschung gesperrt.
+- **Löschweg nach Artikel 17 DSGVO:** `pcc.anonymise_user()` pseudonymisiert
+  das Konto; die fachliche Zuordnung bleibt über die ID bestehen.
 - **Elf Sichten** für Dashboard, Aufgaben, Meilensteine, Risiken, Risk Matrix,
   Issues, überfällige Aufgaben, anstehende Meilensteine, Aktivität,
   Benachrichtigungen und offene Freigaben — alle mit `security_invoker`.
-- **Tageslauf** `pcc.run_daily_jobs()`: verzögerte Meilensteine, Vorlauf­hinweise
-  und Überfälligkeitsmeldungen an Zuständige und Projektleitung.
-- **84 zusätzliche SQL-Prüfungen** in `supabase/tests/002_pcc_core.sql`,
-  zusammen mit Flow jetzt 207. `scripts/db-check.sh` spielt Migrationen, beide
-  Seeds und beide Testdateien ein.
-- Flow unverändert in der Sache: die einzige Anpassung ist, dass ein aktives
-  Konto allein keinen Flow-Zugang mehr bedeutet — es braucht eine Flow-Rolle.
+- **Tageslauf** `pcc.run_daily_jobs()`: verzögerte Meilensteine,
+  Vorlaufhinweise und Überfälligkeitsmeldungen; als `pg_cron`-Job eingeplant,
+  wo die Erweiterung verfügbar ist.
+- **SQL-Testsuite** in `supabase/tests/001_core.sql`, ausgeführt über
+  `scripts/db-check.sh` und in der CI.
 
-## 2.0.1 — 2026-09-18
+### Oberfläche
 
-Vier Architekturentscheidungen festgehalten und eingearbeitet
-(`docs/PCC-ARCHITECTURE.md`):
+- **Prototyp** `sandbox/Control-Center-Sandbox.html`: Dashboard mit Kennzahlen
+  und Management-Timeline, Projektliste mit Filtern, Projektakte mit zehn
+  Reitern, Aufgaben-, Risiko- und Meilensteinlisten über alle Projekte,
+  Berichte, Anmeldebildschirm mit Rollenschnellwahl, Sandbox-Leiste mit
+  simuliertem Datum, PDF- und Excel-Export.
+- **Frontend-Gerüst** mit Vite, React 19, TypeScript, PWA, Deutsch/Englisch,
+  Supabase-Anmeldung und Projektübersicht aus `pcc.v_projects`.
 
-- **Selbstregistrierung** im Control Center erlaubt, Zugang erst nach Freigabe
-  durch den Super Admin. Flow bleibt geschlossen; Rollen je Modul getrennt.
-- **Sichtbarkeit:** jeder freigegebene Nutzer liest alle nicht archivierten
-  Projekte, Änderungsrechte weiterhin nach Rolle.
-- **Versionen** entstehen nur bei fachlich bedeutsamen Ereignissen; die Liste
-  liegt als Konfiguration vor, nicht im Code.
-- **Dokumente** werden in die Anwendung hochgeladen statt nur verlinkt. Neuer
-  Abschnitt 7a beschreibt die vier Pflichten, die damit von SharePoint auf die
-  Anwendung übergehen: Zugriffsschutz über signierte URLs, Virenprüfung in
-  Quarantäne, Aufbewahrung und eine eigene Sicherung des Speichers. Eine neue
-  Fassung löst die alte ab, statt sie zu überschreiben.
-- Prototyp: Dokumentenreiter zeigt Datei, Größe, Version und Ablösung; ein
-  externer Verweis bleibt je Dokument möglich.
-- Offene Punkte neu geordnet; die Aufbewahrungsfrist für Dokumente ist durch
-  die Upload-Entscheidung zum dringlichsten geworden.
+### Hinweis zur Vorgeschichte
 
-## 2.0.0 — 2026-09-18
-
-- **Project Control Center** als zweites Modul derselben Anwendung. Ein
-  Produktwechsler in der Kopfzeile schaltet zwischen AAA Flow und dem Control
-  Center; Anmeldung, Nutzer, Design, Zeitreise, Export und Sandbox-Leiste sind
-  gemeinsam, Rollen und Daten getrennt.
-- Management-Dashboard: neun Kennzahlen, Management Timeline über alle
-  Projekte mit Meilensteinpunkten, Projektstatus-Tabelle, anstehende
-  Meilensteine, kritische Risiken nach Score, überfällige Aufgaben und letzte
-  Änderungen.
-- Projektansicht mit zehn Reitern: Überblick, Timeline, Aufgaben mit
-  Teilaufgaben, Risiken mit Risk-Matrix, Issues, Entscheidungen, Team mit
-  abgeleiteter RACI, Dokumente, Aktivität und Versionsverlauf.
-- Übergreifende Listen für Aufgaben, Risiken, Issues und Meilensteine,
-  jeweils filterbar und exportierbar; Berichtsansicht mit Dashboard-Bericht
-  und Projektbericht je Projekt.
-- Anlegen und Ändern: Projekt mit Version 1.0, Aufgaben, Risiken, Issues;
-  Statusänderungen erzeugen Versionseinträge und Aktivitätsprotokoll.
-- Rollen nach Abschnitt 5 der Spezifikation: Super Admin, Admin, Project
-  Manager, Contributor, Viewer — unabhängig von den Flow-Rollen.
-- Architektur in `docs/PCC-ARCHITECTURE.md` (Phase 1 nach Abschnitt 62):
-  Technologiestack, Datenmodell, Rechtemodell, Autosave, Echtzeit,
-  Versionierung, Export, PWA, Reihenfolge und offene Punkte.
-
-## 1.7.1 — 2026-09-03
-
-Zwei gemeldete Anzeigefehler behoben:
-
-- **Beschriftungen liefen aus dem Feld.** Die Kontrollkästchen in Dialogen
-  erbten `width:100%` aus der allgemeinen Feldregel und wurden so breit wie die
-  ganze Spalte, was die Beschriftung daneben aus dem Kasten schob und am Rand
-  abschnitt — sichtbar bei Musterzuordnung und Kurstypen. Die Kästchen haben
-  jetzt eine feste Größe, Beschriftungen brechen um statt zu überlaufen.
-- **Die Ansicht sprang beim Abhaken nach oben.** Jede Aktion zeichnet die
-  Oberfläche neu; dabei ging die Scrollposition verloren, sodass die
-  Vorgangsakte nach dem Abhaken eines Prüfpunkts wieder am Anfang stand. Akte,
-  Liste, Dialog und Notizen behalten ihre Position jetzt über das Neuzeichnen
-  hinweg — nur ein Reiterwechsel beginnt bewusst wieder oben.
-
-## 1.7.0 — 2026-09-03
-
-- **Audit-Auswertung über alle Vorgänge.** Neue Ansicht mit Filtern nach
-  Zeitraum (Von-Bis oder Schnellwahl 7, 30, 90 Tage), Person, Abteilung und
-  Volltext über Ereignis, Begründung, Vorgangsnummer, Trainee und Firma.
-  Export als PDF und Excel, der gewählte Filter steht im Kopf des Dokuments.
-  Ein Klick auf eine Zeile öffnet den zugehörigen Vorgang. Sichtbar sind
-  ausschließlich Ereignisse zu Vorgängen im Rahmen der eigenen Sichtbarkeit.
-- Audit-Einträge tragen jetzt einen echten Zeitstempel statt einer
-  Anzeigezeichenkette; Live-Einträge hängen an der simulierten Uhr, sodass die
-  Zeitraumfilter auch nach einem Zeitsprung stimmen.
-- Damit ist Abschnitt 13 der Spec vollständig abgedeckt: Audit-Trail
-  exportierbar je Vorgang, Zeitraum, Person und Abteilung.
-
-## 1.6.0 — 2026-09-03
-
-- **Firma und Trainee als Schreibfeld** mit Vorschlagsliste statt reinem
-  Auswahlfeld: ein bekannter Name wird übernommen, ein unbekannter legt den
-  Eintrag mit dem Vorgang an. Beim neuen Trainee erscheint das Feld für das
-  Geburtsdatum von selbst.
-- **Kurstypen als Mehrfachauswahl.** Ein Vorgang kann mehrere tragen, etwa
-  Recurrent zusammen mit LVO und Steep Approach. Der Katalog umfasst AAA
-  Recurrent, CAT II/III, CPDLC, Difference Training, EPSQ, HUD, LVO, LVTO only,
-  Recurrent, Renewal, Special Airport, Steep Approach und Type Rating und wird
-  vom Superadmin im Admin-Panel gepflegt. Der Kurstypfilter je Prüfpunkt greift
-  jetzt, sobald einer der Kurstypen des Vorgangs passt.
-- **Feldrechte nach Abteilung.** Das Anfragedatum pflegt Sales, Kursbeginn und
-  Kursende pflegt Training Admin; fremde Felder sind sichtbar, aber gesperrt und
-  mit Begründung versehen. Neu ist der Dialog **Stammdaten des Vorgangs**, über
-  den Training Admin die Kursdaten nachträgt — Fristen und Prüfpunkt-Katalog
-  werden dabei neu berechnet, die Änderung landet im Audit-Trail.
-- **Notizen zu Personen und Firmen.** Interne Vermerke über alle Vorgänge
-  hinweg, erreichbar aus der Vorgangsakte und aus den Stammdaten, nicht
-  löschbar, mit Bearbeitungsvermerk und eigenem PDF- und Excel-Export.
-
-## 1.5.0 — 2026-09-03
-
-- **Export.** PDF über eine eigene Druckansicht in jeder Ansicht, Excel überall
-  dort, wo die Ansicht eine Liste ist: Vorgangsliste (gefilterte Sicht),
-  Ausnahmen, Prüfpunkt-Katalog, Nutzer, Firmen, Trainees, Prüfpunkte und
-  Audit-Trail eines Vorgangs. Dazu die vollständige **Vorgangsakte als PDF**
-  mit Stammdaten, allen drei Gates samt Bearbeiter und Kontrolleur, Ausnahmen,
-  Audit-Trail und Unterschriftenzeile.
-- **Logins und Rollen.** Die E-Mail-Adresse ist der Login und wird vom
-  Superadmin vergeben; Anlegen versendet eine Einladung, der Status zeigt
-  Eingeladen, Aktiv oder Deaktiviert. Rollen vergibt ausschließlich der
-  Superadmin, und er kann sich die eigene Rolle nicht entziehen. Auf dem
-  Anmeldebildschirm führt die vergebene Adresse tatsächlich zur Anmeldung;
-  unbekannte Adressen werden mit dem Hinweis auf die fehlende
-  Selbstregistrierung abgewiesen.
-- Sales ohne Musterzuordnung sieht eine erklärende leere Ansicht statt einer
-  wortlosen Liste.
-
-## 1.4.0 — 2026-09-03
-
-Angeregt durch die Sandbox von InstructorConnect:
-
-- **Zeitreise.** Eine Sandbox-Leiste am unteren Rand verschiebt das simulierte
-  Datum um 1, 8 oder 31 Tage. Fristen, Überfälligkeit, Liegedauer im Pool,
-  Gate-3-Warnungen und der Statuswechsel bei Kursbeginn werden dabei neu
-  berechnet — die Fristenlogik lässt sich damit erleben statt nur ansehen.
-  Zurücksetzen stellt den Ausgangszustand her.
-- **Anmeldebildschirm** statt Auswahlfeld in der Kopfzeile: E-Mail-Feld mit
-  Hinweis auf den Einmalcode, ausdrücklicher Vermerk zur fehlenden
-  Selbstregistrierung und eine Schnellwahl der Rollen für die Sandbox,
-  sortiert nach Superadmin, Leitung, Mitarbeiter.
-- **Sichtbare Sandbox-Kennzeichnung** mit simuliertem Datum, damit die
-  Demodaten nicht mit einem Echtsystem verwechselt werden.
-
-## 1.3.0 — 2026-09-03
-
-- Sandbox: Admin-Panel für den Superadmin mit drei Bereichen.
-  - **Prüfpunkte:** anlegen, bearbeiten, duplizieren, deaktivieren, löschen
-    (nur wenn in keinem Vorgang verwendet), Reihenfolge je Gate ändern.
-    Regeln je Punkt: Pflicht/optional, Vier-Augen, sperrt nachfolgende Punkte,
-    Vorbedingung, erst nach allen übrigen Pflichtpunkten, Frist mit Anker,
-    Nachweis und Nachweispflicht, Musterfilter, Kurstypfilter, nur Teamleitung,
-    aktiv. Neue Punkte wahlweise auch auf laufende Vorgänge anwenden.
-  - **Einstellungen:** Liegenbleiber-Frist (wirkt sofort), Erinnerungstage,
-    Frist bis Eskalationsstufe 2, Funktionsträger (Director Training, Head of
-    Training, Sales-Leitung), Eskalationsstufe je Abteilung.
-  - **Nutzer und Muster:** Nutzer anlegen und bearbeiten, Rolle, Abteilung,
-    Aktivstatus und Musterzuordnung — wirkt unmittelbar auf Sichtbarkeit bei
-    Sales und automatische Zuständigkeit bei ATO.
-- Sandbox: Prüfpunkt-Katalog wird je Vorgang als Snapshot geführt, damit
-  Katalogänderungen laufende Vorgänge nicht rückwirkend verändern.
-- Sandbox: Nachweis wird beim Erledigen erfasst, wenn der Punkt es verlangt.
-- ARCHITECTURE: neue Regelfelder gegenüber Schema 1.0.0 dokumentiert.
-
-## 1.2.0 — 2026-09-03
-
-- Sandbox: Vorgang, Trainee und Firma lassen sich anlegen. Beim Anlegen eines
-  Vorgangs können Firma und Trainee direkt im Dialog neu erfasst werden; die
-  ATO-Zuständigkeit wird automatisch über das Muster gesetzt (Fallback Head of
-  Training), Sales kann nur Vorgänge zugeordneter Muster anlegen.
-- Sandbox: neue Ansicht Stammdaten mit Firmen und Trainees.
-- Sandbox: Kommunikation korrigiert — Trainee- und Firmen-Threads hängen jetzt
-  an Person und Firma statt am einzelnen Vorgang und sind damit über alle
-  Vorgänge derselben Person bzw. Firma sichtbar, mit Ungelesen-Zähler je Ebene.
-- Sandbox: Tablet- und Handy-Ansichten. Navigation als feste Leiste unter der
-  Kopfzeile, Kartenliste statt Tabelle auf dem Handy, Vorgangsakte über die
-  volle Breite, einklappbare Filterleiste.
-
-## 1.1.0 — 2026-09-03
-
-- Sandbox `sandbox/AAA-Flow-Sandbox.html`: klickbarer Prototyp der Vorgangsakte
-  mit Demodaten. Gate-Sperre, Vier-Augen-Prinzip als zweistufiger Ablauf,
-  Gate-3-Sperre des Abschlussnachweises, Ausnahmen mit Antrag und Freigabe,
-  Kommunikation auf drei Kontextebenen mit Bearbeitungsvermerk, Audit-Trail,
-  Pool mit Liegedauer, Vorgangsbahn, Prüfpunkt-Katalog, Rollenwechsel, DE/EN.
-- Design-Tokens in `src/styles/theme.css` auf die Farbwerte und die Typografie
-  des Prototyps umgestellt (IBM Plex Sans / Mono, Navy-Palette, semantische
-  Statusfarben getrennt vom Akzent).
-- `sandbox/AAA-Flow-Sandbox-v0.html` als Referenz abgelegt.
-
-## 1.0.0 — 2026-09-02
-
-Fundament.
-
-- Datenmodell nach Spec Abschnitt 5 als Supabase-Migrationen, ergänzt um `trainees`
-  als eigene Entität (Trainee-Threads über mehrere Kurse), `message_mentions`,
-  `thread_reads` und `changelog`.
-- Geschäftslogik in Postgres: Vorgangsanlage mit Snapshot des Prüfpunkt-Katalogs,
-  Pool-Übernahme, Zuweisung, Liegenbleiber-Regel, Prüfpunkte erledigen /
-  kontrollieren / zurücksetzen, Vier-Augen-Prinzip (hart), Gate-Freigabe mit
-  Sperrlogik, Gate-3-Sperre für den Abschlussnachweis, Ausnahmen mit Freigabe
-  durch Director Training / Head of Training, Verwerfen mit Pflichtgrund,
-  Übernahmefunktion für kursweite Felder, Erinnerungen und zweistufige
-  Eskalation, Statuswechsel „In Durchführung" bei Kursbeginn.
-- Kommunikation: Threads auf Ebene Vorgang, Trainee, Firma; kein Löschen;
-  Bearbeitungshistorie; Erwähnungen mit Benachrichtigung; Ungelesen-Zähler.
-- Audit-Trail als unveränderliche Tabelle mit generischem Trigger.
-- Row Level Security für alle Tabellen inkl. Sales-Sichtbarkeit nach Muster,
-  Vertretungsregelung und Firmen-Thread-Sichtbarkeit.
-- Views für Vorgangsliste, Pool, Vorgangsbahn, Ausnahmen-Auswertung,
-  Gate-Durchlaufzeiten und Ungelesen-Zähler.
-- Seed: Muster, Prüfpunkt-Katalog für Gate 1–3, Einstellungen.
-- SQL-Testsuite (`supabase/tests`) und lokale Prüf-Harness (`scripts/db-check.sh`).
-- Frontend-Gerüst: Vite, React, TypeScript, PWA, Supabase-Client, DE/EN,
-  Design-Tokens, Auth, Routing-Skelett, Pool-Ansicht als erster Durchstich.
+Dieses Repository enthielt bis zur Version 1.0.0 zusätzlich das Modul
+**AAA Flow** (Gate-Steuerung für Trainingsvorgänge). Es wurde auf Wunsch
+vollständig entfernt; die Anwendung ist seitdem einteilig. Die Geschichte
+bleibt in der Versionsverwaltung erhalten.
