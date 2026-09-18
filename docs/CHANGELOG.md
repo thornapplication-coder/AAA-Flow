@@ -38,8 +38,9 @@ Geschäftslogik in PostgreSQL, dazu ein klickbarer Prototyp der Oberfläche.
 - **Audit-Trail** aus Triggern, gegen Änderung und Löschung gesperrt.
 - **Löschweg nach Artikel 17 DSGVO:** `pcc.anonymise_user()` pseudonymisiert
   das Konto; die fachliche Zuordnung bleibt über die ID bestehen.
-- **Elf Sichten** für Dashboard, Aufgaben, Meilensteine, Risiken, Risk Matrix,
-  Issues, überfällige Aufgaben, anstehende Meilensteine, Aktivität,
+- **Zwölf Sichten**: Projekte mit gerechneten Kennzahlen (`v_projects`, die
+  Grundlage der Oberfläche), Dashboard, Aufgaben, Meilensteine, Risiken, Risk
+  Matrix, Issues, überfällige Aufgaben, anstehende Meilensteine, Aktivität,
   Benachrichtigungen und offene Freigaben — alle mit `security_invoker`.
 - **Tageslauf** `pcc.run_daily_jobs()`: verzögerte Meilensteine,
   Vorlaufhinweise und Überfälligkeitsmeldungen; als `pg_cron`-Job eingeplant,
@@ -56,6 +57,32 @@ Geschäftslogik in PostgreSQL, dazu ein klickbarer Prototyp der Oberfläche.
   simuliertem Datum, PDF- und Excel-Export.
 - **Frontend-Gerüst** mit Vite, React 19, TypeScript, PWA, Deutsch/Englisch,
   Supabase-Anmeldung und Projektübersicht aus `pcc.v_projects`.
+
+### Geprüft
+
+Vier Durchsichten mit eigenen Prüfern — Oberfläche, Bedienung, Datenbank­sicherheit
+und Konsistenz des Repositories. Was daraus behoben wurde:
+
+- **Rechteausweitung geschlossen:** `public.enable_internal_write()` war für
+  angemeldete Nutzer aufrufbar und hätte in einer Transaktion sämtliche Guards
+  stillgelegt — ein Viewer konnte sich damit zum Super Admin machen. Vier
+  Angriffe belegen jetzt in der Testsuite, dass der Weg zu ist.
+- **Inbetriebnahme war blockiert:** Die Anleitung im README stufte den ersten
+  Nutzer per `update` hoch, was der Rollen-Guard abweist. Dafür gibt es jetzt
+  `pcc.bootstrap_super_admin()`, und die Selbstregistrierung ist in
+  `supabase/config.toml` eingeschaltet — sie ist die Grundlage des Rechtemodells.
+- **Kennzahlen zeigten die falsche Zahl:** Das Dashboard zählte den von Hand
+  gesetzten Projektstatus, während die Zeitstrahlen darunter die gerechnete
+  Gesamtlage zeigten. Beide Zahlen kommen jetzt aus derselben Quelle, und jede
+  Ampel trägt ihre Begründung neben sich.
+- **Berichte verschwiegen ihren Filter:** Ein Filter aus der Projektliste wirkte
+  bis in den PDF-Bericht für die Geschäftsleitung, ohne dass es dort sichtbar
+  war. Jetzt steht er in der Ansicht und im Kopf jedes Berichts.
+- **Weiteres:** Aufgabenliste mit Filter auf Zuständigkeit, Status und Zeitraum;
+  einheitliche Leerzustände; beschriftete Ampeln und Abzeichen; Achsen der
+  Risikomatrix benannt; „Erledigt" nennt die Aufgabe und lässt sich zurücknehmen;
+  deutsche Prioritäten statt Low/Medium/High; vier Kontraste auf WCAG AA
+  gehoben; Fingerbreite Trefferflächen auf dem Telefon.
 
 ### Hinweis zur Vorgeschichte
 

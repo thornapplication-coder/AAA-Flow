@@ -59,12 +59,7 @@
     "progress": "Progress",
     "nextMilestone": "Next milestone",
     "openRisks": "Open risks",
-    "overdueTasks": "Overdue tasks"
-  },
-  "dashboard": {
-    "total": "Projects total",
-    "active": "Active",
-    "criticalRisks": "Critical risks",
-    "overdueTasks": "Overdue tasks"
+    "overdueTasks": "Overdue tasks",
+    "status": "Status"
   }
 }

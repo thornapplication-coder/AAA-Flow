@@ -37,12 +37,14 @@ export function ProjectsPage() {
       {error && <p className="error">{t('common.error')}: {error}</p>}
       {!error && rows.length === 0 && <p className="muted">{t('common.noEntries')}</p>}
       {rows.length > 0 && (
-        <table>
+        <div className="table-wrap">
+        <table className="list">
           <thead>
             <tr>
               <th>{t('projects.key')}</th>
               <th>{t('projects.name')}</th>
               <th>{t('projects.pm')}</th>
+              <th>{t('projects.status')}</th>
               <th>{t('projects.progress')}</th>
               <th>{t('projects.nextMilestone')}</th>
               <th>{t('projects.openRisks')}</th>
@@ -58,6 +60,7 @@ export function ProjectsPage() {
                   <span className={`chip health-${p.health}`}>{t(`health.${p.health}`)}</span>
                 </td>
                 <td>{p.pm_name ?? '—'}</td>
+                <td>{t(`status.${p.status}`)}</td>
                 <td>{p.progress}&nbsp;%</td>
                 <td>{p.next_milestone ?? '—'}</td>
                 <td>{p.open_risks}</td>
@@ -66,6 +69,7 @@ export function ProjectsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </>
   )

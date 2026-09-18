@@ -30,7 +30,7 @@ NULL-Rolle lässt keine einzige Policy greifen.
 |---|---|---|
 | Frontend | React 19 + TypeScript + Vite | Bereits im Repository, komponentenbasiert, typsicher |
 | PWA | `vite-plugin-pwa` (Workbox) | Manifest, Service Worker, Auto-Update, Offline-Shell |
-| Zustand | TanStack Query + Supabase Realtime | Cache, Hintergrundaktualisierung, Konfliktbehandlung |
+| Zustand | TanStack Query + Supabase Realtime — **vorgesehen, noch nicht eingebaut** | Cache, Hintergrundaktualisierung, Konfliktbehandlung |
 | Oberfläche | eigene Komponenten auf den AAA-Design-Tokens | Kein UI-Framework: die Tokens stehen, der Look ist gesetzt |
 | Backend | Supabase (PostgreSQL, Auth, Realtime, Storage, Edge Functions) | Postgres mit RLS erzwingt Rechte **serverseitig** — Abschnitt 43 |
 | Geschäftslogik | PostgreSQL-Funktionen und Trigger | Regeln, die in der Datenbank stehen, sind über die API nicht umgehbar |
@@ -51,24 +51,30 @@ sichert nicht täglich — für ein System mit Auditpflicht untauglich.
 
 ## 3. Datenmodell
 
-Schema `pcc`. Alle Tabellen mit `id uuid`, `created_at`, `created_by`,
-`updated_at`, `updated_by`.
+Schema `pcc`. Die Fachtabellen tragen `id uuid`, `created_at`, `created_by`,
+`updated_at`, `updated_by`. Verknüpfungstabellen (`project_members`, `mentions`,
+`raci`, `ref_counters`) und die anhängenden Tabellen (`comments`,
+`notifications`, `version_changes`) kommen mit weniger aus — dort wäre eine
+eigene Herkunftsspalte Ballast.
 
 ### Kern
 
 ```
-projects        key, name, description, objectives, scope, status, health,
-                pm_user_id, start_date, target_end_date, actual_end_date,
-                progress_mode (manual | derived), progress_manual,
+projects        key, name, description, objectives, scope, status,
+                pm_user_id, sponsor_user_id, start_date, target_end_date,
+                actual_end_date, progress_mode (manual | derived),
+                progress_manual, version_major, version_minor,
                 archived_at, archived_by, template_id
+                (health und progress sind gerechnet, keine Spalten)
 project_members project_id, user_id, project_role, responsibilities
 workstreams     project_id, name, description, owner_user_id, sort_order
 tasks           project_id, workstream_id, parent_task_id, ref (T-1042),
                 title, description, assignee_user_id, priority, status,
                 start_date, due_date, completed_at, progress,
                 progress_mode (manual | derived)
-milestones      project_id, workstream_id, ref, name, description, date,
-                owner_user_id, status, depends_on_milestone_id, notes
+milestones      project_id, workstream_id, ref, name, description, due_date,
+                baseline_date, owner_user_id, status,
+                depends_on_milestone_id, completed_at, notes
 risks           project_id, ref, title, description, category,
                 probability (1-5), impact (1-5),
                 score int GENERATED ALWAYS AS (probability * impact) STORED,
@@ -77,14 +83,16 @@ issues          project_id, ref, title, description, owner_user_id,
                 priority, status, due_date, resolution
 decisions       project_id, ref, decided_on, topic, decision, maker_user_id,
                 participants uuid[], rationale, impact, task_id
-documents       project_id, title, description, kind (file | link),
-                storage_path, external_url, version, owner_user_id
+documents       project_id, entity_type, entity_id, title, description,
+                kind (file | link), storage_path, external_url, mime_type,
+                size_bytes, scan_state (pending | clean | infected),
+                version, supersedes_id, owner_user_id, deleted_*
 raci            project_id, subject_type (workstream|task|milestone),
                 subject_id, user_id, letter (R|A|C|I)
 comments        entity_type, entity_id, user_id, body, edited_at
 mentions        comment_id, user_id
-notifications   user_id, kind, entity_type, entity_id, payload, read_at,
-                email_status
+notifications   user_id, project_id, kind, entity_type, entity_id,
+                title, body, read_at, email_state
 project_versions project_id, version (1.4), summary, created_by, created_at
 version_changes  version_id, entity_type, entity_id, field, old_value, new_value
 templates       name, description, payload jsonb
@@ -124,10 +132,10 @@ sich auf das Frontend (Abschnitt 43).
 | Rolle | Projekte | Aufgaben, Risiken, Issues | Nutzer | System |
 |---|---|---|---|---|
 | **Super Admin** | alle, anlegen, archivieren, endgültig löschen | alle | freigeben, sperren, Rollen vergeben | Einstellungen, Versionen, Audit |
-| **Admin** | alle, anlegen, archivieren | alle | bearbeiten, keine Rollenvergabe, keine Anlage | Exporte |
+| **Admin** | alle, anlegen, archivieren | alle | einsehen, keine Rollenvergabe | Exporte |
 | **Project Manager** | eigene Projekte vollständig | in eigenen Projekten alles | Projektteam der eigenen Projekte | — |
-| **Contributor** | Projekte mit Mitgliedschaft lesen | zugewiesene bearbeiten, Issues melden, kommentieren | — | — |
-| **Viewer** | Projekte mit Mitgliedschaft lesen | lesen, exportieren | — | — |
+| **Contributor** | alle nicht archivierten lesen | in Projekten mit Mitgliedschaft: zugewiesene bearbeiten, Risiken und Issues melden, kommentieren, Dokumente ablegen | — | — |
+| **Viewer** | alle nicht archivierten lesen | lesen, exportieren | — | — |
 
 Umsetzung je Tabelle über drei Hilfsfunktionen:
 
@@ -140,7 +148,9 @@ pcc.can_edit(project_id)         -- PM des Projekts, Admin oder Super Admin
 **Registrierung und Freigabe (Abschnitt 4):** Selbstregistrierung ist erlaubt,
 erzeugt aber `active = false, pending = true`. Ohne Freigabe durch den Super
 Admin greift keine einzige RLS-Policy — der Nutzer sieht nichts. Die Freigabe
-läuft über eine Edge Function mit der Admin-API.
+läuft über `pcc.approve_user()`; das allererste Konto bekommt seine Rolle über
+`pcc.bootstrap_super_admin()`, die sich verweigert, sobald es einen Super Admin
+gibt.
 
 > **Entschieden am 18.09.2026:** Selbstregistrierung ist erlaubt. Ein Trigger
 > auf `auth.users` legt das Profil gesperrt und ohne Rolle an; erst die Freigabe
@@ -155,10 +165,11 @@ archivierten Projekte. Abschnitt 5 gibt dem Viewer ausdrücklich Leserecht auf
 Projekte, und ein Management-Dashboard mit Löchern wäre wertlos. Geändert wird
 weiterhin nur nach Rolle.
 
-Technisch heißt das: die SELECT-Policy prüft nur `active AND pcc_role IS NOT
-NULL`, die INSERT-, UPDATE- und DELETE-Policies prüfen `pcc.can_edit()`. Eine
-spätere Einschränkung je Projekt bliebe eine reine Erweiterung der
-SELECT-Policy um ein Feld `projects.restricted`.
+Technisch heißt das: die SELECT-Policy ruft `pcc.can_read()` — freigegebenes
+Konto mit Rolle, Archiv nur für Mitglieder und die Admin-Ebene. Die schreibenden
+Policies prüfen `pcc.can_edit()` beziehungsweise `pcc.can_contribute()`. Eine
+spätere Einschränkung je Projekt bliebe eine reine Erweiterung von `can_read()`
+um ein Feld `projects.restricted`.
 
 ---
 
@@ -175,9 +186,11 @@ Eingehende Änderungen aktualisieren den Cache, ohne die Eingabe des Nutzers
 zu überschreiben: Ein Feld, in dem gerade getippt wird, bleibt unberührt und
 zeigt stattdessen einen Hinweis „von *Martin* geändert — übernehmen".
 
-**Konflikte.** Optimistisches Sperren über `updated_at`. Schreibt jemand auf
-einen veralteten Stand, weist die Funktion ab und die Oberfläche zeigt beide
-Fassungen nebeneinander zur Auswahl. Kein stilles Überschreiben.
+**Konflikte.** Optimistisches Sperren über `updated_at`, in der Datenbank
+umgesetzt: Schickt die Oberfläche den Stand mit, auf dem sie den Satz geladen
+hat, und ist dieser überholt, antwortet die Datenbank mit `PCC_CONFLICT` statt
+still zu überschreiben. Die Oberfläche zeigt dann beide Fassungen nebeneinander
+zur Auswahl.
 
 ---
 
@@ -265,13 +278,15 @@ nachvollziehbar; wer es war, ist auf Verlangen nicht mehr erkennbar.**
 ## 8. PWA und Auto-Update (Abschnitte 36, 37)
 
 - Manifest mit Icons in 192, 512 und maskable, Splash über `theme_color`.
+  **Stand:** bislang ein einzelnes SVG; die Icons kommen mit dem Logo.
 - Service Worker mit `registerType: 'prompt'`: Bei neuer Fassung erscheint ein
   dezenter Hinweis „Neue Version verfügbar — jetzt laden". Kein Neuladen
   mitten in einer Eingabe.
 - Offline-Shell mit den zuletzt gesehenen Projekten; Schreibvorgänge in die
   Warteschlange, Hinweis „Offline — Änderungen werden synchronisiert".
 - Versionsnummer aus `package.json`, im Build eingebettet, sichtbar im
-  Profilmenü: `Project Control Center v1.4.2`.
+  Profilmenü: `Project Control Center v1.4.2`. **Stand:** offen, siehe
+  Abschnitt 10, Schritt 9.
 
 ---
 

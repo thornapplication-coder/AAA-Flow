@@ -24,11 +24,9 @@
 
   /* Statusmodell (Spec Abschnitt 13): dieselbe Farbe bedeutet überall dasselbe.
      Semantische Farben sind bewusst getrennt vom Navy-Akzent. */
-  --state-open: #8FA3BC;
-  --state-in-progress: #B87514;   --state-in-progress-bg: #FDF3E2;
+  --state-in-progress: #9A6110;   --state-in-progress-bg: #FDF3E2;
   --state-done: #26714F;          --state-done-bg: #E6F2EC;
   --state-overdue: #A83A2A;       --state-overdue-bg: #FBECE9;
-  --state-exception: #5C4B8A;     --state-exception-bg: #EFEBF7;
 
   --focus: #4A90D9;
   --radius: 6px;
@@ -110,17 +108,20 @@ input, select {
 h1 { font-size: 22px; margin: 0 0 16px; }
 h2 { font-size: 17px; margin: 0 0 12px; }
 
-.state { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff; }
-.state.open { background: var(--state-open); }
-.state.in_progress { background: var(--state-in-progress); }
-.state.done { background: var(--state-done); }
-.state.overdue { background: var(--state-overdue); }
-.state.discarded { background: var(--aaa-ink-soft); }
+/* Ampel und Statuszeichen. Die Farben kommen ausschließlich aus den Tokens. */
+.chip { display: inline-block; margin-left: 8px; padding: 2px 9px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; white-space: nowrap; }
+.health-green { background: var(--state-done-bg); color: var(--state-done); }
+.health-amber { background: var(--state-in-progress-bg); color: var(--state-in-progress); }
+.health-red { background: var(--state-overdue-bg); color: var(--state-overdue); }
+.num { font-family: var(--font-mono); font-size: 12.5px; white-space: nowrap; color: var(--aaa-ink-soft); }
 
 table.list { width: 100%; border-collapse: collapse; }
 table.list th, table.list td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--aaa-line); }
 table.list th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--aaa-ink-soft); }
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; background: var(--aaa-surface); border: 1px solid var(--aaa-line);
+  border-radius: var(--radius); }
+table.list tbody tr:last-child td { border-bottom: none; }
 
 .login { min-height: 100%; display: grid; place-items: center; background: var(--aaa-navy-900); padding: 24px; }
 .login .tile { width: 100%; max-width: 380px; }
@@ -133,7 +134,7 @@ table.list th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04
 @media (max-width: 640px) {
   .topbar { gap: 12px; padding: 0 12px; }
   .topbar .user .name { display: none; }
-  table.list { display: none; }
-  .cards { display: grid; gap: 12px; }
+  /* Solange es keine Kartenliste gibt, bleibt die Tabelle — dann aber
+     seitlich scrollbar statt abgeschnitten. */
+  table.list { min-width: 640px; }
 }
-@media (min-width: 641px) { .cards { display: none; } }

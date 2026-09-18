@@ -14,9 +14,9 @@
   --navy-600:#26507A; --navy-500:#3A6796; --navy-400:#5B84B1;
   --line:#DDE4EC; --line-strong:#C3CFDD;
   --paper:#F1F4F8; --surface:#FFFFFF; --surface-2:#FAFCFE;
-  --ink:#132132; --ink-soft:#5A6B7F; --ink-faint:#8A9AAC;
+  --ink:#132132; --ink-soft:#5A6B7F; --ink-faint:#677687;
   --open:#8FA3BC;
-  --work:#B87514; --work-bg:#FDF3E2;
+  --work:#9A6110; --work-bg:#FDF3E2;
   --done:#26714F; --done-bg:#E6F2EC;
   --late:#A83A2A; --late-bg:#FBECE9;
   --exc:#5C4B8A;  --exc-bg:#EFEBF7;
@@ -51,7 +51,7 @@ button:disabled{cursor:not-allowed}
 .side button.on{background:var(--navy-600);color:#fff;font-weight:600}
 .side .count{font-size:11px;background:rgba(255,255,255,.14);padding:1px 6px;border-radius:9px;font-variant-numeric:tabular-nums}
 .side .count.alert{background:#7A3A2C;color:#FFD9D1}
-.side .grp{color:#5B7794;font-size:11px;padding:14px 12px 5px;letter-spacing:.03em}
+.side .grp{color:#7690AB;font-size:11px;padding:14px 12px 5px;letter-spacing:.03em}
 .side .who{margin-top:auto;padding:12px;border-top:1px solid #1E3A57;color:#7E9AB6;font-size:11.5px;line-height:1.45}
 .side .who b{display:block;color:#C6D8E8;font-size:12.5px;font-weight:600}
 
@@ -126,6 +126,10 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .fld label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:4px}
 .fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line-strong);border-radius:var(--r);padding:8px 10px;font-size:13.5px;background:#fff}
 .fld textarea{min-height:84px;resize:vertical}
+/* Der Excel-Export ist eine Tabelle mit Tabulatoren: feste Schrittweite, kein
+   Umbruch, und hoch genug, um die Spalten zu erkennen. */
+.fld textarea[data-f="data"]{min-height:300px;font-family:var(--mono);font-size:12px;
+  white-space:pre;overflow-wrap:normal;overflow-x:auto}
 .fld .hint{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
 .modal .err{color:var(--late);font-size:12px;margin-top:8px;min-height:16px}
 .modal .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
@@ -260,10 +264,11 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .tl{overflow-x:auto}
 .tlgrid{min-width:640px}
 .tlhead{display:flex;border-bottom:1px solid var(--line);padding-left:190px}
-.tlhead span{flex:1;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;padding:6px 0 6px 6px;border-left:1px solid var(--line)}
+.tlhead span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;padding:6px 0 6px 6px;border-left:1px solid var(--line)}
 .tlrow{display:flex;align-items:center;border-bottom:1px solid #F0F4F8;min-height:44px}
 .tlrow:last-child{border-bottom:none}
-.tlrow .nm{flex:0 0 190px;padding:8px 12px 8px 0;font-size:13px;font-weight:600;min-width:0}
+.tlrow .nm{flex:0 0 190px;padding:8px 12px 8px 0;font-size:13px;font-weight:600;min-width:0;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .tlrow .nm .co{font-weight:400;font-size:11.5px}
 .tlrow .tltrack{flex:1;position:relative;height:44px}
 .tlrow .tltrack .grid{position:absolute;inset:0;display:flex}
@@ -280,7 +285,7 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .tlnow{position:absolute;top:0;bottom:0;width:1px;background:var(--late);opacity:.5}
 
 /* Risk-Matrix */
-.rmx{border-collapse:collapse}
+.rmx{border-collapse:collapse;width:auto}
 .rmx td,.rmx th{border:1px solid var(--line);padding:0;text-align:center}
 .rmx th{background:var(--surface-2);font-size:10.5px;color:var(--ink-soft);padding:4px 6px;font-weight:600}
 .rmx td{width:44px;height:38px;font-size:12px;font-weight:600}
@@ -289,6 +294,9 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .rmx td.h{background:#F7DED7;color:var(--late)}
 .rmx td.x{background:#EFC9C0;color:#7C2D20}
 .rmx td b{display:inline-block;min-width:20px}
+.mxwrap{display:flex;align-items:center;gap:8px}
+.mxy{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:var(--ink-soft);letter-spacing:.03em}
+.mxx{font-size:11px;color:var(--ink-soft);margin:4px 0 0 28px;letter-spacing:.03em}
 
 /* Projektkopf */
 .phead{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:16px}
@@ -318,6 +326,7 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .prio-Low{background:#EEF2F7;color:#5A6B7F}
 
 /* ---------- Toast ---------- */
+.toast .undo{margin-left:10px;text-decoration:underline;color:#BFD6EC;font-weight:600}
 .toast{position:fixed;left:50%;bottom:70px;transform:translate(-50%,14px);background:var(--navy-900);color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;z-index:30;max-width:min(560px,92vw);box-shadow:0 10px 30px rgba(12,27,46,.35)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .toast.bad{background:#7C2D20}
@@ -354,7 +363,21 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 @media(max-width:760px){
   .topbar{gap:10px;padding:0 12px}
   .brand span{display:none}
-  .main{padding:14px 12px 96px}
+  /* Auf dem Telefon reicht der Platz nicht für Name und Rolle; der Chip
+     überdeckte sonst den Sprachumschalter. */
+  .topbar .userchip>span{display:none}
+  .topbar .userchip .sw{flex:0 0 auto}
+  /* Die Sandbox-Leiste bricht hier auf zwei Zeilen um und wurde höher als der
+     bisherige Abstand. */
+  .main{padding:14px 12px 150px}
+  /* Fingerbreite Trefferflächen */
+  .lang button,.userchip .sw,.filters .clear,.filters .more{min-height:36px;display:inline-flex;align-items:center}
+  .tabs button,.subtabs button{min-height:40px}
+  td.acts button{min-height:32px;padding:6px 10px}
+  .back{min-height:36px;display:inline-flex;align-items:center}
+  /* Der Zeitstrahl braucht die Breite für die Monate, nicht für die Namen. */
+  .tlrow .nm{flex:0 0 108px;font-size:12px}
+  .tlhead{padding-left:108px}
   .tblwrap.aslist{display:none}
   .cards{display:flex}
   .filters{padding:10px 12px}
@@ -413,6 +436,58 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- i18n ---------- */
 const I = {
 de:{
+  tf_14:"Fällig in 14 Tagen",
+  tf_all:"Alle Status",
+  tf_late:"Überfällig",
+  tf_open:"Nur offene",
+  tf_span:"Zeitraum",
+  tf_state:"Aufgabenstatus",
+  tf_week:"Fällig in 7 Tagen",
+  tf_who:"Alle Zuständigen",
+  cnt_crit:"kritische Risiken",
+  cnt_issues:"offene Issues",
+  cnt_over:"überfällige Aufgaben",
+  exp_filter:"Filter",
+  exp_nofilter:"ohne Einschränkung",
+  f_ref:"Nummer",
+  h_amber_h:"Etwas läuft aus dem Plan — siehe Begründung daneben.",
+  h_green_h:"Keine überfälligen Termine, kein kritisches Risiko.",
+  h_red_h:"Handlungsbedarf auf Leitungsebene.",
+  lg_sandboxhint:"In der Sandbox genügt die Rollenwahl unten.",
+  lg_unknown2:"Zu dieser Adresse besteht noch kein Zugang. Registrieren Sie sich; freigegeben wird das Konto vom Super Admin.",
+  mx_imp:"Auswirkung",
+  mx_prob:"Eintrittswahrscheinlichkeit",
+  p_nohits:"Keine Einträge zu diesem Filter.",
+  p_nohits_s:"Passen Sie die Filter an oder setzen Sie sie zurück.",
+  p_of:"von",
+  rep_filter:"Der Filter der Projektliste wirkt auch hier:",
+  rep_lists:"Listen exportieren",
+  sb_day1:"Tag",
+  tr_none:"Es hat sich nichts geändert — der Sprung fiel auf ein Wochenende.",
+  tr_diff:"Neu überfällig: {t} Aufgaben, {m} Meilensteine.",
+  c_crit_none:"Derzeit erreicht kein offenes Risiko den kritischen Wert.",
+  col_health:"Gesamtlage",
+  k_criks:"Kritische Risiken",
+  k_hamber:"Beobachten",
+  k_hamber_h:"Etwas läuft aus dem Plan: überfällige Aufgaben, ein kritisches Risiko oder Status „Gefährdet“.",
+  k_hgreen:"Gut",
+  k_hgreen_h:"Keine überfälligen Termine, kein kritisches Risiko.",
+  k_hred:"Kritisch",
+  k_hred_h:"Handlungsbedarf auf Leitungsebene: verzögert, überfälliger Meilenstein oder zwei kritische Risiken.",
+  lb_health:"Gesamtlage",
+  lb_status:"Status",
+  prio_Critical:"kritisch",
+  prio_High:"hoch",
+  prio_Low:"gering",
+  prio_Medium:"mittel",
+  rh_contrib:"Sie können Probleme melden, Dokumente ablegen und Ihre eigenen Aufgaben pflegen. Termine, Risiken und Zuteilung ändert die Projektleitung ({pm}).",
+  rh_read:"Sie lesen dieses Projekt mit und können es exportieren.",
+  rl_crit:"kritisch",
+  why_ms:"{n} überfällige Meilensteine",
+  why_ok:"Alles im Rahmen.",
+  why_risk:"{n} kritische Risiken",
+  why_status:"Status {s}",
+  why_task:"{n} überfällige Aufgaben",
   c_activity:"Letzte Änderungen",
   c_crit:"Kritische Risiken",
   c_health:"Projektstatus",
@@ -433,7 +508,7 @@ de:{
   col_progress:"Fortschritt",
   col_project:"Projekt",
   col_risks:"Risiken",
-  col_score:"Score",
+  col_score:"Risikowert",
   col_status:"Status",
   col_task:"Aufgabe",
   col_title:"Titel",
@@ -475,7 +550,7 @@ de:{
   f_clear:"Filter zurücksetzen",
   f_cont:"Rückfallebene",
   f_desc:"Beschreibung",
-  f_end:"Ziel-Ende",
+  f_end:"Geplantes Ende",
   f_health:"Gesamtlage",
   f_imp2:"Auswirkung",
   f_key:"Projektschlüssel",
@@ -501,26 +576,22 @@ de:{
   is_open:"Offen",
   is_resolved:"Gelöst",
   k_active:"Aktiv",
-  k_atrisk:"Gefährdet",
-  k_delayed:"Verzögert",
   k_done:"Abgeschlossen",
-  k_ontrack:"Im Plan",
-  k_oriks:"Offene Risiken",
   k_otasks:"Überfällige Aufgaben",
   k_total:"Projekte gesamt",
   k_ums:"Meilensteine (30 Tage)",
   late:"Überfällig",
   lg_as:"SANDBOX: ANMELDEN ALS",
   lg_claim:"Projektsteuerung der Aviation Academy Austria.",
-  lg_code:"Sie erhalten einen sechsstelligen Anmeldecode per E-Mail.",
+  lg_code:"In der Sandbox genügt die Rollenwahl unten.",
   lg_demo:"In der Sandbox wird keine E-Mail versandt. Bitte unten eine Rolle wählen.",
   lg_email:"E-Mail-Adresse",
   lg_hello:"Willkommen bei",
-  lg_inactive:"Dieses Konto ist deaktiviert. Bitte an den Superadmin wenden.",
+  lg_inactive:"Dieses Konto ist gesperrt. Bitte an den Super Admin wenden.",
   lg_ok:"Angemeldet als {n}.",
   lg_reg:"Noch kein Zugang? Nach der Registrierung gibt der Super Admin das Konto frei.",
   lg_signin:"Anmelden",
-  lg_unknown:"Kein Konto zu dieser Adresse. Nutzer werden ausschließlich durch den Superadmin angelegt.",
+  lg_unknown:"Zu dieser Adresse besteht noch kein Zugang. Registrieren Sie sich; freigegeben wird das Konto vom Super Admin.",
   ms_completed:"Erreicht",
   ms_delayed:"Verzögert",
   ms_in_progress:"In Arbeit",
@@ -535,18 +606,17 @@ de:{
   p_allstatus:"Alle Status",
   p_back:"Zurück zur Übersicht",
   p_days:"Tage",
-  p_matrix:"Risk Matrix",
+  p_matrix:"Risikomatrix",
   p_new:"Neues Projekt",
   p_noedit:"Für dieses Projekt haben Sie nur Leserecht.",
   p_none:"Keine Einträge.",
   p_noproj:"Keine Projekte",
   p_noproj_s:"Passen Sie die Filter an oder legen Sie ein Projekt an.",
-  p_score_h:"Score = Eintrittswahrscheinlichkeit × Auswirkung. Ab 15 gilt ein Risiko als kritisch.",
+  p_score_h:"Risikowert = Eintrittswahrscheinlichkeit × Auswirkung. Ab 15 gilt ein Risiko als kritisch.",
   p_search:"Projekt, Aufgabe, Risiko, Issue …",
   pcc_note:"Prototyp mit Demodaten. Anmeldung, Datenbank, Echtzeit und automatisches Speichern folgen im Produktivbetrieb.",
   pd_s:"Wo stehen wir? Bestand, Kritisches, Termine und Verantwortung auf einen Blick.",
   pd_t:"Dashboard",
-  pg_work:"Überblick",
   pi_s:"Aktuelle Probleme und Blockaden.",
   pi_t:"Issues",
   pm_s:"Alle Meilensteine in zeitlicher Folge.",
@@ -601,7 +671,12 @@ de:{
   t_psaved:"Projekt gespeichert.",
   t_pstatus:"Projektstatus geändert.",
   t_ptask:"Aufgabe aktualisiert.",
-  t_travel:"Die Uhr steht jetzt auf {d}. Fristen, Überfälligkeit und Liegedauer sind neu berechnet.",
+  t_pdone:"{r} {n} — erledigt.",
+  undo:"Rückgängig",
+  act_risk:"Risiko anlegen",
+  act_issue:"Problem melden",
+  act_task:"Aufgabe anlegen",
+  t_travel:"Simuliertes Datum: {d}. {c}",
   tab_act:"Aktivität",
   tab_dec:"Entscheidungen",
   tab_docs:"Dokumente",
@@ -623,6 +698,58 @@ de:{
   ver_t:"Versionsverlauf"
 },
 en:{
+  tf_14:"Due within 14 days",
+  tf_all:"All statuses",
+  tf_late:"Overdue",
+  tf_open:"Open only",
+  tf_span:"Period",
+  tf_state:"Task status",
+  tf_week:"Due within 7 days",
+  tf_who:"All assignees",
+  cnt_crit:"critical risks",
+  cnt_issues:"open issues",
+  cnt_over:"overdue tasks",
+  exp_filter:"Filter",
+  exp_nofilter:"no restriction",
+  f_ref:"Ref.",
+  h_amber_h:"Something is drifting — see the reason next to it.",
+  h_green_h:"No overdue dates, no critical risk.",
+  h_red_h:"Needs a decision at management level.",
+  lg_sandboxhint:"In the sandbox, picking a role below is enough.",
+  lg_unknown2:"There is no access for this address yet. Register; the super admin approves the account.",
+  mx_imp:"Impact",
+  mx_prob:"Probability",
+  p_nohits:"No entries for this filter.",
+  p_nohits_s:"Adjust the filters or clear them.",
+  p_of:"of",
+  rep_filter:"The filter from the project list applies here too:",
+  rep_lists:"Export lists",
+  sb_day1:"day",
+  tr_none:"Nothing changed — the jump landed on a weekend.",
+  tr_diff:"Newly overdue: {t} tasks, {m} milestones.",
+  c_crit_none:"No open risk currently reaches the critical value.",
+  col_health:"Health",
+  k_criks:"Critical risks",
+  k_hamber:"Watch",
+  k_hamber_h:"Something is drifting: overdue tasks, one critical risk or status “At risk”.",
+  k_hgreen:"Good",
+  k_hgreen_h:"No overdue dates, no critical risk.",
+  k_hred:"Critical",
+  k_hred_h:"Needs a decision at management level: delayed, an overdue milestone or two critical risks.",
+  lb_health:"Health",
+  lb_status:"Status",
+  prio_Critical:"critical",
+  prio_High:"high",
+  prio_Low:"low",
+  prio_Medium:"medium",
+  rh_contrib:"You can report problems, add documents and keep your own tasks up to date. Dates, risks and assignment are set by the project manager ({pm}).",
+  rh_read:"You read this project and can export it.",
+  rl_crit:"critical",
+  why_ms:"{n} overdue milestones",
+  why_ok:"All within plan.",
+  why_risk:"{n} critical risks",
+  why_status:"Status {s}",
+  why_task:"{n} overdue tasks",
   c_activity:"Recent activity",
   c_crit:"Critical risks",
   c_health:"Project health",
@@ -643,7 +770,7 @@ en:{
   col_progress:"Progress",
   col_project:"Project",
   col_risks:"Risks",
-  col_score:"Score",
+  col_score:"Risk value",
   col_status:"Status",
   col_task:"Task",
   col_title:"Title",
@@ -711,18 +838,14 @@ en:{
   is_open:"Open",
   is_resolved:"Resolved",
   k_active:"Active",
-  k_atrisk:"At risk",
-  k_delayed:"Delayed",
   k_done:"Completed",
-  k_ontrack:"On track",
-  k_oriks:"Open risks",
   k_otasks:"Overdue tasks",
   k_total:"Total projects",
   k_ums:"Milestones (30 days)",
   late:"Overdue",
   lg_as:"SANDBOX: SIGN IN AS",
   lg_claim:"Project control for Aviation Academy Austria.",
-  lg_code:"You will receive a 6-digit sign-in code by email.",
+  lg_code:"In the sandbox, picking a role below is enough.",
   lg_demo:"No email is sent in the sandbox. Please pick a role below.",
   lg_email:"Email address",
   lg_hello:"Welcome to",
@@ -730,7 +853,7 @@ en:{
   lg_ok:"Signed in as {n}.",
   lg_reg:"No access yet? After registering, the super admin approves the account.",
   lg_signin:"Sign in",
-  lg_unknown:"No account for this address. Users are created by the superadmin only.",
+  lg_unknown:"There is no access for this address yet. Register; the super admin approves the account.",
   ms_completed:"Completed",
   ms_delayed:"Delayed",
   ms_in_progress:"In progress",
@@ -756,7 +879,6 @@ en:{
   pcc_note:"Prototype with demo data. Sign-in, database, real-time and autosave follow once the system goes live.",
   pd_s:"Where do we stand? Volume, critical items, deadlines and ownership at a glance.",
   pd_t:"Dashboard",
-  pg_work:"Overview",
   pi_s:"Current issues and blockers.",
   pi_t:"Issues",
   pm_s:"All milestones in chronological order.",
@@ -811,7 +933,12 @@ en:{
   t_psaved:"Project saved.",
   t_pstatus:"Project status changed.",
   t_ptask:"Task updated.",
-  t_travel:"The clock is now at {d}. Deadlines, overdue state and pool age have been recalculated.",
+  t_pdone:"{r} {n} — completed.",
+  undo:"Undo",
+  act_risk:"Add risk",
+  act_issue:"Report issue",
+  act_task:"Add task",
+  t_travel:"Simulated date: {d}. {c}",
   tab_act:"Activity",
   tab_dec:"Decisions",
   tab_docs:"Documents",
@@ -901,17 +1028,32 @@ const M = () => user(me);
 /* Das simulierte Datum verschieben: Fristen, Überfälligkeit und Gesamtlage
    hängen daran und werden damit erlebbar. */
 function travel(days) {
+  const before = pOverdueCount();
   CLOCK += days;
   render();
-  toast(t("t_travel", { d:fmtDate(today()) }));
+  const after = pOverdueCount();
+  const dt = after.tasks - before.tasks, dm = after.ms - before.ms;
+  toast(t("t_travel", { d:fmtDate(today()),
+    c:(dt || dm) ? t("tr_diff", { t:dt, m:dm }) : t("tr_none") }));
+}
+/* Wie viel bereits überfällig ist — Grundlage für die Rückmeldung nach einem
+   Sprung in der Zeit. */
+function pOverdueCount() {
+  const ps = pVisible();
+  return { tasks:ps.reduce((a,p) => a + pOverdueTasks(p).length, 0),
+           ms:ps.reduce((a,p) => a + p.ms.filter(pMsOverdue).length, 0) };
 }
 
 let toastTimer = null;
-function toast(text, bad) {
+function toast(text, bad, action) {
   const el = document.getElementById("toast");
-  el.textContent = text; el.className = "toast on" + (bad ? " bad" : "");
+  el.innerHTML = esc(text) + (action ? ` <button class="undo">${esc(action.label)}</button>` : "");
+  el.className = "toast on" + (bad ? " bad" : "");
+  if (action) el.querySelector(".undo").onclick = () => {
+    el.className = "toast"; action.fn();
+  };
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = "toast" + (bad ? " bad" : ""); }, 3600);
+  toastTimer = setTimeout(() => { el.className = "toast" + (bad ? " bad" : ""); }, action ? 6000 : 3600);
 }
 
 /* ---------- Dialog ----------
@@ -1130,7 +1272,7 @@ function renderSandbar() {
     { weekday:"short", day:"2-digit", month:"short", year:"numeric" });
   document.getElementById("sandbar").innerHTML =
     `<span class="tag">⚗ ${t("sb_tag")}</span>
-     <span class="clock">${t("sb_today")}: <b>${d}</b>${CLOCK ? ` (+${CLOCK} ${t("days")})` : ` · ${t("sb_real")}`}</span>
+     <span class="clock">${t("sb_today")}: <b>${d}</b>${CLOCK ? ` (+${CLOCK} ${CLOCK === 1 ? t("sb_day1") : t("days")})` : ` · ${t("sb_real")}`}</span>
      <span class="sp"></span>
      <button data-tr="1">+1 ${t("sb_day")}</button>
      <button data-tr="8">+8 ${t("days")}</button>
@@ -1141,8 +1283,10 @@ function renderSandbar() {
 }
 function renderNav() {
   const n = pccNavItems(), u = M();
-  const btn = ([k,lb,c,alert]) =>
-    `<button data-v="${k}" class="${pv === k ? "on" : ""}">${t(lb)}${c ? `<span class="count${alert ? " alert" : ""}">${c}</span>` : ""}</button>`;
+  const btn = ([k,lb,c,alert,hint]) =>
+    `<button data-v="${k}" class="${pv === k ? "on" : ""}">${t(lb)}${c
+      ? `<span class="count${alert ? " alert" : ""}" title="${esc(c + " " + (hint || ""))}"
+           aria-label="${esc(c + " " + (hint || ""))}">${c}</span>` : ""}</button>`;
   document.getElementById("side").innerHTML =
     `<div class="grp">${t("grp_work")}</div>` + n.work.map(btn).join("") +
     `<div class="grp">${t("grp_org")}</div>` + n.org.map(btn).join("") +
@@ -1507,6 +1651,33 @@ function pHealth(p) {
 const healthCls = h => h === "red" ? "bad" : h === "amber" ? "warn" : "ok";
 /* Die Gesamtlage als Ampel, immer beschriftet: eine Farbe allein sagt nicht,
    wofür sie steht. */
+/* Warum die Ampel so steht, wie sie steht. Eine Farbe ohne Begründung führt zu
+   Rückfragen statt zu Entscheidungen. */
+function healthWhy(p) {
+  const r = [];
+  const ms = p.ms.filter(pMsOverdue).length, cr = pCritRisks(p).length, ot = pOverdueTasks(p).length;
+  if (p.status === "delayed" || p.status === "cancelled") r.push(t("why_status", { s:t("ps_" + p.status) }));
+  if (ms) r.push(t("why_ms", { n:ms }));
+  if (cr) r.push(t("why_risk", { n:cr }));
+  if (ot) r.push(t("why_task", { n:ot }));
+  return r.length ? r.join(" · ") : t("why_ok");
+}
+
+/* Was die eigene Rolle in diesem Projekt erlaubt — positiv formuliert. Wer
+   liest, er dürfe nichts, meldet auch nichts. */
+function roleHint(p) {
+  if (pCanEdit(p)) return "";
+  if (pCanContribute(p)) return t("rh_contrib", { pm:pUser(p.pm) });
+  return t("rh_read");
+}
+
+/* Ein leerer Tabellenkopf sagt nicht, ob es nichts gibt oder der Filter zu eng
+   ist. Deshalb überall derselbe Block mit Ursache und Ausweg. */
+const pEmpty = (title, sub) =>
+  `<div class="tblwrap"><div class="empty"><b>${t(title)}</b>${t(sub)}</div></div>`;
+/* „Low/Medium/High" mitten in einer deutschen Tabelle ist ein Bruch. */
+const prioPill = v => pill("prio-" + v, t("prio_" + v));
+
 const healthPill = p => { const h = pHealth(p);
   return `<span class="pill ${h === "red" ? "p-late" : h === "amber" ? "p-work" : "p-done"}"
     title="${esc(t("h_" + h + "_h"))}">${t("lb_health")}: ${t("h_" + h)}</span>`; };
@@ -1685,7 +1856,7 @@ function pccDash() {
           <span class="when"><b>${Math.abs(daysTo(x.due))}</b>${t("p_days")}</span>
           <span class="m"><b>${esc(x.title)}</b>
             <span class="sub">${esc(p.key)} · ${x.assignee ? pUser(x.assignee) : t("none")} · ${fmtDate(x.due)}</span></span>
-          <span class="rt">${pill("prio-" + x.prio, x.prio)}</span>
+          <span class="rt">${prioPill(x.prio)}</span>
         </li>`).join("")}</ul>` : `<div class="inner muted">${t("p_none")}</div>`}
       </div>
 
@@ -1702,16 +1873,52 @@ function pccDash() {
 }
 
 /* ---------- Listen über alle Projekte ---------- */
-function pFilterBar(n) {
+function pFilterBar(n, extra) {
   const pms = [...new Set(PROJECTS.map(p => p.pm))].map(user).sort(byName);
   return `<div class="filters">
     <input type="search" id="pq" placeholder="${t("p_search")}" value="${esc(PF.q)}" aria-label="${t("p_search")}">
-    <select id="pstatus"><option value="">${t("p_allstatus")}</option>${
+    <select id="pstatus" aria-label="${t("p_allstatus")}"><option value="">${t("p_allstatus")}</option>${
       P_STATUS.map(s => `<option value="${s}" ${PF.status === s ? "selected" : ""}>${t("ps_" + s)}</option>`).join("")}</select>
-    <select id="ppm"><option value="">${t("p_allpm")}</option>${
+    <select id="ppm" aria-label="${t("p_allpm")}"><option value="">${t("p_allpm")}</option>${
       pms.map(u => `<option value="${u.id}" ${PF.pm === u.id ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select>
+    ${extra || ""}
     <button class="clear" id="pclear">${t("f_clear")}</button>
     <span class="fcount">${n} ${t("results")}</span></div>`;
+}
+
+/* Die Aufgabenliste ist der meistbegangene Weg der Projektleitung. Ohne Filter
+   auf Zuständigkeit, Aufgabenstatus und Zeitraum beginnt sie mit Erledigtem
+   vom Frühjahr. */
+let TF = { who:"", state:"open", span:"" };
+const TASK_STATES = ["not_started","in_progress","blocked","completed","cancelled"];
+function tFilterBar(n) {
+  const people = [...new Set(PROJECTS.flatMap(p => p.tasks.map(x => x.assignee)))]
+    .filter(Boolean).map(user).sort(byName);
+  return pFilterBar(n, `
+    <select id="tfwho" aria-label="${t("tf_who")}"><option value="">${t("tf_who")}</option>${
+      people.map(u => `<option value="${u.id}" ${TF.who === u.id ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select>
+    <select id="tfstate" aria-label="${t("tf_state")}">
+      <option value="open" ${TF.state === "open" ? "selected" : ""}>${t("tf_open")}</option>
+      <option value="" ${TF.state === "" ? "selected" : ""}>${t("tf_all")}</option>${
+      TASK_STATES.map(x => `<option value="${x}" ${TF.state === x ? "selected" : ""}>${t("ts_" + x)}</option>`).join("")}</select>
+    <select id="tfspan" aria-label="${t("tf_span")}">
+      <option value="">${t("tf_span")}</option>
+      <option value="week" ${TF.span === "week" ? "selected" : ""}>${t("tf_week")}</option>
+      <option value="14" ${TF.span === "14" ? "selected" : ""}>${t("tf_14")}</option>
+      <option value="late" ${TF.span === "late" ? "selected" : ""}>${t("tf_late")}</option>
+    </select>`);
+}
+function tMatches(x) {
+  if (TF.who && x.assignee !== TF.who) return false;
+  if (TF.state === "open") { if (pTaskDone(x)) return false; }
+  else if (TF.state && x.status !== TF.state) return false;
+  if (TF.span === "late" && !pTaskOverdue(x)) return false;
+  if (TF.span === "week" || TF.span === "14") {
+    if (!x.due) return false;
+    const d = daysTo(x.due);
+    if (d > (TF.span === "week" ? 7 : 14)) return false;
+  }
+  return true;
 }
 function pFiltered() {
   return pVisible().filter(p => {
@@ -1731,7 +1938,8 @@ function pccProjects() {
   if (!rows.length) return pFilterBar(0) +
     `<div class="tblwrap"><div class="empty"><b>${t("p_noproj")}</b>${t("p_noproj_s")}</div></div>`;
   return pFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
-      <th>${t("f_key")}</th><th>${t("col_project")}</th><th>${t("col_status")}</th>
+      <th>${t("f_key")}</th><th>${t("col_project")}</th><th>${t("col_health")}</th>
+      <th>${t("col_status")}</th>
       <th>${t("col_progress")}</th><th>${t("col_pm")}</th><th>${t("f_end")}</th>
       <th>${t("col_next")}</th><th>${t("col_risks")}</th>
     </tr></thead><tbody>${rows.map(p => {
@@ -1739,6 +1947,7 @@ function pccProjects() {
       return `<tr data-pp="${p.id}">
         <td class="num">${esc(p.key)}</td>
         <td><b>${esc(p.name)}</b></td>
+        <td>${healthPill(p)}</td>
         <td>${pStatusPill(p.status)}</td>
         <td style="min-width:130px">${pBar(pProgress(p), healthCls(pHealth(p)))}</td>
         <td class="co">${pUser(p.pm)}</td>
@@ -1746,7 +1955,7 @@ function pccProjects() {
         <td class="co">${n ? esc(n.name) : t("none")}</td>
         <td>${pOpenRisks(p).length}</td></tr>`; }).join("")}</tbody></table></div>
     <div class="cards">${rows.map(p => `<article class="card" data-pp="${p.id}">
-      <div class="top"><span class="num">${esc(p.key)}</span>${pStatusPill(p.status)}</div>
+      <div class="top"><span class="num">${esc(p.key)}</span>${healthPill(p)}</div>
       <h4>${esc(p.name)}</h4>
       <div class="sub"><span>${pUser(p.pm)}</span><span>·</span><span>${fmtDate(p.end)}</span></div>
       <div style="margin-top:8px">${pBar(pProgress(p), healthCls(pHealth(p)))}</div>
@@ -1755,9 +1964,10 @@ function pccProjects() {
 }
 function pccTasks() {
   const rows = [];
-  pFiltered().forEach(p => p.tasks.forEach(x => rows.push({ p, x })));
+  pFiltered().forEach(p => p.tasks.forEach(x => { if (tMatches(x)) rows.push({ p, x }); }));
   rows.sort((a,b) => (a.x.due || "9") < (b.x.due || "9") ? -1 : 1);
-  return pFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
+  if (!rows.length) return tFilterBar(0) + pEmpty("p_nohits", "p_nohits_s");
+  return tFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
       <th>${t("col_task")}</th><th>${t("col_project")}</th><th>${t("col_assignee")}</th>
       <th>${t("col_status")}</th><th>${t("col_prio")}</th><th>${t("col_due")}</th><th>${t("col_progress")}</th>
     </tr></thead><tbody>${rows.map(({p,x}) => `<tr data-pp="${p.id}">
@@ -1766,12 +1976,14 @@ function pccTasks() {
       <td class="co">${x.assignee ? pUser(x.assignee) : t("none")}</td>
       <td>${pill(x.status === "completed" ? "p-done" : x.status === "blocked" ? "p-late"
         : x.status === "in_progress" ? "p-work" : "p-open", t("ts_" + x.status))}</td>
-      <td>${pill("prio-" + x.prio, x.prio)}</td>
+      <td>${prioPill(x.prio)}</td>
       <td class="${pTaskOverdue(x) ? "" : "co"}" style="${pTaskOverdue(x) ? "color:var(--late);font-weight:600" : ""}">${fmtDate(x.due)}</td>
       <td style="min-width:110px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</td>
     </tr>`).join("")}</tbody></table></div>
     <div class="cards">${rows.map(({p,x}) => `<article class="card" data-pp="${p.id}">
-      <div class="top"><span class="num">${x.ref} · ${esc(p.key)}</span>${pill("prio-" + x.prio, x.prio)}</div>
+      <div class="top"><span class="num">${x.ref} · ${esc(p.key)}</span>
+        ${pill(x.status === "completed" ? "p-done" : x.status === "blocked" ? "p-late"
+          : x.status === "in_progress" ? "p-work" : "p-open", t("ts_" + x.status))}${prioPill(x.prio)}</div>
       <h4>${esc(x.title)}</h4>
       <div class="sub"><span>${x.assignee ? pUser(x.assignee) : t("none")}</span><span>·</span>
         <span${pTaskOverdue(x) ? ' style="color:var(--late);font-weight:600"' : ""}>${fmtDate(x.due)}</span></div>
@@ -1780,19 +1992,28 @@ function pccTasks() {
 }
 function riskMatrix(rows) {
   const cell = (pb, im) => {
-    const s = pb * im, hit = rows.filter(({r}) => r.prob === pb && r.imp === im);
-    const cls = s >= 15 ? "x" : s >= 10 ? "h" : s >= 5 ? "m" : "l";
-    return `<td class="${cls}" title="Score ${s}">${hit.length ? `<b>${hit.length}</b>` : ""}</td>`;
+    const v = pb * im, hit = rows.filter(({r}) => r.prob === pb && r.imp === im);
+    const cls = v >= 15 ? "x" : v >= 10 ? "h" : v >= 5 ? "m" : "l";
+    return `<td class="${cls}" title="${t("col_prob")} ${pb} × ${t("col_imp")} ${im} = ${v}">${
+      hit.length ? `<b>${hit.length}</b>` : ""}</td>`;
   };
-  return `<table class="rmx"><thead><tr><th></th>${[1,2,3,4,5].map(i => `<th>${i}</th>`).join("")}</tr></thead>
-    <tbody>${[5,4,3,2,1].map(pb => `<tr><th>${pb}</th>${[1,2,3,4,5].map(im => cell(pb, im)).join("")}</tr>`).join("")}</tbody>
-    </table>
-    <div class="co" style="margin-top:8px">${t("col_prob")} ↕ · ${t("col_imp")} ↔ · ${t("p_score_h")}</div>`;
+  /* Die Erklärung steht über der Matrix, nicht darunter: auf dem Tablet lag sie
+     sonst hinter der Sandbox-Leiste. Die Achsen sind beschriftet, weil Ziffern
+     an den Rändern nicht sagen, welche Achse welche ist. */
+  return `<div class="co" style="margin-bottom:8px">${t("p_score_h")}</div>
+    <div class="mxwrap">
+      <div class="mxy">${t("mx_prob")}</div>
+      <table class="rmx"><thead><tr><th></th>${[1,2,3,4,5].map(i => `<th>${i}</th>`).join("")}</tr></thead>
+      <tbody>${[5,4,3,2,1].map(pb => `<tr><th>${pb}</th>${[1,2,3,4,5].map(im => cell(pb, im)).join("")}</tr>`).join("")}</tbody>
+      </table>
+    </div>
+    <div class="mxx">${t("mx_imp")} →</div>`;
 }
 function pccRisks() {
   const rows = [];
   pFiltered().forEach(p => p.risks.forEach(r => rows.push({ p, r })));
   rows.sort((a,b) => rScore(b.r) - rScore(a.r));
+  if (!rows.length) return pFilterBar(0) + pEmpty("p_nohits", "p_nohits_s");
   return pFilterBar(rows.length) +
     `<div class="pcard"><header><h2>${t("p_matrix")}</h2></header><div class="inner">${riskMatrix(rows)}</div></div>` +
     `<div class="tblwrap aslist"><table><thead><tr>
@@ -1807,27 +2028,31 @@ function pccRisks() {
       <td>${pill(r.status === "open" ? "p-late" : r.status === "monitoring" ? "p-work" : "p-done", t("rs_" + r.status))}</td>
       <td class="co">${fmtDate(r.due)}</td></tr>`).join("")}</tbody></table></div>
     <div class="cards">${rows.map(({p,r}) => `<article class="card" data-pp="${p.id}">
-      <div class="top"><span class="pill ${rScore(r) >= 15 ? "p-late" : rScore(r) >= 8 ? "p-work" : "p-open"}">Score ${rScore(r)}</span>
-        <span class="num">${r.ref} · ${esc(p.key)}</span></div>
+      <div class="top"><span class="pill ${rScore(r) >= 15 ? "p-late" : rScore(r) >= 8 ? "p-work" : "p-open"}">${t("col_score")} ${rScore(r)}</span>
+        <span class="num">${r.ref} · ${esc(p.key)}</span>
+        ${pill(r.status === "open" ? "p-late" : r.status === "monitoring" ? "p-work" : "p-done", t("rs_" + r.status))}</div>
       <h4>${esc(r.title)}</h4>
-      <div class="sub"><span>${esc(r.cat)}</span><span>·</span><span>${pUser(r.owner)}</span></div>
+      <div class="sub"><span>${esc(r.cat)}</span><span>·</span><span>${pUser(r.owner)}</span><span>·</span>
+        <span>${t("col_prob")} ${r.prob} × ${t("col_imp")} ${r.imp}</span><span>·</span><span>${fmtDate(r.due)}</span></div>
       <div class="next">${esc(r.mitigation)}</div></article>`).join("")}</div>`;
 }
 function pccIssues() {
   const rows = [];
   pFiltered().forEach(p => p.issues.forEach(i => rows.push({ p, i })));
   rows.sort((a,b) => (a.i.due || "9") < (b.i.due || "9") ? -1 : 1);
+  if (!rows.length) return pFilterBar(0) + pEmpty("p_nohits", "p_nohits_s");
   return pFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
       <th>${t("col_title")}</th><th>${t("col_project")}</th><th>${t("col_owner")}</th>
       <th>${t("col_prio")}</th><th>${t("col_status")}</th><th>${t("col_due")}</th>
     </tr></thead><tbody>${rows.map(({p,i}) => `<tr data-pp="${p.id}">
       <td><b>${esc(i.title)}</b><div class="num">${i.ref}</div></td>
       <td class="num">${esc(p.key)}</td><td class="co">${pUser(i.owner)}</td>
-      <td>${pill("prio-" + i.prio, i.prio)}</td>
+      <td>${prioPill(i.prio)}</td>
       <td>${pill(["open","blocked"].includes(i.status) ? "p-late" : i.status === "in_progress" ? "p-work" : "p-done", t("is_" + i.status))}</td>
       <td class="co">${fmtDate(i.due)}</td></tr>`).join("")}</tbody></table></div>
     <div class="cards">${rows.map(({p,i}) => `<article class="card" data-pp="${p.id}">
-      <div class="top"><span class="num">${i.ref} · ${esc(p.key)}</span>${pill("prio-" + i.prio, i.prio)}</div>
+      <div class="top"><span class="num">${i.ref} · ${esc(p.key)}</span>
+        ${pill(["open","blocked"].includes(i.status) ? "p-late" : i.status === "in_progress" ? "p-work" : "p-done", t("is_" + i.status))}${prioPill(i.prio)}</div>
       <h4>${esc(i.title)}</h4><div class="sub"><span>${pUser(i.owner)}</span><span>·</span><span>${fmtDate(i.due)}</span></div>
     </article>`).join("")}</div>`;
 }
@@ -1835,6 +2060,7 @@ function pccMilestones() {
   const rows = [];
   pFiltered().forEach(p => p.ms.forEach(m => rows.push({ p, m })));
   rows.sort((a,b) => a.m.date < b.m.date ? -1 : 1);
+  if (!rows.length) return pFilterBar(0) + pEmpty("p_nohits", "p_nohits_s");
   return pFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
       <th>${t("col_date")}</th><th>${t("pn_milestones")}</th><th>${t("col_project")}</th>
       <th>${t("col_owner")}</th><th>${t("col_status")}</th>
@@ -1846,12 +2072,22 @@ function pccMilestones() {
         : m.status === "in_progress" ? "p-work" : "p-open", t("ms_" + m.status))}</td>
     </tr>`).join("")}</tbody></table></div>
     <div class="cards">${rows.map(({p,m}) => `<article class="card" data-pp="${p.id}">
-      <div class="top"><span class="num">${fmtLong(m.date)} · ${esc(p.key)}</span></div>
+      <div class="top"><span class="num">${fmtLong(m.date)} · ${esc(p.key)}</span>
+        ${pill(m.status === "completed" ? "p-done" : pMsOverdue(m) ? "p-late"
+          : m.status === "in_progress" ? "p-work" : "p-open", t("ms_" + m.status))}</div>
       <h4>${esc(m.name)}</h4><div class="sub"><span>${pUser(m.owner)}</span></div></article>`).join("")}</div>`;
 }
 function pccReports() {
   const ps = pVisible();
-  return `<div class="notice">${t("pcc_note")}</div>
+  const filtered = pFiltered();
+  /* Der Filter der Projektliste wirkt auch in den Berichten. Also gehört er
+     hierher, sichtbar und mit einem Weg zurück. */
+  const filterNote = filtered.length < ps.length
+    ? `<div class="notice warn"><b>${t("rep_filter")}</b> ${esc(pFilterDesc())} —
+        ${filtered.length} ${t("p_of")} ${ps.length}.
+        <button class="btn-ghost" id="repClear" style="margin-left:8px">${t("f_clear")}</button></div>`
+    : "";
+  return `<div class="notice">${t("pcc_note")}</div>${filterNote}
     <div class="pcard"><header><h2>${t("exp_pcc_dash")}</h2></header><div class="inner">
       <p class="muted" style="margin-bottom:10px">${t("pd_s")}</p>
       <span class="hdacts">${expBtns("pcc_dash")}</span></div></div>
@@ -1861,8 +2097,11 @@ function pccReports() {
         <span class="rt hdacts">
           <button class="btn-ghost" data-prep="pdf|${p.id}">${t("exp_pdf")}</button>
           <button class="btn-ghost" data-prep="xls|${p.id}">${t("exp_xls")}</button></span></li>`).join("")}</ul></div>
-    <div class="pcard"><header><h2>${t("pg_work")}</h2></header><div class="inner hdacts">
-      ${expBtns("pcc_projects")}${expBtns("pcc_risks")}${expBtns("pcc_tasks")}${expBtns("pcc_ms")}</div></div>`;
+    <div class="pcard"><header><h2>${t("rep_lists")}</h2></header>
+      <ul class="plist">${[["pcc_projects","pn_projects"],["pcc_risks","pn_risks"],
+        ["pcc_tasks","pn_tasks"],["pcc_ms","pn_milestones"]].map(([k,lb]) => `<li>
+        <span class="m"><b>${t(lb)}</b></span>
+        <span class="rt hdacts">${expBtns(k)}</span></li>`).join("")}</ul></div>`;
 }
 
 /* ---------- Projektansicht ---------- */
@@ -1934,7 +2173,7 @@ function pTabTasks(p) {
   const rows = [];
   pTop(p).forEach(x => { rows.push({ x, sub:false }); pKids(p, x).forEach(k => rows.push({ x:k, sub:true })); });
   return `${pCanEdit(p) ? `<div class="hdacts" style="margin-bottom:12px">
-      <button class="btn-primary" id="pnewtask">+ ${t("col_task")}</button>${expBtns("pcc_ptasks")}</div>`
+      <button class="btn-primary" id="pnewtask">${t("act_task")}</button>${expBtns("pcc_ptasks")}</div>`
       : `<div class="hdacts" style="margin-bottom:12px">${expBtns("pcc_ptasks")}</div>`}
     <div class="tblwrap aslist"><table class="tasktree"><thead><tr>
       <th>${t("col_task")}</th><th>${t("col_ws")}</th><th>${t("col_assignee")}</th>
@@ -1949,12 +2188,12 @@ function pTabTasks(p) {
         <td class="co">${ws ? esc(ws.name) : t("none")}</td>
         <td class="co">${x.assignee ? pUser(x.assignee) : t("none")}</td>
         <td>${pTaskPill(x)}</td>
-        <td>${pill("prio-" + x.prio, x.prio)}</td>
+        <td>${prioPill(x.prio)}</td>
         <td class="co" style="${pTaskOverdue(x) ? "color:var(--late);font-weight:600" : ""}">${fmtDate(x.due)}</td>
         <td style="min-width:110px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</td>
         ${may ? `<td class="acts">${mine && !pTaskDone(x)
           ? `<button data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}</td>` : ""}
-      </tr>`; }).join("")}</tbody></table></div>
+      </tr>`; }).join("") || `<tr><td colspan="${may ? 8 : 7}" class="muted">${t("p_none")}</td></tr>`}</tbody></table></div>
     <div class="cards">${rows.map(({x, sub}) => `<article class="card">
       <div class="top"><span class="num">${sub ? "↳ " : ""}${x.ref}</span>${pTaskPill(x)}</div>
       <h4>${esc(x.title)}</h4>
@@ -1967,7 +2206,7 @@ function pTabTasks(p) {
 function pTabRisks(p) {
   const rows = p.risks.map(r => ({ p, r })).sort((a,b) => rScore(b.r) - rScore(a.r));
   return `${pCanEdit(p) ? `<div class="hdacts" style="margin-bottom:12px">
-      <button class="btn-primary" id="pnewrisk">+ ${t("pn_risks")}</button>${expBtns("pcc_prisks")}</div>`
+      <button class="btn-primary" id="pnewrisk">${t("act_risk")}</button>${expBtns("pcc_prisks")}</div>`
       : `<div class="hdacts" style="margin-bottom:12px">${expBtns("pcc_prisks")}</div>`}
     <div class="grid2"><div class="pcard"><header><h2>${t("p_matrix")}</h2></header>
       <div class="inner">${riskMatrix(rows)}</div></div></div>
@@ -1985,9 +2224,9 @@ function pTabRisks(p) {
 }
 function pTabIssues(p) {
   return `${pCanContribute(p) ? `<div class="hdacts" style="margin-bottom:12px">
-      <button class="btn-primary" id="pnewissue">+ ${t("pn_issues")}</button></div>` : ""}
+      <button class="btn-primary" id="pnewissue">${t("act_issue")}</button></div>` : ""}
     ${p.issues.map(i => `<div class="pcard"><header>
-      <h2>${esc(i.ref)} · ${esc(i.title)}</h2>${pill("prio-" + i.prio, i.prio)}
+      <h2>${esc(i.ref)} · ${esc(i.title)}</h2>${prioPill(i.prio)}
       ${pill(["open","blocked"].includes(i.status) ? "p-late" : i.status === "in_progress" ? "p-work" : "p-done", t("is_" + i.status))}
     </header><div class="inner kv2">
       <div><div class="k">${t("f_desc")}</div><div class="v">${esc(i.description)}</div></div>
@@ -2014,11 +2253,11 @@ function pTabTeam(p) {
     : /Head|Supervisor|Compliance|Sponsor/.test(m.role) ? "C" : "I";
   return `<div class="tblwrap aslist"><table><thead><tr>
       <th>${t("usr_name")}</th><th>${t("f_prole")}</th><th>RACI</th><th>${t("f_resp")}</th><th>${t("usr_email")}</th>
-    </tr></thead><tbody>${p.team.map(m => `<tr>
+    </tr></thead><tbody>${p.team.length ? p.team.map(m => `<tr>
       <td class="tn">${pUser(m.user)}</td><td class="co">${esc(m.role)}</td>
       <td><span class="raci ${letter(m)}">${letter(m)}</span></td>
       <td class="co">${esc(m.resp)}</td><td class="num">${esc(user(m.user).email || "")}</td>
-    </tr>`).join("")}</tbody></table></div>
+    </tr>`).join("") : `<tr><td colspan="5" class="muted">${t("p_none")}</td></tr>`}</tbody></table></div>
     <div class="cards">${p.team.map(m => `<article class="card">
       <div class="top"><span class="raci ${letter(m)}">${letter(m)}</span><span class="num">${esc(m.role)}</span></div>
       <h4>${pUser(m.user)}</h4><div class="sub"><span>${esc(m.resp)}</span></div></article>`).join("")}</div>
@@ -2036,7 +2275,7 @@ function pTabDocs(p) {
     <td class="co">${esc(d.description)}</td></tr>`;
   return `<div class="notice">${t("doc_h")}</div>
     ${pCanContribute(p) ? `<div class="hdacts" style="margin-bottom:12px">
-      <button class="btn-primary" id="pupload">+ ${t("doc_up")}</button></div>` : ""}
+      <button class="btn-ghost" id="pupload" title="${esc(t("doc_soon"))}">${t("doc_up")}</button></div>` : ""}
     ${p.docs.length ? `<div class="tblwrap aslist"><table><thead><tr>
       <th>${t("col_title")}</th><th>${t("col_status")}</th><th>${t("f_ver")}</th>
       <th>${t("doc_size")}</th><th>${t("col_owner")}</th><th>${t("f_desc")}</th>
@@ -2065,7 +2304,7 @@ function pTabVersions(p) {
         <th>${t("col_title")}</th><th>${t("exp_what")}</th><th>${L === "de" ? "alt" : "old"}</th><th>${L === "de" ? "neu" : "new"}</th>
       </tr></thead><tbody>${v.changes.map(c => `<tr><td>${esc(c.e)}</td><td class="co">${esc(c.f)}</td>
         <td class="co">${esc(c.o)}</td><td><b>${esc(c.n)}</b></td></tr>`).join("")}</tbody></table>` : ""}
-    </div></div>`).join("");
+    </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`;
 }
 function pccDetail(p) {
   const body = { overview:pTabOverview, timeline:() => `<div class="pcard"><div class="inner">${timelineHTML([p], false)}</div></div>`
@@ -2228,11 +2467,14 @@ function pccNavItems() {
   const ps = pVisible();
   const over = ps.reduce((a,p) => a + pOverdueTasks(p).length, 0);
   const crit = ps.reduce((a,p) => a + pCritRisks(p).length, 0);
-  const cnt = { dash:over, projects:ps.length, risks:crit,
+  /* Ein Abzeichen steht für etwas, das zu tun ist — nicht für einen Bestand.
+     Deshalb kein Zähler an „Projekte". */
+  const cnt = { dash:over, risks:crit,
     issues:ps.reduce((a,p) => a + p.issues.filter(i => ["open","blocked"].includes(i.status)).length, 0) };
+  const hint = { dash:t("cnt_over"), risks:t("cnt_crit"), issues:t("cnt_issues") };
   return {
-    work:PCC_NAV.slice(0,4).map(([k,lb]) => [k, lb, cnt[k] || 0, k === "dash"]),
-    org:PCC_NAV.slice(4).map(([k,lb]) => [k, lb, cnt[k] || 0, k === "risks"])
+    work:PCC_NAV.slice(0,4).map(([k,lb]) => [k, lb, cnt[k] || 0, k === "dash", hint[k]]),
+    org:PCC_NAV.slice(4).map(([k,lb]) => [k, lb, cnt[k] || 0, k === "risks", hint[k]])
   };
 }
 function renderPcc(m) {
@@ -2269,15 +2511,19 @@ function wirePcc() {
   if (q("pnewtask")) q("pnewtask").onclick = () => pDialogNewTask(pById(pProject));
   if (q("pnewrisk")) q("pnewrisk").onclick = () => pDialogNewRisk(pById(pProject));
   if (q("pnewissue")) q("pnewissue").onclick = () => pDialogNewIssue(pById(pProject));
-  if (q("pupload")) q("pupload").onclick = () => toast(t("doc_soon"), true);
+  if (q("pupload")) q("pupload").onclick = () => toast(t("doc_soon"));
   if (q("pq")) {
     q("pq").oninput = e => { PF.q = e.target.value; renderMain();
       const el = q("pq"); el.focus(); el.setSelectionRange(PF.q.length, PF.q.length); };
     q("pstatus").onchange = e => { PF.status = e.target.value; renderMain(); };
     q("ppm").onchange = e => { PF.pm = e.target.value; renderMain(); };
-    q("pclear").onclick = () => { PF = { q:"", status:"", pm:"", health:"" }; renderMain(); };
+    q("pclear").onclick = () => { PF = { q:"", status:"", pm:"", health:"" };
+      TF = { who:"", state:"open", span:"" }; renderMain(); };
+    ["tfwho","tfstate","tfspan"].forEach(id => { if (q(id)) q(id).onchange = e => {
+      TF[id.slice(2)] = e.target.value; renderMain(); }; });
   }
   document.querySelectorAll("[data-ptab]").forEach(b => b.onclick = () => { pTab = b.dataset.ptab; renderMain(); });
+  if (q("repClear")) q("repClear").onclick = () => { PF = { q:"", status:"", pm:"", health:"" }; renderMain(); };
   document.querySelectorAll("[data-pp]").forEach(el => el.onclick = e => {
     if (e.target.closest("button") && !e.target.closest("[data-pp]").isSameNode(e.target.closest("button"))) return;
     pProject = el.dataset.pp; pTab = "overview"; render();
@@ -2285,9 +2531,16 @@ function wirePcc() {
   document.querySelectorAll("[data-ptdone]").forEach(b => b.onclick = e => {
     e.stopPropagation();
     const p = pById(pProject), x = p.tasks.find(y => y.id === b.dataset.ptdone);
+    const prev = { status:x.status, progress:x.progress, done:x.done };
     x.status = "completed"; x.progress = 100; x.done = today();
     plg(p, me, (L === "de" ? "Aufgabe erledigt: " : "Task completed: ") + x.title);
-    toast(t("t_ptask")); render();
+    /* Ein Fehlgriff auf dem Tablet schließt sonst still die Aufgabe eines
+       Kollegen. Also mit Namen melden und mit einem Weg zurück. */
+    toast(t("t_pdone", { r:x.ref, n:x.title }), false, {
+      label:t("undo"), fn:() => { Object.assign(x, prev);
+        plg(p, me, (L === "de" ? "Erledigt zurückgenommen: " : "Completion undone: ") + x.title);
+        render(); } });
+    render();
   });
   document.querySelectorAll("[data-prep]").forEach(b => b.onclick = e => {
     e.stopPropagation();
@@ -2299,9 +2552,22 @@ function wirePcc() {
 let pRepProject = null;
 
 /* ---------- Export ---------- */
+/* Beschreibt den wirksamen Filter in einem Satz. Ein Bericht, dem fünf von
+   sechs Projekten fehlen, ohne dass es jemand sieht, führt zu falschen
+   Entscheidungen außerhalb dieses Werkzeugs. */
+function pFilterDesc() {
+  const d = [];
+  if (PF.q) d.push(`"${PF.q}"`);
+  if (PF.status) d.push(t("col_status") + ": " + t("ps_" + PF.status));
+  if (PF.pm) d.push(t("col_pm") + ": " + pUser(PF.pm));
+  return d.length ? d.join(" · ") : t("exp_nofilter");
+}
+
 function pccDoc(kind) {
   const ps = pFiltered();
   const cur = pProject ? pById(pProject) : null;
+  const listMeta = () => [[t("exp_filter"), pFilterDesc()],
+    [t("exp_count"), ps.length + " " + t("p_of") + " " + pVisible().length]];
   const projMeta = p => [[t("f_key"), p.key], [t("col_project"), p.name],
     [t("col_status"), t("ps_" + p.status)], [t("col_pm"), pUser(p.pm)],
     [t("col_progress"), pProgress(p) + "%"],
@@ -2310,11 +2576,11 @@ function pccDoc(kind) {
   const taskRows = list => list.map(({p,x}) => [x.ref, x.title, p.key,
     (p.ws.find(w => w.id === x.ws) || {}).name || "", x.assignee ? pUser(x.assignee) : "",
     t("ts_" + x.status), x.prio, fmtLong(x.due), (pTaskDone(x) ? 100 : x.progress || 0) + "%"]);
-  const TASK_COLS = [t("f_key"), t("col_task"), t("col_project"), t("col_ws"), t("col_assignee"),
+  const TASK_COLS = [t("f_ref"), t("col_task"), t("col_project"), t("col_ws"), t("col_assignee"),
     t("col_status"), t("col_prio"), t("col_due"), t("col_progress")];
   const riskRows = list => list.map(({p,r}) => [r.ref, r.title, p.key, r.cat, r.prob, r.imp,
     rScore(r), pUser(r.owner), t("rs_" + r.status), fmtLong(r.due), r.mitigation]);
-  const RISK_COLS = [t("f_key"), t("col_title"), t("col_project"), t("col_cat"), t("col_prob"),
+  const RISK_COLS = [t("f_ref"), t("col_title"), t("col_project"), t("col_cat"), t("col_prob"),
     t("col_imp"), t("col_score"), t("col_owner"), t("col_status"), t("col_due"), t("f_mit")];
 
   if (kind === "pcc_dash") {
@@ -2323,9 +2589,10 @@ function pccDoc(kind) {
       pOverdueTasks(p).forEach(x => over.push({ p, x }));
       p.ms.filter(m => m.status !== "completed").forEach(m => ms.push({ p, m })); });
     risks.sort((a,b) => rScore(b.r) - rScore(a.r));
+    const crit = risks.filter(x => rScore(x.r) >= 15);
     ms.sort((a,b) => a.m.date < b.m.date ? -1 : 1);
     return { title:t("exp_pcc_dash"),
-      meta:[[t("exp_count"), ps.length], [t("k_otasks"), over.length], [t("k_oriks"), risks.length]],
+      meta:listMeta().concat([[t("k_otasks"), over.length], [t("k_criks"), crit.length]]),
       sections:[
         { h:t("c_health"), cols:[t("f_key"), t("col_project"), t("col_status"), t("col_progress"),
           t("col_pm"), t("col_next"), t("col_risks")],
@@ -2334,13 +2601,13 @@ function pccDoc(kind) {
               n ? n.name + " (" + fmtLong(n.date) + ")" : "—", pOpenRisks(p).length]; }) },
         { h:t("c_upcoming"), cols:[t("col_date"), t("pn_milestones"), t("col_project"), t("col_owner"), t("col_status")],
           rows:ms.slice(0,20).map(({p,m}) => [fmtLong(m.date), m.name, p.key, pUser(m.owner), t("ms_" + m.status)]) },
-        { h:t("c_crit"), cols:RISK_COLS, rows:riskRows(risks.slice(0,20)) },
+        { h:t("c_crit"), cols:RISK_COLS, rows:riskRows(crit.slice(0,20)) },
         { h:t("c_overdue"), cols:TASK_COLS, rows:taskRows(over) },
         { h:t("c_activity"), cols:[t("exp_when"), t("exp_who"), t("col_project"), t("exp_what")],
           rows:PLOG.slice(0,25).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who),
             (pById(e.project) || {}).key || "", e.txt]) }] };
   }
-  if (kind === "pcc_projects") return { title:t("pp_t"), meta:[[t("exp_count"), ps.length]],
+  if (kind === "pcc_projects") return { title:t("pp_t"), meta:listMeta(),
     sections:[{ cols:[t("f_key"), t("col_project"), t("col_status"), t("col_progress"), t("col_pm"),
       t("f_start"), t("f_end"), t("col_risks"), t("c_overdue"), t("f_health")],
       rows:ps.map(p => [p.key, p.name, t("ps_" + p.status), pProgress(p) + "%", pUser(p.pm),

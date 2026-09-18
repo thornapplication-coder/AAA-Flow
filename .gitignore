@@ -11,3 +11,7 @@ dev-dist/
 supabase/.branches/
 supabase/.temp/
 scripts/.pgdata/
+
+# Zwischenstände und Werkzeugreste
+*.tmp.*
+.supabase/

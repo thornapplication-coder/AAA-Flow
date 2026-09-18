@@ -22,6 +22,19 @@ jobs:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_ANON_KEY: ci-placeholder
 
+  sandbox:
+    name: Prototyp im Browser
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check:sandbox
+
   database:
     name: Migrationen, Seed und SQL-Tests
     runs-on: ubuntu-latest
