@@ -3,6 +3,30 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 2.0.0 — 2026-09-18
+
+- **Project Control Center** als zweites Modul derselben Anwendung. Ein
+  Produktwechsler in der Kopfzeile schaltet zwischen AAA Flow und dem Control
+  Center; Anmeldung, Nutzer, Design, Zeitreise, Export und Sandbox-Leiste sind
+  gemeinsam, Rollen und Daten getrennt.
+- Management-Dashboard: neun Kennzahlen, Management Timeline über alle
+  Projekte mit Meilensteinpunkten, Projektstatus-Tabelle, anstehende
+  Meilensteine, kritische Risiken nach Score, überfällige Aufgaben und letzte
+  Änderungen.
+- Projektansicht mit zehn Reitern: Überblick, Timeline, Aufgaben mit
+  Teilaufgaben, Risiken mit Risk-Matrix, Issues, Entscheidungen, Team mit
+  abgeleiteter RACI, Dokumente, Aktivität und Versionsverlauf.
+- Übergreifende Listen für Aufgaben, Risiken, Issues und Meilensteine,
+  jeweils filterbar und exportierbar; Berichtsansicht mit Dashboard-Bericht
+  und Projektbericht je Projekt.
+- Anlegen und Ändern: Projekt mit Version 1.0, Aufgaben, Risiken, Issues;
+  Statusänderungen erzeugen Versionseinträge und Aktivitätsprotokoll.
+- Rollen nach Abschnitt 5 der Spezifikation: Super Admin, Admin, Project
+  Manager, Contributor, Viewer — unabhängig von den Flow-Rollen.
+- Architektur in `docs/PCC-ARCHITECTURE.md` (Phase 1 nach Abschnitt 62):
+  Technologiestack, Datenmodell, Rechtemodell, Autosave, Echtzeit,
+  Versionierung, Export, PWA, Reihenfolge und offene Punkte.
+
 ## 1.7.1 — 2026-09-03
 
 Zwei gemeldete Anzeigefehler behoben:

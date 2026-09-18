@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>AAA Flow Sandbox</title>
+<title>AAA Flow und Control Center</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 /* ============================================================================
@@ -39,6 +39,7 @@ button:disabled{cursor:not-allowed}
 .app{display:grid;grid-template-columns:212px 1fr;grid-template-rows:56px auto 1fr;height:100vh}
 .topbar{grid-column:1/-1;background:var(--navy-900);display:flex;align-items:center;gap:14px;padding:0 16px;color:#fff}
 .brand{display:flex;align-items:baseline;gap:9px;font-weight:600;letter-spacing:-.01em;font-size:16px;white-space:nowrap}
+.brand em{font-style:normal;color:var(--navy-400)}
 .brand span{color:var(--navy-400);font-weight:400;font-size:12px;letter-spacing:.04em}
 .topbar .spacer{flex:1}
 .ctl{display:flex;align-items:center;gap:8px;min-width:0}
@@ -358,6 +359,115 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .topbar .userchip .sw{border:1px solid #24405F;border-radius:var(--r);color:#9DB4CC;padding:5px 10px;font-size:12px}
 .topbar .userchip .sw:hover{background:var(--navy-700);color:#fff}
 
+/* ---------- Produktwechsler ---------- */
+.prod{display:flex;border:1px solid #24405F;border-radius:var(--r);overflow:hidden;flex:0 0 auto}
+.prod button{padding:5px 12px;font-size:12.5px;font-weight:600;color:#9DB4CC;white-space:nowrap}
+.prod button.on{background:var(--navy-600);color:#fff}
+
+/* ---------- Control Center ---------- */
+.pkpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:12px;margin-bottom:20px}
+.pkpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 15px}
+.pkpi .n{font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.pkpi .lb{font-size:12px;color:var(--ink-soft);margin-top:3px}
+.pkpi.ok .n{color:var(--done)}
+.pkpi.warn .n{color:var(--work)}
+.pkpi.bad .n{color:var(--late)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media(max-width:1100px){.grid2{grid-template-columns:1fr}}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:16px}
+.pcard>header{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.pcard>header h2{font-size:14px;font-weight:600;flex:1;min-width:0}
+.pcard>header .co{font-size:12px}
+.pcard .inner{padding:14px 15px}
+.plist{list-style:none}
+.plist li{display:flex;gap:12px;align-items:flex-start;padding:10px 15px;border-bottom:1px solid #F0F4F8}
+.plist li:last-child{border-bottom:none}
+.plist li.clickable{cursor:pointer}
+.plist li.clickable:hover{background:#F7FAFD}
+.plist .when{flex:0 0 54px;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);line-height:1.3}
+.plist .when b{display:block;color:var(--ink);font-size:14px;font-weight:600}
+.plist .m{flex:1;min-width:0}
+.plist .m b{font-size:13.5px;font-weight:600;display:block}
+.plist .m .sub{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.plist .rt{flex:0 0 auto;text-align:right}
+
+.bar{height:6px;background:#E6ECF3;border-radius:3px;overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;background:var(--navy-600)}
+.bar.ok i{background:var(--done)}
+.bar.warn i{background:var(--work)}
+.bar.bad i{background:var(--late)}
+.pct{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+
+.s-not_started{background:#EEF2F7;color:#5A6B7F}
+.s-started{background:#E8F0FA;color:var(--navy-600)}
+.s-on_track{background:var(--done-bg);color:var(--done)}
+.s-at_risk{background:var(--work-bg);color:var(--work)}
+.s-delayed{background:var(--late-bg);color:var(--late)}
+.s-cancelled{background:#EEF2F7;color:var(--ink-faint)}
+.s-completed{background:#E7EDF6;color:var(--navy-700)}
+
+/* Timeline */
+.tl{overflow-x:auto}
+.tlgrid{min-width:640px}
+.tlhead{display:flex;border-bottom:1px solid var(--line);padding-left:190px}
+.tlhead span{flex:1;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;padding:6px 0 6px 6px;border-left:1px solid var(--line)}
+.tlrow{display:flex;align-items:center;border-bottom:1px solid #F0F4F8;min-height:44px}
+.tlrow:last-child{border-bottom:none}
+.tlrow .nm{flex:0 0 190px;padding:8px 12px 8px 0;font-size:13px;font-weight:600;min-width:0}
+.tlrow .nm .co{font-weight:400;font-size:11.5px}
+.tlrow .tltrack{flex:1;position:relative;height:44px}
+.tlrow .tltrack .grid{position:absolute;inset:0;display:flex}
+.tlrow .tltrack .grid span{flex:1;border-left:1px solid #EDF1F6}
+.tlrow .tltrack .tlbar{position:absolute;top:15px;height:12px;border-radius:6px;background:var(--navy-500)}
+.tlrow .tltrack .tlbar.ok{background:var(--done)}
+.tlrow .tltrack .tlbar.warn{background:var(--work)}
+.tlrow .tltrack .tlbar.bad{background:var(--late)}
+.tlrow .tltrack .tlbar.done{background:var(--navy-400)}
+.tlrow .tltrack .ms{position:absolute;top:12px;width:0;height:0}
+.tlrow .tltrack .ms i{position:absolute;left:-6px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--navy-800);display:block}
+.tlrow .tltrack .ms i.done{background:var(--done);border-color:var(--done)}
+.tlrow .tltrack .ms i.late{background:var(--late);border-color:var(--late)}
+.tlnow{position:absolute;top:0;bottom:0;width:1px;background:var(--late);opacity:.5}
+
+/* Risk-Matrix */
+.rmx{border-collapse:collapse}
+.rmx td,.rmx th{border:1px solid var(--line);padding:0;text-align:center}
+.rmx th{background:var(--surface-2);font-size:10.5px;color:var(--ink-soft);padding:4px 6px;font-weight:600}
+.rmx td{width:44px;height:38px;font-size:12px;font-weight:600}
+.rmx td.l{background:#E9F3ED;color:var(--done)}
+.rmx td.m{background:#FBF0DC;color:var(--work)}
+.rmx td.h{background:#F7DED7;color:var(--late)}
+.rmx td.x{background:#EFC9C0;color:#7C2D20}
+.rmx td b{display:inline-block;min-width:20px}
+
+/* Projektkopf */
+.phead{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:16px}
+.phead .top{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.phead h1{font-size:20px;font-weight:600;letter-spacing:-.015em;flex:1;min-width:200px}
+.phead .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.phead .facts div .k{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em}
+.phead .facts div .v{font-size:13.5px;font-weight:600;margin-top:2px}
+.ptabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+.ptabs button{padding:9px 13px;font-size:13.5px;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.ptabs button.on{color:var(--navy-700);border-bottom-color:var(--navy-600);font-weight:600}
+.back{font-size:13px;color:var(--navy-600);text-decoration:underline;margin-bottom:10px;display:inline-block}
+
+.kv2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.kv2 .k{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.kv2 .v{font-size:13.5px}
+.tasktree .sub{padding-left:26px}
+.tasktree .sub td:first-child{color:var(--ink-soft)}
+.raci{font-family:var(--mono);font-size:11px;font-weight:700;display:inline-flex;width:18px;height:18px;align-items:center;justify-content:center;border-radius:4px}
+.raci.R{background:#E8F0FA;color:var(--navy-600)}
+.raci.A{background:var(--late-bg);color:var(--late)}
+.raci.C{background:var(--work-bg);color:var(--work)}
+.raci.I{background:#EEF2F7;color:var(--ink-soft)}
+.prio-Critical{background:var(--late-bg);color:var(--late)}
+.prio-High{background:var(--work-bg);color:var(--work)}
+.prio-Medium{background:#E8F0FA;color:var(--navy-600)}
+.prio-Low{background:#EEF2F7;color:#5A6B7F}
+
 /* ---------- Toast ---------- */
 .toast{position:fixed;left:50%;bottom:70px;transform:translate(-50%,14px);background:var(--navy-900);color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;z-index:30;max-width:min(560px,92vw);box-shadow:0 10px 30px rgba(12,27,46,.35)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -447,6 +557,7 @@ tr.inactive td{opacity:.55}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">AAA Flow <span id="brandSub">Sandbox</span></div>
+    <div class="prod" id="prod"></div>
     <div class="spacer"></div>
     <div class="userchip" id="userchip"></div>
     <div class="lang">
@@ -1738,7 +1849,8 @@ function dialogNewTrainee(companyId) {
    ausgeblendet und ein sauberes Dokument gedruckt. Excel gibt es überall dort,
    wo die Ansicht eine Liste ist.
    ========================================================================== */
-const XLS_KINDS = ["cases","exceptions","catalogue","users","companies","trainees","audit","auditall","checkpoints","notes"];
+const XLS_KINDS = ["cases","exceptions","catalogue","users","companies","trainees","audit","auditall","checkpoints","notes",
+  "pcc_dash","pcc_projects","pcc_risks","pcc_tasks","pcc_ms","pcc_report","pcc_ptasks","pcc_prisks","pcc_pact"];
 const fmtLong = d => d ? new Date(d).toLocaleDateString(L === "de" ? "de-AT" : "en-GB",
   { day:"2-digit", month:"2-digit", year:"numeric" }) : t("none");
 const yn = b => b ? t("yes") : t("none");
@@ -1786,6 +1898,7 @@ const auditRows = c => c.log.map(e => [logWhen(e),
 const AUDIT_COLS = () => [t("exp_when"), t("exp_who"), t("exp_what"), t("m_reason")];
 
 function docDef(kind) {
+  if (PCC_KINDS.includes(kind)) return pccDoc(kind);
   const vis = visibleCases();
   const c = drawerCase;
   if (kind === "cases") {
@@ -2107,9 +2220,14 @@ function renderTop() {
   document.getElementById("brandSub").textContent = t("sub");
   const u = M();
   document.getElementById("userchip").innerHTML =
-    `<span><b>${esc(u.name)}</b> · ${DEPTS[u.dept]}</span>
+    `<span><b>${esc(u.name)}</b> · ${PRODUCT === "pcc" ? t("pr_" + pRole()) : DEPTS[u.dept]}</span>
      <button class="sw" id="switchUser">${t("switch")}</button>`;
   document.getElementById("switchUser").onclick = () => { me = null; drawerCase = null; render(); };
+  document.getElementById("prod").innerHTML = [["flow","prod_flow"],["pcc","prod_pcc"]]
+    .map(([k,lb]) => `<button data-prod="${k}" class="${PRODUCT === k ? "on" : ""}">${t(lb)}</button>`).join("");
+  document.querySelectorAll("[data-prod]").forEach(b => b.onclick = () => {
+    PRODUCT = b.dataset.prod; drawerCase = null; notesCtx = null; pProject = null; render();
+  });
 }
 
 /* Anmeldung. In der Zielversion ein Einmalcode per E-Mail; in der Sandbox
@@ -2134,7 +2252,7 @@ function renderLogin() {
       USERS.filter(u => u.active !== false).slice().sort(byRole).map(u => `<button data-login="${u.id}">
         <span class="ini ${av[u.dept] || ""}">${initials(u.name)}</span>
         <span><span class="nm">${esc(u.name)}</span><br>
-          <span class="rl">${DEPTS[u.dept]} · ${t("role_" + u.role)}${fnLabel(u)}</span></span>
+          <span class="rl">${DEPTS[u.dept]} · ${t("role_" + u.role)}${fnLabel(u)}<br>Control Center: ${t("pr_" + (u.pcc || "viewer"))}</span></span>
       </button>`).join("")}</div></div>
     <div class="fine">${t("lg_noreg")}</div>
   </div>`;
@@ -2170,14 +2288,15 @@ function renderSandbar() {
   document.getElementById("sbReset").onclick = () => location.reload();
 }
 function renderNav() {
-  const n = navItems(), u = M();
+  const n = PRODUCT === "pcc" ? pccNavItems() : navItems(), u = M();
+  const active = PRODUCT === "pcc" ? pv : view;
   const btn = ([k,lb,c,alert]) =>
-    `<button data-v="${k}" class="${view === k ? "on" : ""}">${t(lb)}${c ? `<span class="count${alert ? " alert" : ""}">${c}</span>` : ""}</button>`;
+    `<button data-v="${k}" class="${active === k ? "on" : ""}">${t(lb)}${c ? `<span class="count${alert ? " alert" : ""}">${c}</span>` : ""}</button>`;
   document.getElementById("side").innerHTML =
     `<div class="grp">${t("grp_work")}</div>` + n.work.map(btn).join("") +
     `<div class="grp">${t("grp_org")}</div>` + n.org.map(btn).join("") +
-    `<div class="who"><b>${esc(u.name)}</b>${DEPTS[u.dept]} · ${
-      t("role_" + u.role)
+    `<div class="who"><b>${esc(u.name)}</b>${PRODUCT === "pcc" ? t("pr_" + pRole()) : DEPTS[u.dept] + " · " + t("role_" + u.role)}${
+      ""
     }${u.dept === "sales" && u.role === "staff" ? "<br>" + (L === "de" ? "Muster: " : "Types: ") + u.types.join(", ") : ""}</div>`;
   document.getElementById("mobnav").innerHTML = n.work.concat(n.org).map(btn).join("");
 }
@@ -2303,9 +2422,11 @@ function renderMain() {
   /* Beim Neuzeichnen derselben Ansicht die Scrollposition halten — sonst
      springt die Liste nach jeder Aktion an den Anfang. */
   const ws = document.querySelector(".workspace");
-  const keepTop = (ws && ws.dataset.view === view + "|" + adminTab) ? ws.scrollTop : 0;
-  const restore = () => { if (ws) { ws.dataset.view = view + "|" + adminTab; ws.scrollTop = keepTop; } };
+  const vkey = PRODUCT + "|" + (PRODUCT === "pcc" ? pv + "|" + pProject + "|" + pTab : view + "|" + adminTab);
+  const keepTop = (ws && ws.dataset.view === vkey) ? ws.scrollTop : 0;
+  const restore = () => { if (ws) { ws.dataset.view = vkey; ws.scrollTop = keepTop; } };
   setTimeout(restore, 0); restore();
+  if (PRODUCT === "pcc") { renderPcc(m); return; }
   const vis = visibleCases();
   const newBtn = canCreateCase(M()) ? `<button class="btn-primary" id="newCase">+ ${t("new_case")}</button>` : "";
   const head = (title, sub, extra) => `<div class="hd"><div><h1>${t(title)}</h1><p>${t(sub)}</p></div>${extra ? `<div class="hdacts">${extra}</div>` : ""}</div>`;
@@ -3035,8 +3156,1306 @@ function setLang(l) {
 document.querySelectorAll(".topbar .lang button").forEach(b => b.onclick = () => setLang(b.dataset.l));
 ["side","mobnav"].forEach(id => document.getElementById(id).addEventListener("click", e => {
   const b = e.target.closest("[data-v]"); if (!b) return;
-  view = b.dataset.v; renderMain(); renderNav();
+  if (PRODUCT === "pcc") { pv = b.dataset.v; pProject = null; } else view = b.dataset.v;
+  renderMain(); renderNav();
 }));
+
+/* ============================================================================
+   PROJECT CONTROL CENTER
+   Zweites Modul derselben Anwendung. Teilt Anmeldung, Nutzer, Design, Zeitreise,
+   Export und Audit mit AAA Flow; eigene Rollen, eigene Daten.
+   Architektur und Abgrenzung: docs/PCC-ARCHITECTURE.md
+   ========================================================================== */
+const P_STATUS = ["not_started","started","on_track","at_risk","delayed","cancelled","completed"];
+const P_PRIO = ["Low","Medium","High","Critical"];
+let PRODUCT = "flow";
+let pv = "dash", pProject = null, pTab = "overview";
+let PF = { q:"", status:"", pm:"", health:"" };
+
+const PCC_ROLES = ["super_admin","admin","pm","contributor","viewer"];
+/* Rollen im Control Center sind unabhängig von den Flow-Rollen (siehe
+   PCC-ARCHITECTURE.md, Abschnitt 1). */
+const PCC_ROLE_OF = { u1:"super_admin", u2:"admin", u3:"pm", u6:"pm", u4:"contributor",
+  u5:"contributor", u13:"contributor", u9:"viewer", u10:"viewer", u11:"viewer",
+  u12:"viewer", u7:"viewer", u8:"viewer" };
+USERS.forEach(u => { if (!u.pcc) u.pcc = PCC_ROLE_OF[u.id] || "viewer"; });
+const pRole = () => (M().pcc || "viewer");
+const pIsAdmin = () => ["super_admin","admin"].includes(pRole());
+const pCanEdit = p => pIsAdmin() || (pRole() === "pm" && p && p.pm === me);
+const pCanContribute = p => pCanEdit(p) || (pRole() === "contributor" && p && p.team.some(m => m.user === me));
+
+/* ---------- Demodaten ---------- */
+let pSeq = 1000;
+const pid = () => "p" + (++pSeq);
+const PROJECTS = [];
+
+function mkProject(o) {
+  const p = Object.assign({ id:pid(), ws:[], tasks:[], ms:[], risks:[], issues:[],
+    decisions:[], docs:[], team:[], versions:[], archived:false }, o);
+  PROJECTS.push(p);
+  return p;
+}
+function mkTask(p, o) {
+  const tk = Object.assign({ id:pid(), ref:"T-" + (p.tasks.length + 1), parent:null,
+    status:"not_started", prio:"Medium", progress:0, sub:[] }, o);
+  p.tasks.push(tk); return tk;
+}
+function mkSub(p, parent, title, status, assignee) {
+  return mkTask(p, { title, parent:parent.id, status, assignee, ws:parent.ws,
+    due:parent.due, prio:parent.prio });
+}
+const pUser = id => user(id).name;
+
+/* 1 — Simulator, im Plan */
+const P1 = mkProject({ key:"SIM-26", name:"CL650 Full Flight Simulator Introduction",
+  description:"Einführung des CL650 FFS am Standort Wien, von der Abnahme bis zur Freigabe des ersten Type-Rating-Kurses.",
+  objectives:"FSTD-Qualifikation Level D bis Jahresende. Erster Kurs im Januar. Keine Abhängigkeit von Fremdsimulatoren ab Q1.",
+  scope:"In Scope: Abnahme, Qualifikation, Instruktorenschulung, Kursunterlagen. Nicht in Scope: Gebäudetechnik, Catering.",
+  status:"on_track", pm:"u3", start:D(-120), end:D(75), health:"green" });
+P1.team = [{ user:"u3", role:"Project Manager", resp:"Gesamtsteuerung, Behördenkontakt" },
+  { user:"u2", role:"Head of Training", resp:"Fachliche Abnahme, Instruktorenqualifikation" },
+  { user:"u12", role:"Course Supervisor CL650", resp:"Kursunterlagen, Instruktorenschulung" },
+  { user:"u5", role:"Training Admin", resp:"Dokumentation, Kursakte, Terminplanung" },
+  { user:"u1", role:"Sponsor", resp:"Freigaben, Budget" }];
+P1.ws = [{ id:pid(), name:"Qualifikation", owner:"u2" }, { id:pid(), name:"Instruktoren", owner:"u12" },
+  { id:pid(), name:"Unterlagen", owner:"u5" }];
+{
+  const [w1, w2, w3] = P1.ws;
+  const t1 = mkTask(P1, { title:"Factory Acceptance Test durchführen", ws:w1.id, assignee:"u2",
+    status:"completed", prio:"Critical", start:D(-60), due:D(-40), done:D(-42), progress:100,
+    description:"FAT beim Hersteller mit Prüfprotokoll nach CS-FSTD." });
+  mkSub(P1, t1, "Prüfprotokoll vorbereiten", "completed", "u5");
+  mkSub(P1, t1, "Testflüge abnehmen", "completed", "u2");
+  mkSub(P1, t1, "Mängelliste erstellen", "completed", "u2");
+  const t2 = mkTask(P1, { title:"Qualification Test Guide einreichen", ws:w1.id, assignee:"u2",
+    status:"in_progress", prio:"Critical", start:D(-30), due:D(12), progress:70,
+    description:"QTG an die Behörde, Rückfragen beantworten." });
+  mkSub(P1, t2, "Objektive Tests auswerten", "completed", "u2");
+  mkSub(P1, t2, "Subjektive Tests fliegen", "in_progress", "u12");
+  mkSub(P1, t2, "Einreichung Behörde", "not_started", "u2");
+  mkTask(P1, { title:"Instruktoren auf CL650 schulen", ws:w2.id, assignee:"u12",
+    status:"in_progress", prio:"High", start:D(-20), due:D(30), progress:45,
+    description:"Vier Instruktoren, davon zwei mit Prüferberechtigung." });
+  mkTask(P1, { title:"Kursunterlagen auf Revisionsstand bringen", ws:w3.id, assignee:"u5",
+    status:"blocked", prio:"High", start:D(-15), due:D(-3), progress:30,
+    description:"Wartet auf die finale Konfigurationsliste des Herstellers." });
+  mkTask(P1, { title:"Joining Instructions für ersten Kurs", ws:w3.id, assignee:"u5",
+    status:"not_started", prio:"Medium", start:D(40), due:D(60), progress:0 });
+}
+P1.ms = [{ id:pid(), ref:"M-1", name:"Simulator FAT", date:D(-42), owner:"u2", status:"completed", ws:P1.ws[0].id },
+  { id:pid(), ref:"M-2", name:"QTG eingereicht", date:D(12), owner:"u2", status:"in_progress", ws:P1.ws[0].id },
+  { id:pid(), ref:"M-3", name:"Level-D-Qualifikation erteilt", date:D(45), owner:"u2", status:"planned", ws:P1.ws[0].id },
+  { id:pid(), ref:"M-4", name:"Erster Kurs startet", date:D(72), owner:"u3", status:"planned", ws:P1.ws[2].id }];
+P1.risks = [{ id:pid(), ref:"R-1", title:"Konfigurationsliste des Herstellers verzögert sich",
+  description:"Ohne finale Liste lassen sich die Kursunterlagen nicht abschließen.",
+  cat:"Lieferant", prob:4, imp:4, owner:"u3", status:"open", due:D(10),
+  mitigation:"Wöchentlicher Abgleich mit dem Hersteller, Eskalation über den Vertrieb.",
+  conting:"Unterlagen mit vorläufigem Stand freigeben und nachziehen." },
+  { id:pid(), ref:"R-2", title:"Behördentermin für die Qualifikation nicht verfügbar",
+  description:"Die Behörde vergibt Termine mit acht Wochen Vorlauf.",
+  cat:"Behörde", prob:2, imp:5, owner:"u2", status:"monitoring", due:D(20),
+  mitigation:"Termin bereits vorläufig reserviert, Bestätigung nach QTG-Einreichung.",
+  conting:"Erster Kurs auf Februar verschieben." },
+  { id:pid(), ref:"R-3", title:"Zu wenige qualifizierte Instruktoren zum Kursstart",
+  description:"Zwei der vier Instruktoren sind parallel im Linienbetrieb.",
+  cat:"Personal", prob:2, imp:3, owner:"u12", status:"mitigated", due:D(35),
+  mitigation:"Freistellung für Januar bereits zugesagt.", conting:"Externer Instruktor für den ersten Kurs." }];
+P1.issues = [{ id:pid(), ref:"I-1", title:"Visual-System zeigt Artefakte bei Nachtanflügen",
+  description:"Tritt bei LVO-Szenarien in Wien reproduzierbar auf.", owner:"u12",
+  prio:"High", status:"in_progress", due:D(8), resolution:"" }];
+P1.decisions = [{ id:pid(), ref:"D-1", date:D(-55), topic:"Standort des Simulators",
+  decision:"Aufstellung in Halle 3 statt Halle 1.", maker:"u1", participants:["u2","u3"],
+  rationale:"Halle 3 bietet die notwendige Deckenhöhe und liegt näher an den Briefingräumen.",
+  impact:"Umbaukosten rund 40.000 EUR, Zeitplan unverändert." }];
+P1.docs = [{ id:pid(), title:"QTG CL650 Rev. 3", kind:"link", url:"https://sharepoint.example/qtg-cl650",
+  version:"3.0", owner:"u2", description:"Qualification Test Guide, eingereichte Fassung." },
+  { id:pid(), title:"Abnahmeprotokoll FAT", kind:"link", url:"https://sharepoint.example/fat",
+  version:"1.0", owner:"u2", description:"Unterzeichnetes Protokoll mit Mängelliste." }];
+
+/* 2 — Handbuchrevision, gefährdet */
+const P2 = mkProject({ key:"OMB-26", name:"OM-B Revision 2026",
+  description:"Überarbeitung des Operations Manual Teil B für alle Muster, Abgleich mit den aktuellen Easy Access Rules.",
+  objectives:"Freigegebene Revision vor dem Audit im Dezember. Einheitliche Struktur über alle Muster.",
+  scope:"In Scope: OM-B aller sieben Muster. Nicht in Scope: OM-A und OM-D.",
+  status:"at_risk", pm:"u2", start:D(-90), end:D(55), health:"amber" });
+P2.team = [{ user:"u2", role:"Project Manager", resp:"Redaktion, Behördeneinreichung" },
+  { user:"u1", role:"Director Training", resp:"Freigabe" },
+  { user:"u11", role:"Fachautor CL350", resp:"Musterspezifische Kapitel" },
+  { user:"u13", role:"Fachautor ATR", resp:"Musterspezifische Kapitel" },
+  { user:"u3", role:"Compliance", resp:"Abgleich mit Easy Access Rules" }];
+P2.ws = [{ id:pid(), name:"Struktur und Vorlagen", owner:"u2" },
+  { id:pid(), name:"Musterkapitel", owner:"u11" }, { id:pid(), name:"Einreichung", owner:"u2" }];
+{
+  const [w1, w2, w3] = P2.ws;
+  mkTask(P2, { title:"Vorlagenstruktur festlegen", ws:w1.id, assignee:"u2", status:"completed",
+    prio:"High", start:D(-90), due:D(-70), done:D(-72), progress:100 });
+  const t = mkTask(P2, { title:"Musterkapitel überarbeiten", ws:w2.id, assignee:"u11",
+    status:"in_progress", prio:"Critical", start:D(-60), due:D(-5), progress:55,
+    description:"Sieben Muster, je Kapitel 3 bis 9." });
+  mkSub(P2, t, "ATR", "completed", "u13");
+  mkSub(P2, t, "CL350", "completed", "u11");
+  mkSub(P2, t, "CL650", "in_progress", "u12");
+  mkSub(P2, t, "C525", "not_started", "u9");
+  mkSub(P2, t, "M2, Phenom, XLS", "not_started", "u10");
+  mkTask(P2, { title:"Compliance-Abgleich Easy Access Rules", ws:w1.id, assignee:"u3",
+    status:"in_progress", prio:"High", start:D(-30), due:D(10), progress:40 });
+  mkTask(P2, { title:"Einreichung bei der Behörde", ws:w3.id, assignee:"u2",
+    status:"not_started", prio:"Critical", start:D(20), due:D(40), progress:0 });
+}
+P2.ms = [{ id:pid(), ref:"M-1", name:"Struktur freigegeben", date:D(-72), owner:"u2", status:"completed", ws:P2.ws[0].id },
+  { id:pid(), ref:"M-2", name:"Alle Musterkapitel fertig", date:D(-5), owner:"u11", status:"delayed", ws:P2.ws[1].id },
+  { id:pid(), ref:"M-3", name:"Manual Release", date:D(13), owner:"u2", status:"planned", ws:P2.ws[2].id },
+  { id:pid(), ref:"M-4", name:"Behördenfreigabe", date:D(52), owner:"u2", status:"planned", ws:P2.ws[2].id }];
+P2.risks = [{ id:pid(), ref:"R-1", title:"Musterkapitel werden nicht rechtzeitig fertig",
+  description:"Vier von sieben Mustern sind noch offen, die Autoren sind im Linienbetrieb gebunden.",
+  cat:"Kapazität", prob:5, imp:4, owner:"u2", status:"open", due:D(5),
+  mitigation:"Zwei Autoren für je zwei Wochen freigestellt, wöchentliche Abstimmung.",
+  conting:"Revision in zwei Stufen einreichen: erst vier Muster, dann drei." },
+  { id:pid(), ref:"R-2", title:"Audit im Dezember trifft auf alte Revision",
+  description:"Ohne Freigabe prüft der Auditor die Fassung von 2024.",
+  cat:"Compliance", prob:3, imp:5, owner:"u1", status:"open", due:D(45),
+  mitigation:"Behörde vorab über den Zeitplan informieren.", conting:"Abweichung dokumentieren und Zeitplan vorlegen." }];
+P2.issues = [{ id:pid(), ref:"I-1", title:"Zwei Autoren haben unterschiedliche Vorlagen verwendet",
+  description:"CL650 und C525 folgen noch der alten Struktur.", owner:"u2", prio:"Medium",
+  status:"open", due:D(6), resolution:"" },
+  { id:pid(), ref:"I-2", title:"Abbildungen liegen nur in niedriger Auflösung vor",
+  description:"Cockpit-Darstellungen sind im Druck unbrauchbar.", owner:"u11", prio:"Low",
+  status:"resolved", due:D(-10), resolution:"Vom Hersteller in 600 dpi nachgeliefert." }];
+P2.decisions = [{ id:pid(), ref:"D-1", date:D(-40), topic:"Zweistufige Einreichung",
+  decision:"Grundsätzlich einstufig einreichen, zweistufig nur als Rückfallebene.", maker:"u1",
+  participants:["u2","u3"], rationale:"Zwei Einreichungen binden doppelt Behördenkapazität.",
+  impact:"Erhöht den Termindruck auf die Autoren." }];
+P2.docs = [{ id:pid(), title:"OM-B Vorlage 2026", kind:"link", url:"https://sharepoint.example/omb-template",
+  version:"2.1", owner:"u2", description:"Verbindliche Kapitelstruktur." }];
+
+/* 3 — EBT, gestartet */
+const P3 = mkProject({ key:"EBT-27", name:"EBT Implementation",
+  description:"Einführung von Evidence Based Training für die Muster CL350 und CL650.",
+  objectives:"Genehmigtes EBT-Programm bis Mitte 2027, Instruktoren als EBT-Assessor qualifiziert.",
+  scope:"In Scope: Programmentwicklung, Instruktorenqualifikation, Datenerhebung. Nicht in Scope: Änderungen am OM-A.",
+  status:"started", pm:"u6", start:D(-30), end:D(280), health:"green" });
+P3.team = [{ user:"u6", role:"Project Manager", resp:"Programmleitung" },
+  { user:"u2", role:"Head of Training", resp:"Fachliche Ausrichtung" },
+  { user:"u1", role:"Sponsor", resp:"Freigabe, Behördenkontakt" },
+  { user:"u4", role:"Training Admin", resp:"Datenerhebung, Auswertung" }];
+P3.ws = [{ id:pid(), name:"Programmentwicklung", owner:"u2" }, { id:pid(), name:"Datenerhebung", owner:"u4" }];
+{
+  const [w1, w2] = P3.ws;
+  mkTask(P3, { title:"Grid und Kompetenzmodell festlegen", ws:w1.id, assignee:"u2",
+    status:"in_progress", prio:"High", start:D(-20), due:D(40), progress:35 });
+  mkTask(P3, { title:"Baseline-Daten aus zwei Jahren auswerten", ws:w2.id, assignee:"u4",
+    status:"in_progress", prio:"Medium", start:D(-10), due:D(60), progress:20 });
+  mkTask(P3, { title:"Antrag bei der Behörde vorbereiten", ws:w1.id, assignee:"u6",
+    status:"not_started", prio:"High", start:D(120), due:D(180), progress:0 });
+}
+P3.ms = [{ id:pid(), ref:"M-1", name:"Kompetenzmodell freigegeben", date:D(45), owner:"u2", status:"planned", ws:P3.ws[0].id },
+  { id:pid(), ref:"M-2", name:"Antrag eingereicht", date:D(185), owner:"u6", status:"planned", ws:P3.ws[0].id }];
+P3.risks = [{ id:pid(), ref:"R-1", title:"Datenqualität der Altdaten unzureichend",
+  description:"Grading Sheets der Jahre 2024 und 2025 liegen teilweise nur auf Papier vor.",
+  cat:"Daten", prob:4, imp:3, owner:"u4", status:"open", due:D(50),
+  mitigation:"Digitalisierung priorisieren, Stichprobe prüfen.", conting:"Baseline auf ein Jahr verkürzen." }];
+P3.issues = [];
+P3.decisions = [];
+P3.docs = [];
+
+/* 4 — Flotteneinführung, verzögert */
+const P4 = mkProject({ key:"ATR-26", name:"ATR Fleet Entry",
+  description:"Aufnahme des Musters ATR in das Schulungsangebot einschließlich Kursakte, Prüfern und Simulatorzugang.",
+  objectives:"Erster ATR-Kurs im Frühjahr. Zwei eigene Prüfer.",
+  scope:"In Scope: Kursentwicklung, Prüferqualifikation, Simulatorvertrag. Nicht in Scope: Beschaffung eines eigenen FSTD.",
+  status:"delayed", pm:"u3", start:D(-150), end:D(20), health:"red" });
+P4.team = [{ user:"u3", role:"Project Manager", resp:"Gesamtsteuerung" },
+  { user:"u13", role:"Course Supervisor ATR", resp:"Kursinhalte, Prüferqualifikation" },
+  { user:"u5", role:"Training Admin", resp:"Kursakte, Verträge" }];
+P4.ws = [{ id:pid(), name:"Kursentwicklung", owner:"u13" }, { id:pid(), name:"Simulatorzugang", owner:"u3" }];
+{
+  const [w1, w2] = P4.ws;
+  mkTask(P4, { title:"Kursunterlagen ATR erstellen", ws:w1.id, assignee:"u13",
+    status:"completed", prio:"High", start:D(-140), due:D(-60), done:D(-58), progress:100 });
+  mkTask(P4, { title:"Simulatorvertrag mit Partnerbetrieb abschließen", ws:w2.id, assignee:"u3",
+    status:"blocked", prio:"Critical", start:D(-90), due:D(-25), progress:60,
+    description:"Preisverhandlung stockt, Alternativanbieter wird geprüft." });
+  mkTask(P4, { title:"Zwei Prüfer qualifizieren", ws:w1.id, assignee:"u13",
+    status:"in_progress", prio:"High", start:D(-40), due:D(-8), progress:50 });
+}
+P4.ms = [{ id:pid(), ref:"M-1", name:"Kursunterlagen fertig", date:D(-58), owner:"u13", status:"completed", ws:P4.ws[0].id },
+  { id:pid(), ref:"M-2", name:"Simulatorvertrag unterzeichnet", date:D(-25), owner:"u3", status:"delayed", ws:P4.ws[1].id },
+  { id:pid(), ref:"M-3", name:"Erster ATR-Kurs", date:D(18), owner:"u3", status:"planned", ws:P4.ws[0].id }];
+P4.risks = [{ id:pid(), ref:"R-1", title:"Kein Simulatorzugang zum geplanten Kursstart",
+  description:"Ohne Vertrag kein Slot; der Alternativanbieter hat erst ab März Kapazität.",
+  cat:"Lieferant", prob:5, imp:5, owner:"u3", status:"open", due:D(5),
+  mitigation:"Parallel mit zwei Anbietern verhandeln, Entscheidung bis Monatsende.",
+  conting:"Kursstart auf März verschieben, Kunden informieren." },
+  { id:pid(), ref:"R-2", title:"Prüferqualifikation nicht rechtzeitig abgeschlossen",
+  description:"Die Behörde benötigt vier Wochen für die Anerkennung.",
+  cat:"Behörde", prob:3, imp:4, owner:"u13", status:"open", due:D(10),
+  mitigation:"Unterlagen vollständig vorab einreichen.", conting:"Prüfer eines Partnerbetriebs einsetzen." }];
+P4.issues = [{ id:pid(), ref:"I-1", title:"Preisvorstellung des Partnerbetriebs 30 Prozent über Budget",
+  description:"Angebot liegt bei 1.950 EUR je Stunde statt der kalkulierten 1.500.",
+  owner:"u3", prio:"Critical", status:"open", due:D(3), resolution:"" }];
+P4.decisions = [{ id:pid(), ref:"D-1", date:D(-20), topic:"Eigener Simulator oder Partnerbetrieb",
+  decision:"Vorerst Partnerbetrieb, eigener FSTD frühestens 2028.", maker:"u1",
+  participants:["u3","u2"], rationale:"Auslastung rechtfertigt derzeit keine eigene Anlage.",
+  impact:"Abhängigkeit von externen Slots, laufende Kosten je Stunde." }];
+P4.docs = [];
+
+/* 5 — AAA Flow selbst, im Plan */
+const P5 = mkProject({ key:"FLOW-26", name:"AAA Flow — Digitalisierung der Trainingsnachweise",
+  description:"Einführung der Gate-Steuerung für Trainingsvorgänge über Sales, Training Admin und ATO.",
+  objectives:"Keine vergessenen Aufgaben, prüfbare Vollständigkeit der Trainingsunterlagen, belastbare Kennzahlen für die Leitung.",
+  scope:"In Scope: Gate-Steuerung, Kommunikation, Audit-Trail, Auswertung. Nicht in Scope: Scheduling, Grading, Rechnungsstellung.",
+  status:"on_track", pm:"u1", start:D(-16), end:D(90), health:"green" });
+P5.team = [{ user:"u1", role:"Project Manager", resp:"Fachliche Leitung, Spezifikation" },
+  { user:"u3", role:"Training Admin", resp:"Prozessabgleich, Prüfpunkt-Katalog" },
+  { user:"u6", role:"Sales", resp:"Akzeptanz an Gate 1" },
+  { user:"u2", role:"ATO", resp:"Gate 2 und Gate 3" }];
+P5.ws = [{ id:pid(), name:"Spezifikation", owner:"u1" }, { id:pid(), name:"Umsetzung", owner:"u1" },
+  { id:pid(), name:"Einführung", owner:"u3" }];
+{
+  const [w1, w2, w3] = P5.ws;
+  mkTask(P5, { title:"Spezifikation abstimmen", ws:w1.id, assignee:"u1", status:"completed",
+    prio:"High", start:D(-16), due:D(-14), done:D(-15), progress:100 });
+  const t = mkTask(P5, { title:"Prototyp bauen und abnehmen", ws:w2.id, assignee:"u1",
+    status:"in_progress", prio:"Critical", start:D(-15), due:D(5), progress:85 });
+  mkSub(P5, t, "Datenmodell und Gate-Logik", "completed", "u1");
+  mkSub(P5, t, "Vorgangsakte und Kommunikation", "completed", "u1");
+  mkSub(P5, t, "Admin-Panel und Export", "completed", "u1");
+  mkSub(P5, t, "Rückmeldungen einarbeiten", "in_progress", "u1");
+  mkTask(P5, { title:"Supabase-Projekt aufsetzen", ws:w2.id, assignee:"u1",
+    status:"not_started", prio:"High", start:D(6), due:D(20), progress:0,
+    description:"Region EU/Frankfurt, Schemas für Flow und Control Center." });
+  mkTask(P5, { title:"Pilotbetrieb mit zwei Mustern", ws:w3.id, assignee:"u3",
+    status:"not_started", prio:"Medium", start:D(40), due:D(80), progress:0 });
+}
+P5.ms = [{ id:pid(), ref:"M-1", name:"Spezifikation freigegeben", date:D(-14), owner:"u1", status:"completed", ws:P5.ws[0].id },
+  { id:pid(), ref:"M-2", name:"Prototyp abgenommen", date:D(6), owner:"u1", status:"in_progress", ws:P5.ws[1].id },
+  { id:pid(), ref:"M-3", name:"Pilotbetrieb startet", date:D(42), owner:"u3", status:"planned", ws:P5.ws[2].id },
+  { id:pid(), ref:"M-4", name:"Vollbetrieb", date:D(88), owner:"u1", status:"planned", ws:P5.ws[2].id }];
+P5.risks = [{ id:pid(), ref:"R-1", title:"Sales nimmt Gate 1 nicht an",
+  description:"Sales trägt den größten Erfassungsaufwand bei geringstem unmittelbarem Nutzen.",
+  cat:"Akzeptanz", prob:3, imp:5, owner:"u6", status:"monitoring", due:D(60),
+  mitigation:"Statustransparenz und Kommunikationsstrang als Gegenwert, Begleitung in den ersten drei Monaten.",
+  conting:"Erfassung an Gate 1 auf das Nötigste kürzen." }];
+P5.issues = [];
+P5.decisions = [{ id:pid(), ref:"D-1", date:D(-15), topic:"Sperre am Gate 3",
+  decision:"Kein Kursabschlussnachweis, solange Pflicht-Records fehlen.", maker:"u1",
+  participants:["u2","u3"], rationale:"Ohne harte Sperre trudeln Records nach und erzeugen Beanstandungen.",
+  impact:"Zusätzliche Regel im Prüfpunkt-Katalog, vollständig innerhalb der ATO." }];
+P5.docs = [{ id:pid(), title:"AAA Flow Spezifikation v0.2", kind:"link",
+  url:"https://sharepoint.example/aaa-flow-spec", version:"0.2", owner:"u1",
+  description:"Fachliche Spezifikation, Grundlage der Umsetzung." }];
+
+/* 6 — abgeschlossen */
+const P6 = mkProject({ key:"PHE-25", name:"Phenom Course Supervisor Staffing",
+  description:"Besetzung der Course-Supervisor-Position für das Muster Phenom.",
+  objectives:"Position dauerhaft besetzt, Vertretung geregelt.",
+  scope:"In Scope: Auswahl, Qualifikation, Übergabe.",
+  status:"completed", pm:"u2", start:D(-200), end:D(-30), health:"green" });
+P6.team = [{ user:"u2", role:"Project Manager", resp:"Auswahl und Qualifikation" },
+  { user:"u1", role:"Sponsor", resp:"Freigabe" }];
+P6.ws = [{ id:pid(), name:"Besetzung", owner:"u2" }];
+mkTask(P6, { title:"Auswahlverfahren durchführen", ws:P6.ws[0].id, assignee:"u2",
+  status:"completed", prio:"High", start:D(-200), due:D(-120), done:D(-125), progress:100 });
+mkTask(P6, { title:"Qualifikation abschließen", ws:P6.ws[0].id, assignee:"u2",
+  status:"completed", prio:"High", start:D(-120), due:D(-35), done:D(-33), progress:100 });
+P6.ms = [{ id:pid(), ref:"M-1", name:"Position besetzt", date:D(-30), owner:"u2", status:"completed", ws:P6.ws[0].id }];
+P6.risks = []; P6.issues = []; P6.decisions = []; P6.docs = [];
+
+/* ---------- Texte ---------- */
+Object.assign(I.de, {
+  prod_flow:"AAA Flow", prod_pcc:"Control Center",
+  pn_dash:"Dashboard", pn_projects:"Projekte", pn_timeline:"Timeline", pn_tasks:"Aufgaben",
+  pn_risks:"Risiken", pn_issues:"Issues", pn_milestones:"Meilensteine", pn_reports:"Berichte",
+  pg_work:"Überblick", pg_detail:"Details",
+  pd_t:"Dashboard", pd_s:"Wo stehen wir? Bestand, Kritisches, Termine und Verantwortung auf einen Blick.",
+  pp_t:"Projekte", pp_s:"Alle Projekte im Rahmen Ihrer Berechtigung.",
+  ptl_t:"Timeline", ptl_s:"Projektverläufe und Meilensteine über alle Projekte.",
+  pt_t:"Aufgaben", pt_s:"Alle Aufgaben über alle Projekte, filterbar.",
+  pr_t:"Risiken", pr_s:"Offene und beobachtete Risiken, nach Risk Score.",
+  pi_t:"Issues", pi_s:"Aktuelle Probleme und Blockaden.",
+  pm_t:"Meilensteine", pm_s:"Alle Meilensteine in zeitlicher Folge.",
+  prep_t:"Berichte", prep_s:"Exporte für Management und Projektdokumentation.",
+  k_total:"Projekte gesamt", k_active:"Aktiv", k_ontrack:"Im Plan", k_atrisk:"Gefährdet",
+  k_delayed:"Verzögert", k_done:"Abgeschlossen", k_oriks:"Offene Risiken",
+  k_otasks:"Überfällige Aufgaben", k_ums:"Meilensteine (30 Tage)",
+  c_health:"Projektstatus", c_upcoming:"Anstehende Meilensteine", c_crit:"Kritische Risiken",
+  c_overdue:"Überfällige Aufgaben", c_activity:"Letzte Änderungen", c_mtl:"Management Timeline",
+  ps_not_started:"Nicht begonnen", ps_started:"Gestartet", ps_on_track:"Im Plan",
+  ps_at_risk:"Gefährdet", ps_delayed:"Verzögert", ps_cancelled:"Abgebrochen", ps_completed:"Abgeschlossen",
+  ts_not_started:"Nicht begonnen", ts_in_progress:"In Arbeit", ts_blocked:"Blockiert",
+  ts_completed:"Erledigt", ts_cancelled:"Abgebrochen",
+  ms_planned:"Geplant", ms_in_progress:"In Arbeit", ms_completed:"Erreicht", ms_delayed:"Verzögert",
+  rs_open:"Offen", rs_monitoring:"Beobachtet", rs_mitigated:"Gemindert", rs_closed:"Geschlossen", rs_accepted:"Akzeptiert",
+  is_open:"Offen", is_in_progress:"In Arbeit", is_blocked:"Blockiert", is_resolved:"Gelöst", is_closed:"Geschlossen",
+  col_project:"Projekt", col_status:"Status", col_progress:"Fortschritt", col_pm:"Projektleitung",
+  col_next:"Nächster Meilenstein", col_risks:"Risiken", col_owner:"Verantwortlich",
+  col_due:"Fällig", col_prio:"Priorität", col_task:"Aufgabe", col_ws:"Workstream",
+  col_score:"Score", col_prob:"Eintritt", col_imp:"Auswirkung", col_cat:"Kategorie",
+  col_assignee:"Zuständig", col_date:"Datum", col_overdue:"Tage überfällig", col_title:"Titel",
+  tab_over:"Überblick", tab_tl:"Timeline", tab_tasks:"Aufgaben", tab_risks:"Risiken",
+  tab_issues:"Issues", tab_dec:"Entscheidungen", tab_team:"Team und RACI", tab_docs:"Dokumente",
+  tab_act:"Aktivität", tab_ver:"Versionen",
+  f_desc:"Beschreibung", f_obj:"Ziele", f_scope:"Scope", f_start:"Start", f_end:"Ziel-Ende",
+  f_health:"Gesamtlage", f_key:"Projektschlüssel", f_mit:"Maßnahme", f_cont:"Rückfallebene",
+  f_rat:"Begründung", f_imp2:"Auswirkung", f_part:"Beteiligte", f_maker:"Entscheider",
+  f_res:"Lösung", f_ver:"Version", f_resp:"Verantwortung", f_prole:"Projektrolle",
+  h_green:"Gut", h_amber:"Beobachten", h_red:"Kritisch",
+  p_back:"Zurück zur Übersicht", p_new:"Neues Projekt", p_none:"Keine Einträge.",
+  p_noproj:"Keine Projekte", p_noproj_s:"Passen Sie die Filter an oder legen Sie ein Projekt an.",
+  p_allstatus:"Alle Status", p_allpm:"Alle Projektleitungen", p_search:"Projekt, Aufgabe, Risiko, Issue …",
+  p_of:"von", p_days:"Tage", p_sub:"Teilaufgaben", p_matrix:"Risk Matrix",
+  p_score_h:"Score = Eintrittswahrscheinlichkeit × Auswirkung. Ab 15 gilt ein Risiko als kritisch.",
+  p_noedit:"Für dieses Projekt haben Sie nur Leserecht.",
+  p_rolehint:"Ihre Rolle im Control Center: {r}",
+  pr_super_admin:"Super Admin", pr_admin:"Admin", pr_pm:"Project Manager",
+  pr_contributor:"Contributor", pr_viewer:"Viewer",
+  nc_p_t:"Neues Projekt anlegen", nc_p_p:"Die Anlage erzeugt Version 1.0. Weitere Angaben lassen sich danach im Projekt ergänzen.",
+  e_pname:"Bitte einen Projektnamen angeben (mindestens 3 Zeichen).",
+  e_pkey:"Bitte einen Projektschlüssel angeben, etwa SIM-26.", e_pkeydup:"Diesen Projektschlüssel gibt es bereits.",
+  t_pnew:"Projekt {n} angelegt, Version 1.0.", t_psaved:"Projekt gespeichert.",
+  t_pstatus:"Projektstatus geändert.", t_ptask:"Aufgabe aktualisiert.",
+  ver_t:"Versionsverlauf", ver_sum:"Zusammenfassung", ver_changes:"Änderungen",
+  exp_pcc_dash:"Dashboard-Bericht", exp_pcc_proj:"Projektbericht",
+  pcc_note:"Prototyp. Anmeldung, Datenbank, Echtzeit und Autosave folgen mit dem Supabase-Projekt — siehe docs/PCC-ARCHITECTURE.md."
+});
+Object.assign(I.en, {
+  prod_flow:"AAA Flow", prod_pcc:"Control Center",
+  pn_dash:"Dashboard", pn_projects:"Projects", pn_timeline:"Timeline", pn_tasks:"Tasks",
+  pn_risks:"Risks", pn_issues:"Issues", pn_milestones:"Milestones", pn_reports:"Reports",
+  pg_work:"Overview", pg_detail:"Details",
+  pd_t:"Dashboard", pd_s:"Where do we stand? Volume, critical items, deadlines and ownership at a glance.",
+  pp_t:"Projects", pp_s:"All projects within your permissions.",
+  ptl_t:"Timeline", ptl_s:"Project schedules and milestones across all projects.",
+  pt_t:"Tasks", pt_s:"All tasks across all projects, filterable.",
+  pr_t:"Risks", pr_s:"Open and monitored risks, by risk score.",
+  pi_t:"Issues", pi_s:"Current issues and blockers.",
+  pm_t:"Milestones", pm_s:"All milestones in chronological order.",
+  prep_t:"Reports", prep_s:"Exports for management and project documentation.",
+  k_total:"Total projects", k_active:"Active", k_ontrack:"On track", k_atrisk:"At risk",
+  k_delayed:"Delayed", k_done:"Completed", k_oriks:"Open risks",
+  k_otasks:"Overdue tasks", k_ums:"Milestones (30 days)",
+  c_health:"Project health", c_upcoming:"Upcoming milestones", c_crit:"Critical risks",
+  c_overdue:"Overdue tasks", c_activity:"Recent activity", c_mtl:"Management timeline",
+  ps_not_started:"Not started", ps_started:"Started", ps_on_track:"On track",
+  ps_at_risk:"At risk", ps_delayed:"Delayed", ps_cancelled:"Cancelled", ps_completed:"Completed",
+  ts_not_started:"Not started", ts_in_progress:"In progress", ts_blocked:"Blocked",
+  ts_completed:"Completed", ts_cancelled:"Cancelled",
+  ms_planned:"Planned", ms_in_progress:"In progress", ms_completed:"Completed", ms_delayed:"Delayed",
+  rs_open:"Open", rs_monitoring:"Monitoring", rs_mitigated:"Mitigated", rs_closed:"Closed", rs_accepted:"Accepted",
+  is_open:"Open", is_in_progress:"In progress", is_blocked:"Blocked", is_resolved:"Resolved", is_closed:"Closed",
+  col_project:"Project", col_status:"Status", col_progress:"Progress", col_pm:"Project manager",
+  col_next:"Next milestone", col_risks:"Risks", col_owner:"Owner",
+  col_due:"Due", col_prio:"Priority", col_task:"Task", col_ws:"Workstream",
+  col_score:"Score", col_prob:"Probability", col_imp:"Impact", col_cat:"Category",
+  col_assignee:"Assignee", col_date:"Date", col_overdue:"Days overdue", col_title:"Title",
+  tab_over:"Overview", tab_tl:"Timeline", tab_tasks:"Tasks", tab_risks:"Risks",
+  tab_issues:"Issues", tab_dec:"Decisions", tab_team:"Team and RACI", tab_docs:"Documents",
+  tab_act:"Activity", tab_ver:"Versions",
+  f_desc:"Description", f_obj:"Objectives", f_scope:"Scope", f_start:"Start", f_end:"Target end",
+  f_health:"Overall health", f_key:"Project key", f_mit:"Mitigation", f_cont:"Contingency",
+  f_rat:"Rationale", f_imp2:"Impact", f_part:"Participants", f_maker:"Decision maker",
+  f_res:"Resolution", f_ver:"Version", f_resp:"Responsibilities", f_prole:"Project role",
+  h_green:"Good", h_amber:"Watch", h_red:"Critical",
+  p_back:"Back to projects", p_new:"New project", p_none:"No entries.",
+  p_noproj:"No projects", p_noproj_s:"Adjust the filters or create a project.",
+  p_allstatus:"All statuses", p_allpm:"All project managers", p_search:"Project, task, risk, issue …",
+  p_of:"of", p_days:"days", p_sub:"Subtasks", p_matrix:"Risk matrix",
+  p_score_h:"Score = probability × impact. From 15 upwards a risk counts as critical.",
+  p_noedit:"You have read-only access to this project.",
+  p_rolehint:"Your Control Center role: {r}",
+  pr_super_admin:"Super Admin", pr_admin:"Admin", pr_pm:"Project Manager",
+  pr_contributor:"Contributor", pr_viewer:"Viewer",
+  nc_p_t:"Create a project", nc_p_p:"Creating the project produces version 1.0. Further details can be added afterwards.",
+  e_pname:"Please enter a project name (at least 3 characters).",
+  e_pkey:"Please enter a project key, e.g. SIM-26.", e_pkeydup:"This project key already exists.",
+  t_pnew:"Project {n} created, version 1.0.", t_psaved:"Project saved.",
+  t_pstatus:"Project status changed.", t_ptask:"Task updated.",
+  ver_t:"Version history", ver_sum:"Summary", ver_changes:"Changes",
+  exp_pcc_dash:"Dashboard report", exp_pcc_proj:"Project report",
+  pcc_note:"Prototype. Sign-in, database, real-time and autosave follow with the Supabase project — see docs/PCC-ARCHITECTURE.md."
+});
+
+/* ---------- Ableitungen ---------- */
+const pTop = p => p.tasks.filter(x => !x.parent);
+const pKids = (p, t) => p.tasks.filter(x => x.parent === t.id);
+const pTaskDone = t => t.status === "completed" || t.status === "cancelled";
+function pProgress(p) {
+  const all = p.tasks.filter(t => t.status !== "cancelled");
+  if (!all.length) return 0;
+  return Math.round(all.reduce((a, t) => a + (pTaskDone(t) ? 100 : (t.progress || 0)), 0) / all.length);
+}
+const pTaskOverdue = t => !pTaskDone(t) && t.due && daysTo(t.due) < 0;
+const pOverdueTasks = p => p.tasks.filter(pTaskOverdue);
+const pOpenRisks = p => p.risks.filter(r => ["open","monitoring"].includes(r.status));
+const rScore = r => r.prob * r.imp;
+const pCritRisks = p => pOpenRisks(p).filter(r => rScore(r) >= 15);
+const pMsOverdue = m => m.status !== "completed" && daysTo(m.date) < 0;
+function pNextMs(p) {
+  return p.ms.filter(m => m.status !== "completed").sort((a,b) => a.date < b.date ? -1 : 1)[0] || null;
+}
+/* Rot ist teuer: es bedeutet Handlungsbedarf auf Leitungsebene. Ein einzelnes
+   kritisches Risiko in einem Projekt im Plan ist noch kein roter Status. */
+function pHealth(p) {
+  if (p.status === "completed" || p.status === "cancelled") return "green";
+  if (p.status === "delayed" || p.ms.some(pMsOverdue) || pCritRisks(p).length >= 2) return "red";
+  if (p.status === "at_risk" || pCritRisks(p).length || pOverdueTasks(p).length) return "amber";
+  return "green";
+}
+const healthCls = h => h === "red" ? "bad" : h === "amber" ? "warn" : "ok";
+/* Sichtbarkeit: Abschnitt 5 gibt auch dem Viewer Leserecht auf Projekte, nicht
+   nur auf eigene. Gelesen wird alles Nichtarchivierte, geändert je nach Rolle.
+   Soll die Sicht je Projekt einschränkbar sein, ist das eine Erweiterung —
+   siehe PCC-ARCHITECTURE.md, offener Punkt. */
+const pVisible = () => PROJECTS.filter(p => !p.archived);
+const pById = id => PROJECTS.find(x => x.id === id);
+const pOf = entityProjectFinder => entityProjectFinder;
+const pill = (cls, txt) => `<span class="pill ${cls}">${esc(txt)}</span>`;
+const pStatusPill = s => pill("s-" + s, t("ps_" + s));
+const pBar = (v, cls) => `<div style="display:flex;align-items:center;gap:8px">
+  <div class="bar ${cls || ""}" style="flex:1"><i style="width:${v}%"></i></div><span class="pct">${v}%</span></div>`;
+
+/* ---------- Audit und Versionen ---------- */
+const PLOG = [];
+function plg(p, who, txt, reason, ts) {
+  PLOG.unshift({ ts:ts || nowTs(), who, project:p ? p.id : null, txt, reason:reason || null });
+}
+function pver(p, summary, changes, ts, by) {
+  const n = p.versions.length;
+  p.versions.unshift({ v:"1." + n, date:ts || today(), by:by || me, summary, changes:changes || [] });
+}
+PROJECTS.forEach(p => {
+  pver(p, L === "de" ? "Projekt angelegt" : "Project created", [], p.start, p.pm);
+  plg(p, p.pm, (L === "de" ? "Projekt angelegt — " : "Project created — ") + p.name, null, p.start);
+  p.ms.filter(m => m.status === "completed").forEach(m => {
+    pver(p, (L === "de" ? "Meilenstein erreicht: " : "Milestone completed: ") + m.name,
+      [{ e:m.name, f:"Status", o:t("ms_in_progress"), n:t("ms_completed") }], m.date, m.owner);
+    plg(p, m.owner, (L === "de" ? "Meilenstein erreicht: " : "Milestone completed: ") + m.name, null, m.date);
+  });
+  p.risks.forEach(r => plg(p, r.owner, (L === "de" ? "Risiko angelegt: " : "Risk created: ") + r.ref + " " + r.title,
+    null, addBusinessDays(p.start, 5)));
+  p.tasks.filter(x => x.done).forEach(x => plg(p, x.assignee,
+    (L === "de" ? "Aufgabe erledigt: " : "Task completed: ") + x.title, null, x.done));
+});
+PROJECTS.filter(p => p.status === "at_risk" || p.status === "delayed").forEach(p => {
+  pver(p, L === "de" ? "Projektstatus geändert" : "Project status changed",
+    [{ e:p.name, f:"Status", o:t("ps_on_track"), n:t("ps_" + p.status) }], D(-12), p.pm);
+  plg(p, p.pm, (L === "de" ? "Projektstatus geändert auf " : "Project status changed to ") + t("ps_" + p.status),
+    null, D(-12));
+});
+PLOG.sort((a,b) => a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0);
+const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
+
+/* ---------- Timeline ---------- */
+function tlWindow(ps) {
+  const ds = [];
+  ps.forEach(p => { ds.push(p.start, p.end); p.ms.forEach(m => ds.push(m.date)); });
+  ds.push(today());
+  const from = new Date(ds.reduce((a,b) => a < b ? a : b));
+  const to = new Date(ds.reduce((a,b) => a > b ? a : b));
+  from.setDate(1);
+  to.setMonth(to.getMonth() + 1, 1);
+  const months = [];
+  const d = new Date(from);
+  while (d < to) { months.push(new Date(d)); d.setMonth(d.getMonth() + 1); }
+  return { from, to, months };
+}
+const tlPct = (date, w) => Math.max(0, Math.min(100,
+  (new Date(date) - w.from) / (w.to - w.from) * 100));
+function timelineHTML(ps, clickable) {
+  if (!ps.length) return `<p class="muted">${t("p_none")}</p>`;
+  const w = tlWindow(ps);
+  const mName = d => d.toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { month:"short" }).toUpperCase();
+  const nowPct = tlPct(today(), w);
+  return `<div class="tl"><div class="tlgrid">
+    <div class="tlhead">${w.months.map(m =>
+      `<span>${mName(m)}${m.getMonth() === 0 ? " " + m.getFullYear() : ""}</span>`).join("")}</div>
+    ${ps.map(p => {
+      const a = tlPct(p.start, w), b = tlPct(p.end, w);
+      const cls = p.status === "completed" ? "done" : healthCls(pHealth(p));
+      return `<div class="tlrow"${clickable ? ` data-pp="${p.id}" style="cursor:pointer"` : ""}>
+        <div class="nm">${esc(p.name.length > 34 ? p.name.slice(0,32) + "…" : p.name)}
+          <div class="co">${esc(p.key)} · ${pUser(p.pm)}</div></div>
+        <div class="tltrack">
+          <div class="grid">${w.months.map(() => "<span></span>").join("")}</div>
+          <div class="tlnow" style="left:${nowPct}%"></div>
+          <div class="tlbar ${cls}" style="left:${a}%;width:${Math.max(1.2, b - a)}%"></div>
+          ${p.ms.map(m => `<div class="ms" style="left:${tlPct(m.date, w)}%" title="${esc(m.name)}">
+            <i class="${m.status === "completed" ? "done" : pMsOverdue(m) ? "late" : ""}"></i></div>`).join("")}
+        </div></div>`;
+    }).join("")}
+  </div></div>`;
+}
+
+/* ---------- Dashboard ---------- */
+function pccDash() {
+  const ps = pVisible();
+  const active = ps.filter(p => !["completed","cancelled"].includes(p.status));
+  const cnt = s => ps.filter(p => p.status === s).length;
+  const risks = [];
+  ps.forEach(p => pOpenRisks(p).forEach(r => risks.push({ p, r })));
+  risks.sort((a,b) => rScore(b.r) - rScore(a.r));
+  const over = [];
+  ps.forEach(p => pOverdueTasks(p).forEach(x => over.push({ p, x })));
+  over.sort((a,b) => daysTo(a.x.due) - daysTo(b.x.due));
+  const ms = [];
+  ps.forEach(p => p.ms.filter(m => m.status !== "completed" && daysTo(m.date) >= -30)
+    .forEach(m => ms.push({ p, m })));
+  ms.sort((a,b) => a.m.date < b.m.date ? -1 : 1);
+  const soon = ms.filter(x => daysTo(x.m.date) >= 0 && daysTo(x.m.date) <= 30).length;
+
+  const kpi = (n, lb, cls) => `<div class="pkpi ${cls || ""}"><div class="n">${n}</div><div class="lb">${t(lb)}</div></div>`;
+  return `<div class="pkpis">
+      ${kpi(ps.length, "k_total")}${kpi(active.length, "k_active")}
+      ${kpi(cnt("on_track"), "k_ontrack", "ok")}${kpi(cnt("at_risk"), "k_atrisk", "warn")}
+      ${kpi(cnt("delayed"), "k_delayed", "bad")}${kpi(cnt("completed"), "k_done")}
+      ${kpi(risks.length, "k_oriks", risks.some(x => rScore(x.r) >= 15) ? "bad" : "")}
+      ${kpi(over.length, "k_otasks", over.length ? "bad" : "")}${kpi(soon, "k_ums")}
+    </div>
+
+    <div class="pcard"><header><h2>${t("c_mtl")}</h2></header>
+      <div class="inner">${timelineHTML(active, true)}</div></div>
+
+    <div class="pcard"><header><h2>${t("c_health")}</h2>
+      <span class="co">${active.length} ${t("k_active").toLowerCase()}</span></header>
+      <div class="tblwrap aslist"><table><thead><tr>
+        <th>${t("col_project")}</th><th>${t("col_status")}</th><th>${t("col_progress")}</th>
+        <th>${t("col_pm")}</th><th>${t("col_next")}</th><th>${t("col_risks")}</th>
+      </tr></thead><tbody>${ps.map(p => {
+        const n = pNextMs(p), cr = pCritRisks(p).length;
+        return `<tr data-pp="${p.id}">
+          <td><b>${esc(p.name)}</b><div class="num">${esc(p.key)}</div></td>
+          <td>${pStatusPill(p.status)}</td>
+          <td style="min-width:130px">${pBar(pProgress(p), healthCls(pHealth(p)))}</td>
+          <td class="co">${pUser(p.pm)}</td>
+          <td class="co">${n ? esc(n.name) + `<div class="num">${fmtDate(n.date)}</div>` : t("none")}</td>
+          <td>${pOpenRisks(p).length}${cr ? ` <span class="pill p-late">${cr} kritisch</span>` : ""}</td>
+        </tr>`; }).join("")}</tbody></table></div>
+      <div class="cards" style="padding:12px">${ps.map(p => `<article class="card" data-pp="${p.id}">
+        <div class="top"><span class="num">${esc(p.key)}</span>${pStatusPill(p.status)}</div>
+        <h4>${esc(p.name)}</h4>
+        <div class="sub"><span>${pUser(p.pm)}</span></div>
+        <div style="margin-top:8px">${pBar(pProgress(p), healthCls(pHealth(p)))}</div>
+      </article>`).join("")}</div>
+    </div>
+
+    <div class="grid2">
+      <div class="pcard"><header><h2>${t("c_upcoming")}</h2></header>
+        ${ms.length ? `<ul class="plist">${ms.slice(0,6).map(({p,m}) => `<li class="clickable" data-pp="${p.id}">
+          <span class="when"><b>${new Date(m.date).getDate()}</b>${new Date(m.date)
+            .toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { month:"short" })}</span>
+          <span class="m"><b>${esc(m.name)}</b>
+            <span class="sub">${esc(p.key)} · ${pUser(m.owner)}</span></span>
+          <span class="rt">${pill(pMsOverdue(m) ? "p-late" : "p-open", t("ms_" + m.status))}</span>
+        </li>`).join("")}</ul>` : `<div class="inner muted">${t("p_none")}</div>`}
+      </div>
+
+      <div class="pcard"><header><h2>${t("c_crit")}</h2></header>
+        ${risks.length ? `<ul class="plist">${risks.slice(0,6).map(({p,r}) => `<li class="clickable" data-pp="${p.id}">
+          <span class="when"><b>${rScore(r)}</b>Score</span>
+          <span class="m"><b>${esc(r.title)}</b>
+            <span class="sub">${esc(p.key)} · ${esc(r.cat)} · ${pUser(r.owner)}</span></span>
+          <span class="rt">${pill(rScore(r) >= 15 ? "p-late" : rScore(r) >= 8 ? "p-work" : "p-open",
+            rScore(r) >= 15 ? "High" : rScore(r) >= 8 ? "Medium" : "Low")}</span>
+        </li>`).join("")}</ul>` : `<div class="inner muted">${t("p_none")}</div>`}
+      </div>
+
+      <div class="pcard"><header><h2>${t("c_overdue")}</h2></header>
+        ${over.length ? `<ul class="plist">${over.slice(0,6).map(({p,x}) => `<li class="clickable" data-pp="${p.id}">
+          <span class="when"><b>${Math.abs(daysTo(x.due))}</b>${t("p_days")}</span>
+          <span class="m"><b>${esc(x.title)}</b>
+            <span class="sub">${esc(p.key)} · ${x.assignee ? pUser(x.assignee) : t("none")} · ${fmtDate(x.due)}</span></span>
+          <span class="rt">${pill("prio-" + x.prio, x.prio)}</span>
+        </li>`).join("")}</ul>` : `<div class="inner muted">${t("p_none")}</div>`}
+      </div>
+
+      <div class="pcard"><header><h2>${t("c_activity")}</h2></header>
+        <ul class="plist">${PLOG.slice(0,7).map(e => {
+          const p = pById(e.project);
+          return `<li${p ? ` class="clickable" data-pp="${p.id}"` : ""}>
+            <span class="when">${fmtDate(e.ts.slice(0,10))}</span>
+            <span class="m"><b>${esc(e.txt)}</b>
+              <span class="sub">${esc(pUser(e.who))}${p ? " · " + esc(p.key) : ""}</span></span>
+          </li>`; }).join("")}</ul>
+      </div>
+    </div>`;
+}
+
+/* ---------- Listen über alle Projekte ---------- */
+function pFilterBar(n) {
+  const pms = [...new Set(PROJECTS.map(p => p.pm))].map(user).sort(byName);
+  return `<div class="filters">
+    <input type="search" id="pq" placeholder="${t("p_search")}" value="${esc(PF.q)}" aria-label="${t("p_search")}">
+    <select id="pstatus"><option value="">${t("p_allstatus")}</option>${
+      P_STATUS.map(s => `<option value="${s}" ${PF.status === s ? "selected" : ""}>${t("ps_" + s)}</option>`).join("")}</select>
+    <select id="ppm"><option value="">${t("p_allpm")}</option>${
+      pms.map(u => `<option value="${u.id}" ${PF.pm === u.id ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select>
+    <button class="clear" id="pclear">${t("f_clear")}</button>
+    <span class="fcount">${n} ${t("results")}</span></div>`;
+}
+function pFiltered() {
+  return pVisible().filter(p => {
+    if (PF.status && p.status !== PF.status) return false;
+    if (PF.pm && p.pm !== PF.pm) return false;
+    if (PF.q) {
+      const q = PF.q.toLowerCase();
+      const hay = [p.name, p.key, p.description, ...p.tasks.map(x => x.title),
+        ...p.risks.map(x => x.title), ...p.issues.map(x => x.title)].join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+function pccProjects() {
+  const rows = pFiltered();
+  if (!rows.length) return pFilterBar(0) +
+    `<div class="tblwrap"><div class="empty"><b>${t("p_noproj")}</b>${t("p_noproj_s")}</div></div>`;
+  return pFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("f_key")}</th><th>${t("col_project")}</th><th>${t("col_status")}</th>
+      <th>${t("col_progress")}</th><th>${t("col_pm")}</th><th>${t("f_end")}</th>
+      <th>${t("col_next")}</th><th>${t("col_risks")}</th>
+    </tr></thead><tbody>${rows.map(p => {
+      const n = pNextMs(p);
+      return `<tr data-pp="${p.id}">
+        <td class="num">${esc(p.key)}</td>
+        <td><b>${esc(p.name)}</b></td>
+        <td>${pStatusPill(p.status)}</td>
+        <td style="min-width:130px">${pBar(pProgress(p), healthCls(pHealth(p)))}</td>
+        <td class="co">${pUser(p.pm)}</td>
+        <td class="co">${fmtDate(p.end)}</td>
+        <td class="co">${n ? esc(n.name) : t("none")}</td>
+        <td>${pOpenRisks(p).length}</td></tr>`; }).join("")}</tbody></table></div>
+    <div class="cards">${rows.map(p => `<article class="card" data-pp="${p.id}">
+      <div class="top"><span class="num">${esc(p.key)}</span>${pStatusPill(p.status)}</div>
+      <h4>${esc(p.name)}</h4>
+      <div class="sub"><span>${pUser(p.pm)}</span><span>·</span><span>${fmtDate(p.end)}</span></div>
+      <div style="margin-top:8px">${pBar(pProgress(p), healthCls(pHealth(p)))}</div>
+      <div class="next">${pOpenRisks(p).length} ${t("col_risks")} · ${pOverdueTasks(p).length} ${t("c_overdue")}</div>
+    </article>`).join("")}</div>`;
+}
+function pccTasks() {
+  const rows = [];
+  pFiltered().forEach(p => p.tasks.forEach(x => rows.push({ p, x })));
+  rows.sort((a,b) => (a.x.due || "9") < (b.x.due || "9") ? -1 : 1);
+  return pFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("col_task")}</th><th>${t("col_project")}</th><th>${t("col_assignee")}</th>
+      <th>${t("col_status")}</th><th>${t("col_prio")}</th><th>${t("col_due")}</th><th>${t("col_progress")}</th>
+    </tr></thead><tbody>${rows.map(({p,x}) => `<tr data-pp="${p.id}">
+      <td>${x.parent ? '<span class="co">↳ </span>' : ""}<b>${esc(x.title)}</b><div class="num">${x.ref}</div></td>
+      <td class="num">${esc(p.key)}</td>
+      <td class="co">${x.assignee ? pUser(x.assignee) : t("none")}</td>
+      <td>${pill(x.status === "completed" ? "p-done" : x.status === "blocked" ? "p-late"
+        : x.status === "in_progress" ? "p-work" : "p-open", t("ts_" + x.status))}</td>
+      <td>${pill("prio-" + x.prio, x.prio)}</td>
+      <td class="${pTaskOverdue(x) ? "" : "co"}" style="${pTaskOverdue(x) ? "color:var(--late);font-weight:600" : ""}">${fmtDate(x.due)}</td>
+      <td style="min-width:110px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</td>
+    </tr>`).join("")}</tbody></table></div>
+    <div class="cards">${rows.map(({p,x}) => `<article class="card" data-pp="${p.id}">
+      <div class="top"><span class="num">${x.ref} · ${esc(p.key)}</span>${pill("prio-" + x.prio, x.prio)}</div>
+      <h4>${esc(x.title)}</h4>
+      <div class="sub"><span>${x.assignee ? pUser(x.assignee) : t("none")}</span><span>·</span>
+        <span${pTaskOverdue(x) ? ' style="color:var(--late);font-weight:600"' : ""}>${fmtDate(x.due)}</span></div>
+      <div style="margin-top:8px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</div>
+    </article>`).join("")}</div>`;
+}
+function riskMatrix(rows) {
+  const cell = (pb, im) => {
+    const s = pb * im, hit = rows.filter(({r}) => r.prob === pb && r.imp === im);
+    const cls = s >= 15 ? "x" : s >= 10 ? "h" : s >= 5 ? "m" : "l";
+    return `<td class="${cls}" title="Score ${s}">${hit.length ? `<b>${hit.length}</b>` : ""}</td>`;
+  };
+  return `<table class="rmx"><thead><tr><th></th>${[1,2,3,4,5].map(i => `<th>${i}</th>`).join("")}</tr></thead>
+    <tbody>${[5,4,3,2,1].map(pb => `<tr><th>${pb}</th>${[1,2,3,4,5].map(im => cell(pb, im)).join("")}</tr>`).join("")}</tbody>
+    </table>
+    <div class="co" style="margin-top:8px">${t("col_prob")} ↕ · ${t("col_imp")} ↔ · ${t("p_score_h")}</div>`;
+}
+function pccRisks() {
+  const rows = [];
+  pFiltered().forEach(p => p.risks.forEach(r => rows.push({ p, r })));
+  rows.sort((a,b) => rScore(b.r) - rScore(a.r));
+  return pFilterBar(rows.length) +
+    `<div class="pcard"><header><h2>${t("p_matrix")}</h2></header><div class="inner">${riskMatrix(rows)}</div></div>` +
+    `<div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("col_score")}</th><th>${t("col_title")}</th><th>${t("col_project")}</th><th>${t("col_cat")}</th>
+      <th>${t("col_prob")}</th><th>${t("col_imp")}</th><th>${t("col_owner")}</th><th>${t("col_status")}</th><th>${t("col_due")}</th>
+    </tr></thead><tbody>${rows.map(({p,r}) => `<tr data-pp="${p.id}">
+      <td><span class="pill ${rScore(r) >= 15 ? "p-late" : rScore(r) >= 8 ? "p-work" : "p-open"}">${rScore(r)}</span></td>
+      <td><b>${esc(r.title)}</b><div class="num">${r.ref}</div></td>
+      <td class="num">${esc(p.key)}</td><td class="co">${esc(r.cat)}</td>
+      <td class="co">${r.prob}</td><td class="co">${r.imp}</td>
+      <td class="co">${pUser(r.owner)}</td>
+      <td>${pill(r.status === "open" ? "p-late" : r.status === "monitoring" ? "p-work" : "p-done", t("rs_" + r.status))}</td>
+      <td class="co">${fmtDate(r.due)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="cards">${rows.map(({p,r}) => `<article class="card" data-pp="${p.id}">
+      <div class="top"><span class="pill ${rScore(r) >= 15 ? "p-late" : rScore(r) >= 8 ? "p-work" : "p-open"}">Score ${rScore(r)}</span>
+        <span class="num">${r.ref} · ${esc(p.key)}</span></div>
+      <h4>${esc(r.title)}</h4>
+      <div class="sub"><span>${esc(r.cat)}</span><span>·</span><span>${pUser(r.owner)}</span></div>
+      <div class="next">${esc(r.mitigation)}</div></article>`).join("")}</div>`;
+}
+function pccIssues() {
+  const rows = [];
+  pFiltered().forEach(p => p.issues.forEach(i => rows.push({ p, i })));
+  rows.sort((a,b) => (a.i.due || "9") < (b.i.due || "9") ? -1 : 1);
+  return pFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("col_title")}</th><th>${t("col_project")}</th><th>${t("col_owner")}</th>
+      <th>${t("col_prio")}</th><th>${t("col_status")}</th><th>${t("col_due")}</th>
+    </tr></thead><tbody>${rows.map(({p,i}) => `<tr data-pp="${p.id}">
+      <td><b>${esc(i.title)}</b><div class="num">${i.ref}</div></td>
+      <td class="num">${esc(p.key)}</td><td class="co">${pUser(i.owner)}</td>
+      <td>${pill("prio-" + i.prio, i.prio)}</td>
+      <td>${pill(["open","blocked"].includes(i.status) ? "p-late" : i.status === "in_progress" ? "p-work" : "p-done", t("is_" + i.status))}</td>
+      <td class="co">${fmtDate(i.due)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="cards">${rows.map(({p,i}) => `<article class="card" data-pp="${p.id}">
+      <div class="top"><span class="num">${i.ref} · ${esc(p.key)}</span>${pill("prio-" + i.prio, i.prio)}</div>
+      <h4>${esc(i.title)}</h4><div class="sub"><span>${pUser(i.owner)}</span><span>·</span><span>${fmtDate(i.due)}</span></div>
+    </article>`).join("")}</div>`;
+}
+function pccMilestones() {
+  const rows = [];
+  pFiltered().forEach(p => p.ms.forEach(m => rows.push({ p, m })));
+  rows.sort((a,b) => a.m.date < b.m.date ? -1 : 1);
+  return pFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("col_date")}</th><th>${t("pn_milestones")}</th><th>${t("col_project")}</th>
+      <th>${t("col_owner")}</th><th>${t("col_status")}</th>
+    </tr></thead><tbody>${rows.map(({p,m}) => `<tr data-pp="${p.id}">
+      <td class="num">${fmtLong(m.date)}</td>
+      <td><b>${esc(m.name)}</b><div class="num">${m.ref}</div></td>
+      <td class="num">${esc(p.key)}</td><td class="co">${pUser(m.owner)}</td>
+      <td>${pill(m.status === "completed" ? "p-done" : pMsOverdue(m) ? "p-late"
+        : m.status === "in_progress" ? "p-work" : "p-open", t("ms_" + m.status))}</td>
+    </tr>`).join("")}</tbody></table></div>
+    <div class="cards">${rows.map(({p,m}) => `<article class="card" data-pp="${p.id}">
+      <div class="top"><span class="num">${fmtLong(m.date)} · ${esc(p.key)}</span></div>
+      <h4>${esc(m.name)}</h4><div class="sub"><span>${pUser(m.owner)}</span></div></article>`).join("")}</div>`;
+}
+function pccReports() {
+  const ps = pVisible();
+  return `<div class="notice">${t("pcc_note")}</div>
+    <div class="pcard"><header><h2>${t("exp_pcc_dash")}</h2></header><div class="inner">
+      <p class="muted" style="margin-bottom:10px">${t("pd_s")}</p>
+      <span class="hdacts">${expBtns("pcc_dash")}</span></div></div>
+    <div class="pcard"><header><h2>${t("exp_pcc_proj")}</h2></header>
+      <ul class="plist">${ps.map(p => `<li>
+        <span class="m"><b>${esc(p.name)}</b><span class="sub">${esc(p.key)} · ${pUser(p.pm)}</span></span>
+        <span class="rt hdacts">
+          <button class="btn-ghost" data-prep="pdf|${p.id}">${t("exp_pdf")}</button>
+          <button class="btn-ghost" data-prep="xls|${p.id}">${t("exp_xls")}</button></span></li>`).join("")}</ul></div>
+    <div class="pcard"><header><h2>${t("pg_work")}</h2></header><div class="inner hdacts">
+      ${expBtns("pcc_projects")}${expBtns("pcc_risks")}${expBtns("pcc_tasks")}${expBtns("pcc_ms")}</div></div>`;
+}
+
+/* ---------- Projektansicht ---------- */
+const P_TABS = [["overview","tab_over"],["timeline","tab_tl"],["tasks","tab_tasks"],
+  ["risks","tab_risks"],["issues","tab_issues"],["decisions","tab_dec"],["team","tab_team"],
+  ["docs","tab_docs"],["activity","tab_act"],["versions","tab_ver"]];
+
+function pHeader(p) {
+  const canEdit = pCanEdit(p), h = pHealth(p);
+  return `<button class="back" id="pback">← ${t("p_back")}</button>
+  <div class="phead">
+    <div class="top">
+      <h1>${esc(p.name)}</h1>
+      <span class="hdacts">
+        ${canEdit ? `<button class="btn-ghost" id="pedit">${t("edit")}</button>` : ""}
+        <button class="btn-ghost" data-prep="pdf|${p.id}">${t("exp_pdf")}</button>
+        <button class="btn-ghost" data-prep="xls|${p.id}">${t("exp_xls")}</button>
+      </span>
+    </div>
+    <div class="meta" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px">
+      <span class="num">${esc(p.key)}</span>${pStatusPill(p.status)}
+      ${pill(h === "red" ? "p-late" : h === "amber" ? "p-work" : "p-done", t("h_" + h))}
+      ${canEdit ? "" : `<span class="co">${t("p_noedit")}</span>`}
+    </div>
+    <div class="facts">
+      <div><div class="k">${t("col_progress")}</div><div class="v">${pBar(pProgress(p), healthCls(h))}</div></div>
+      <div><div class="k">${t("col_pm")}</div><div class="v">${pUser(p.pm)}</div></div>
+      <div><div class="k">${t("f_start")}</div><div class="v">${fmtLong(p.start)}</div></div>
+      <div><div class="k">${t("f_end")}</div><div class="v">${fmtLong(p.end)}</div></div>
+      <div><div class="k">${t("col_risks")}</div><div class="v">${pOpenRisks(p).length}${
+        pCritRisks(p).length ? ` <span class="pill p-late">${pCritRisks(p).length}</span>` : ""}</div></div>
+      <div><div class="k">${t("c_overdue")}</div><div class="v">${pOverdueTasks(p).length}</div></div>
+    </div>
+  </div>
+  <div class="ptabs">${P_TABS.map(([k,lb]) =>
+    `<button data-ptab="${k}" class="${pTab === k ? "on" : ""}">${t(lb)}</button>`).join("")}</div>`;
+}
+
+const pTaskPill = x => pill(x.status === "completed" ? "p-done" : x.status === "blocked" ? "p-late"
+  : x.status === "in_progress" ? "p-work" : "p-open", t("ts_" + x.status));
+
+function pTabOverview(p) {
+  const kv = (k, v) => `<div><div class="k">${t(k)}</div><div class="v">${v}</div></div>`;
+  return `<div class="pcard"><div class="inner kv2">
+      ${kv("f_desc", esc(p.description))}
+      ${kv("f_obj", esc(p.objectives))}
+      ${kv("f_scope", esc(p.scope))}
+    </div></div>
+    <div class="grid2">
+      <div class="pcard"><header><h2>${t("pn_milestones")}</h2></header>
+        <ul class="plist">${p.ms.map(m => `<li>
+          <span class="when"><b>${new Date(m.date).getDate()}</b>${new Date(m.date)
+            .toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { month:"short" })}</span>
+          <span class="m"><b>${esc(m.name)}</b><span class="sub">${pUser(m.owner)}</span></span>
+          <span class="rt">${pill(m.status === "completed" ? "p-done" : pMsOverdue(m) ? "p-late"
+            : m.status === "in_progress" ? "p-work" : "p-open", t("ms_" + m.status))}</span></li>`).join("")
+          || `<li class="muted">${t("p_none")}</li>`}</ul></div>
+      <div class="pcard"><header><h2>${t("c_crit")}</h2></header>
+        <ul class="plist">${pOpenRisks(p).sort((a,b) => rScore(b) - rScore(a)).map(r => `<li>
+          <span class="when"><b>${rScore(r)}</b>Score</span>
+          <span class="m"><b>${esc(r.title)}</b><span class="sub">${esc(r.cat)} · ${pUser(r.owner)}</span></span></li>`).join("")
+          || `<li class="muted">${t("p_none")}</li>`}</ul></div>
+    </div>`;
+}
+function pTabTasks(p) {
+  const may = pCanContribute(p);
+  const rows = [];
+  pTop(p).forEach(x => { rows.push({ x, sub:false }); pKids(p, x).forEach(k => rows.push({ x:k, sub:true })); });
+  return `${pCanEdit(p) ? `<div class="hdacts" style="margin-bottom:12px">
+      <button class="btn-primary" id="pnewtask">+ ${t("col_task")}</button>${expBtns("pcc_ptasks")}</div>`
+      : `<div class="hdacts" style="margin-bottom:12px">${expBtns("pcc_ptasks")}</div>`}
+    <div class="tblwrap aslist"><table class="tasktree"><thead><tr>
+      <th>${t("col_task")}</th><th>${t("col_ws")}</th><th>${t("col_assignee")}</th>
+      <th>${t("col_status")}</th><th>${t("col_prio")}</th><th>${t("col_due")}</th>
+      <th>${t("col_progress")}</th>${may ? "<th></th>" : ""}
+    </tr></thead><tbody>${rows.map(({x, sub}) => {
+      const ws = p.ws.find(w => w.id === x.ws);
+      const mine = may && (pCanEdit(p) || x.assignee === me);
+      return `<tr class="${sub ? "sub" : ""}">
+        <td>${sub ? '<span class="co">↳ </span>' : ""}<b>${esc(x.title)}</b>
+          <div class="num">${x.ref}</div></td>
+        <td class="co">${ws ? esc(ws.name) : t("none")}</td>
+        <td class="co">${x.assignee ? pUser(x.assignee) : t("none")}</td>
+        <td>${pTaskPill(x)}</td>
+        <td>${pill("prio-" + x.prio, x.prio)}</td>
+        <td class="co" style="${pTaskOverdue(x) ? "color:var(--late);font-weight:600" : ""}">${fmtDate(x.due)}</td>
+        <td style="min-width:110px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</td>
+        ${may ? `<td class="acts">${mine && !pTaskDone(x)
+          ? `<button data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}</td>` : ""}
+      </tr>`; }).join("")}</tbody></table></div>
+    <div class="cards">${rows.map(({x, sub}) => `<article class="card">
+      <div class="top"><span class="num">${sub ? "↳ " : ""}${x.ref}</span>${pTaskPill(x)}</div>
+      <h4>${esc(x.title)}</h4>
+      <div class="sub"><span>${x.assignee ? pUser(x.assignee) : t("none")}</span><span>·</span>
+        <span${pTaskOverdue(x) ? ' style="color:var(--late);font-weight:600"' : ""}>${fmtDate(x.due)}</span></div>
+      <div style="margin-top:8px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</div>
+      ${pCanEdit(p) && !pTaskDone(x) ? `<button class="btn-ghost" style="margin-top:8px" data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}
+    </article>`).join("")}</div>`;
+}
+function pTabRisks(p) {
+  const rows = p.risks.map(r => ({ p, r })).sort((a,b) => rScore(b.r) - rScore(a.r));
+  return `${pCanEdit(p) ? `<div class="hdacts" style="margin-bottom:12px">
+      <button class="btn-primary" id="pnewrisk">+ ${t("pn_risks")}</button>${expBtns("pcc_prisks")}</div>`
+      : `<div class="hdacts" style="margin-bottom:12px">${expBtns("pcc_prisks")}</div>`}
+    <div class="grid2"><div class="pcard"><header><h2>${t("p_matrix")}</h2></header>
+      <div class="inner">${riskMatrix(rows)}</div></div></div>
+    ${rows.map(({r}) => `<div class="pcard"><header>
+        <span class="pill ${rScore(r) >= 15 ? "p-late" : rScore(r) >= 8 ? "p-work" : "p-open"}">Score ${rScore(r)}</span>
+        <h2>${esc(r.ref)} · ${esc(r.title)}</h2>
+        ${pill(r.status === "open" ? "p-late" : r.status === "monitoring" ? "p-work" : "p-done", t("rs_" + r.status))}
+      </header><div class="inner kv2">
+        <div><div class="k">${t("f_desc")}</div><div class="v">${esc(r.description)}</div></div>
+        <div><div class="k">${t("f_mit")}</div><div class="v">${esc(r.mitigation)}</div></div>
+        <div><div class="k">${t("f_cont")}</div><div class="v">${esc(r.conting)}</div></div>
+        <div><div class="k">${t("col_cat")} · ${t("col_owner")} · ${t("col_due")}</div>
+          <div class="v">${esc(r.cat)} · ${pUser(r.owner)} · ${fmtLong(r.due)}</div></div>
+      </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`}`;
+}
+function pTabIssues(p) {
+  return `${pCanContribute(p) ? `<div class="hdacts" style="margin-bottom:12px">
+      <button class="btn-primary" id="pnewissue">+ ${t("pn_issues")}</button></div>` : ""}
+    ${p.issues.map(i => `<div class="pcard"><header>
+      <h2>${esc(i.ref)} · ${esc(i.title)}</h2>${pill("prio-" + i.prio, i.prio)}
+      ${pill(["open","blocked"].includes(i.status) ? "p-late" : i.status === "in_progress" ? "p-work" : "p-done", t("is_" + i.status))}
+    </header><div class="inner kv2">
+      <div><div class="k">${t("f_desc")}</div><div class="v">${esc(i.description)}</div></div>
+      <div><div class="k">${t("col_owner")} · ${t("col_due")}</div><div class="v">${pUser(i.owner)} · ${fmtLong(i.due)}</div></div>
+      ${i.resolution ? `<div><div class="k">${t("f_res")}</div><div class="v">${esc(i.resolution)}</div></div>` : ""}
+    </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`}`;
+}
+function pTabDecisions(p) {
+  return p.decisions.map(d => `<div class="pcard"><header>
+      <h2>${esc(d.ref)} · ${esc(d.topic)}</h2><span class="co">${fmtLong(d.date)}</span>
+    </header><div class="inner kv2">
+      <div><div class="k">${t("tab_dec")}</div><div class="v"><b>${esc(d.decision)}</b></div></div>
+      <div><div class="k">${t("f_rat")}</div><div class="v">${esc(d.rationale)}</div></div>
+      <div><div class="k">${t("f_imp2")}</div><div class="v">${esc(d.impact)}</div></div>
+      <div><div class="k">${t("f_maker")} · ${t("f_part")}</div>
+        <div class="v">${pUser(d.maker)} · ${d.participants.map(pUser).join(", ")}</div></div>
+    </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`;
+}
+function pTabTeam(p) {
+  /* RACI wird im Prototyp aus Projektrolle und Zuweisung abgeleitet:
+     A = Projektleitung, R = Zuständige der Aufgabe, C = Fachrollen, I = übrige. */
+  const letter = m => m.user === p.pm ? "A"
+    : p.tasks.some(x => x.assignee === m.user) ? "R"
+    : /Head|Supervisor|Compliance|Sponsor/.test(m.role) ? "C" : "I";
+  return `<div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("usr_name")}</th><th>${t("f_prole")}</th><th>RACI</th><th>${t("f_resp")}</th><th>${t("usr_email")}</th>
+    </tr></thead><tbody>${p.team.map(m => `<tr>
+      <td class="tn">${pUser(m.user)}</td><td class="co">${esc(m.role)}</td>
+      <td><span class="raci ${letter(m)}">${letter(m)}</span></td>
+      <td class="co">${esc(m.resp)}</td><td class="num">${esc(user(m.user).email || "")}</td>
+    </tr>`).join("")}</tbody></table></div>
+    <div class="cards">${p.team.map(m => `<article class="card">
+      <div class="top"><span class="raci ${letter(m)}">${letter(m)}</span><span class="num">${esc(m.role)}</span></div>
+      <h4>${pUser(m.user)}</h4><div class="sub"><span>${esc(m.resp)}</span></div></article>`).join("")}</div>
+    <div class="notice" style="margin-top:14px">R = Responsible · A = Accountable · C = Consulted · I = Informed</div>`;
+}
+function pTabDocs(p) {
+  return p.docs.length ? `<div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("col_title")}</th><th>${t("f_ver")}</th><th>${t("col_owner")}</th><th>${t("f_desc")}</th>
+    </tr></thead><tbody>${p.docs.map(d => `<tr>
+      <td><b>${esc(d.title)}</b><div class="num">${esc(d.url || "")}</div></td>
+      <td class="co">${esc(d.version)}</td><td class="co">${pUser(d.owner)}</td>
+      <td class="co">${esc(d.description)}</td></tr>`).join("")}</tbody></table></div>
+      <div class="cards">${p.docs.map(d => `<article class="card"><h4>${esc(d.title)}</h4>
+        <div class="sub"><span>${esc(d.version)}</span><span>·</span><span>${pUser(d.owner)}</span></div></article>`).join("")}</div>`
+    : `<p class="muted">${t("p_none")}</p>`;
+}
+function pTabActivity(p) {
+  const rows = pActivity(p);
+  return `<div class="hdacts" style="margin-bottom:12px">${expBtns("pcc_pact")}</div>
+    <ul class="plist">${rows.map(e => `<li>
+      <span class="when">${fmtDate(e.ts.slice(0,10))}</span>
+      <span class="m"><b>${esc(e.txt)}</b><span class="sub">${esc(pUser(e.who))}</span></span>
+    </li>`).join("") || `<li class="muted">${t("p_none")}</li>`}</ul>`;
+}
+function pTabVersions(p) {
+  return p.versions.map(v => `<div class="pcard"><header>
+      <h2>${t("f_ver")} ${v.v}</h2><span class="co">${fmtLong(v.date)} · ${pUser(v.by)}</span></header>
+    <div class="inner"><b>${esc(v.summary)}</b>
+      ${v.changes.length ? `<table style="margin-top:10px"><thead><tr>
+        <th>${t("col_title")}</th><th>${t("exp_what")}</th><th>${L === "de" ? "alt" : "old"}</th><th>${L === "de" ? "neu" : "new"}</th>
+      </tr></thead><tbody>${v.changes.map(c => `<tr><td>${esc(c.e)}</td><td class="co">${esc(c.f)}</td>
+        <td class="co">${esc(c.o)}</td><td><b>${esc(c.n)}</b></td></tr>`).join("")}</tbody></table>` : ""}
+    </div></div>`).join("");
+}
+function pccDetail(p) {
+  const body = { overview:pTabOverview, timeline:() => `<div class="pcard"><div class="inner">${timelineHTML([p], false)}</div></div>`
+      + pTabOverview(p), tasks:pTabTasks, risks:pTabRisks, issues:pTabIssues, decisions:pTabDecisions,
+    team:pTabTeam, docs:pTabDocs, activity:pTabActivity, versions:pTabVersions }[pTab] || pTabOverview;
+  return pHeader(p) + body(p);
+}
+
+/* ---------- Anlegen und Ändern ---------- */
+function pDialogNewProject() {
+  if (!(pIsAdmin() || pRole() === "pm")) return toast(t("p_noedit"), true);
+  openDialog({
+    title:t("nc_p_t"), text:t("nc_p_p"), okLabel:t("create"),
+    values:{ key:"", name:"", pm:me, description:"", objectives:"", scope:"",
+             start:today(), end:addBusinessDays(today(), 60), status:"not_started" },
+    build: () => [
+      { name:"name", label:t("col_project"), type:"text", placeholder:"z. B. XLS Recurrent Redesign" },
+      { name:"key", label:t("f_key"), type:"text", half:true, placeholder:"XLS-27" },
+      { name:"pm", label:t("col_pm"), type:"select", half:true, options:
+        USERS.filter(u => ["super_admin","admin","pm"].includes(u.pcc)).sort(byName).map(u => ({ v:u.id, l:u.name })) },
+      { name:"description", label:t("f_desc"), type:"textarea" },
+      { name:"objectives", label:t("f_obj"), type:"textarea" },
+      { name:"scope", label:t("f_scope"), type:"textarea" },
+      { name:"start", label:t("f_start"), type:"date", half:true },
+      { name:"end", label:t("f_end"), type:"date", half:true },
+      { name:"status", label:t("col_status"), type:"select", options:
+        P_STATUS.map(s => ({ v:s, l:t("ps_" + s) })) }
+    ],
+    validate: v => (v.name || "").trim().length < 3 ? t("e_pname")
+      : !(v.key || "").trim() ? t("e_pkey")
+      : PROJECTS.some(p => p.key.toLowerCase() === v.key.trim().toLowerCase()) ? t("e_pkeydup")
+      : (v.end && v.start && v.end < v.start) ? t("e_dates") : null,
+    onSubmit: v => {
+      const p = mkProject({ key:v.key.trim().toUpperCase(), name:v.name.trim(), pm:v.pm,
+        description:v.description || "", objectives:v.objectives || "", scope:v.scope || "",
+        status:v.status, start:v.start, end:v.end, health:"green" });
+      p.team = [{ user:v.pm, role:"Project Manager", resp:"" }];
+      pver(p, L === "de" ? "Projekt angelegt" : "Project created", []);
+      plg(p, me, (L === "de" ? "Projekt angelegt — " : "Project created — ") + p.name);
+      toast(t("t_pnew", { n:p.key }));
+      pProject = p.id; pTab = "overview"; render();
+    }
+  });
+}
+function pDialogEditProject(p) {
+  openDialog({
+    title:p.name, text:t("nc_p_p"), okLabel:t("save"),
+    values:{ name:p.name, pm:p.pm, status:p.status, description:p.description,
+             objectives:p.objectives, scope:p.scope, start:p.start, end:p.end },
+    build: () => [
+      { name:"name", label:t("col_project"), type:"text" },
+      { name:"status", label:t("col_status"), type:"select", half:true, options:
+        P_STATUS.map(s => ({ v:s, l:t("ps_" + s) })) },
+      { name:"pm", label:t("col_pm"), type:"select", half:true, disabled:!pIsAdmin(), options:
+        USERS.filter(u => ["super_admin","admin","pm"].includes(u.pcc)).sort(byName).map(u => ({ v:u.id, l:u.name })) },
+      { name:"description", label:t("f_desc"), type:"textarea" },
+      { name:"objectives", label:t("f_obj"), type:"textarea" },
+      { name:"scope", label:t("f_scope"), type:"textarea" },
+      { name:"start", label:t("f_start"), type:"date", half:true },
+      { name:"end", label:t("f_end"), type:"date", half:true }
+    ],
+    validate: v => (v.name || "").trim().length < 3 ? t("e_pname")
+      : (v.end && v.start && v.end < v.start) ? t("e_dates") : null,
+    onSubmit: v => {
+      const ch = [];
+      if (v.status !== p.status) ch.push({ e:p.name, f:t("col_status"), o:t("ps_" + p.status), n:t("ps_" + v.status) });
+      if (v.end !== p.end) ch.push({ e:p.name, f:t("f_end"), o:fmtLong(p.end), n:fmtLong(v.end) });
+      if (pIsAdmin()) p.pm = v.pm;
+      Object.assign(p, { name:v.name.trim(), status:v.status, description:v.description,
+        objectives:v.objectives, scope:v.scope, start:v.start, end:v.end });
+      if (ch.length) {
+        pver(p, L === "de" ? "Projekt geändert" : "Project updated", ch);
+        ch.forEach(c => plg(p, me, `${c.f}: ${c.o} → ${c.n}`));
+      }
+      toast(ch.length ? t("t_pstatus") : t("t_psaved")); render();
+    }
+  });
+}
+function pDialogNewTask(p) {
+  openDialog({
+    title:t("col_task"), text:"", okLabel:t("create"),
+    values:{ title:"", ws:p.ws[0] ? p.ws[0].id : "", assignee:me, prio:"Medium",
+             due:addBusinessDays(today(), 10), description:"" },
+    build: () => [
+      { name:"title", label:t("col_title"), type:"text" },
+      { name:"ws", label:t("col_ws"), type:"select", half:true, options:p.ws.map(w => ({ v:w.id, l:w.name })) },
+      { name:"assignee", label:t("col_assignee"), type:"select", half:true, options:
+        p.team.map(m => ({ v:m.user, l:user(m.user).name })) },
+      { name:"prio", label:t("col_prio"), type:"select", half:true, options:P_PRIO.map(x => ({ v:x, l:x })) },
+      { name:"due", label:t("col_due"), type:"date", half:true },
+      { name:"description", label:t("f_desc"), type:"textarea" }
+    ],
+    validate: v => (v.title || "").trim().length < 3 ? t("e_pname") : null,
+    onSubmit: v => {
+      const x = mkTask(p, { title:v.title.trim(), ws:v.ws, assignee:v.assignee, prio:v.prio,
+        due:v.due, description:v.description, status:"not_started", start:today() });
+      plg(p, me, (L === "de" ? "Aufgabe angelegt: " : "Task created: ") + x.title);
+      toast(t("t_ptask")); render();
+    }
+  });
+}
+function pDialogNewRisk(p) {
+  openDialog({
+    title:t("pn_risks"), text:t("p_score_h"), okLabel:t("create"),
+    values:{ title:"", cat:"", prob:"3", imp:"3", owner:me, due:addBusinessDays(today(), 20),
+             description:"", mitigation:"", conting:"" },
+    build: () => [
+      { name:"title", label:t("col_title"), type:"text" },
+      { name:"cat", label:t("col_cat"), type:"text", half:true, placeholder:"Lieferant, Behörde, Personal …" },
+      { name:"owner", label:t("col_owner"), type:"select", half:true, options:
+        p.team.map(m => ({ v:m.user, l:user(m.user).name })) },
+      { name:"prob", label:t("col_prob"), type:"select", half:true, options:[1,2,3,4,5].map(i => ({ v:String(i), l:String(i) })) },
+      { name:"imp", label:t("col_imp"), type:"select", half:true, options:[1,2,3,4,5].map(i => ({ v:String(i), l:String(i) })) },
+      { name:"due", label:t("col_due"), type:"date", half:true },
+      { name:"description", label:t("f_desc"), type:"textarea" },
+      { name:"mitigation", label:t("f_mit"), type:"textarea" },
+      { name:"conting", label:t("f_cont"), type:"textarea" }
+    ],
+    validate: v => (v.title || "").trim().length < 3 ? t("e_pname") : null,
+    onSubmit: v => {
+      const r = { id:pid(), ref:"R-" + (p.risks.length + 1), title:v.title.trim(),
+        description:v.description, cat:v.cat || "—", prob:+v.prob, imp:+v.imp, owner:v.owner,
+        status:"open", due:v.due, mitigation:v.mitigation, conting:v.conting };
+      p.risks.push(r);
+      plg(p, me, (L === "de" ? "Risiko angelegt: " : "Risk created: ") + r.ref + " " + r.title);
+      if (rScore(r) >= 15) pver(p, (L === "de" ? "Kritisches Risiko aufgenommen: " : "Critical risk added: ") + r.title,
+        [{ e:r.ref, f:t("col_score"), o:"—", n:String(rScore(r)) }]);
+      toast(t("t_psaved")); render();
+    }
+  });
+}
+function pDialogNewIssue(p) {
+  openDialog({
+    title:t("pn_issues"), text:"", okLabel:t("create"),
+    values:{ title:"", owner:me, prio:"Medium", due:addBusinessDays(today(), 5), description:"" },
+    build: () => [
+      { name:"title", label:t("col_title"), type:"text" },
+      { name:"owner", label:t("col_owner"), type:"select", half:true, options:
+        p.team.map(m => ({ v:m.user, l:user(m.user).name })) },
+      { name:"prio", label:t("col_prio"), type:"select", half:true, options:P_PRIO.map(x => ({ v:x, l:x })) },
+      { name:"due", label:t("col_due"), type:"date", half:true },
+      { name:"description", label:t("f_desc"), type:"textarea" }
+    ],
+    validate: v => (v.title || "").trim().length < 3 ? t("e_pname") : null,
+    onSubmit: v => {
+      p.issues.push({ id:pid(), ref:"I-" + (p.issues.length + 1), title:v.title.trim(),
+        description:v.description, owner:v.owner, prio:v.prio, status:"open", due:v.due, resolution:"" });
+      plg(p, me, (L === "de" ? "Issue gemeldet: " : "Issue raised: ") + v.title.trim());
+      toast(t("t_psaved")); render();
+    }
+  });
+}
+
+/* ---------- Ansicht und Bedienung ---------- */
+const PCC_NAV = [["dash","pn_dash"],["projects","pn_projects"],["timeline","pn_timeline"],
+  ["tasks","pn_tasks"],["risks","pn_risks"],["issues","pn_issues"],["milestones","pn_milestones"],
+  ["reports","pn_reports"]];
+
+function pccNavItems() {
+  const ps = pVisible();
+  const over = ps.reduce((a,p) => a + pOverdueTasks(p).length, 0);
+  const crit = ps.reduce((a,p) => a + pCritRisks(p).length, 0);
+  const cnt = { dash:over, projects:ps.length, risks:crit,
+    issues:ps.reduce((a,p) => a + p.issues.filter(i => ["open","blocked"].includes(i.status)).length, 0) };
+  return {
+    work:PCC_NAV.slice(0,4).map(([k,lb]) => [k, lb, cnt[k] || 0, k === "dash"]),
+    org:PCC_NAV.slice(4).map(([k,lb]) => [k, lb, cnt[k] || 0, k === "risks"])
+  };
+}
+function renderPcc(m) {
+  const head = (title, sub, extra) => `<div class="hd"><div><h1>${t(title)}</h1><p>${t(sub)}</p></div>${
+    extra ? `<div class="hdacts">${extra}</div>` : ""}</div>`;
+  if (pProject) {
+    const p = pById(pProject);
+    if (!p) { pProject = null; return renderPcc(m); }
+    m.innerHTML = pccDetail(p);
+    wirePcc(); return;
+  }
+  const canNew = pIsAdmin() || pRole() === "pm";
+  const newBtn = canNew ? `<button class="btn-primary" id="pnew">+ ${t("p_new")}</button>` : "";
+  const V = {
+    dash:    () => head("pd_t","pd_s", expBtns("pcc_dash") + newBtn) + pccDash(),
+    projects:() => head("pp_t","pp_s", expBtns("pcc_projects") + newBtn) + pccProjects(),
+    timeline:() => head("ptl_t","ptl_s") + `<div class="pcard"><div class="inner">${
+      timelineHTML(pVisible().filter(p => p.status !== "cancelled"), true)}</div></div>`,
+    tasks:   () => head("pt_t","pt_s", expBtns("pcc_tasks")) + pccTasks(),
+    risks:   () => head("pr_t","pr_s", expBtns("pcc_risks")) + pccRisks(),
+    issues:  () => head("pi_t","pi_s") + pccIssues(),
+    milestones:() => head("pm_t","pm_s", expBtns("pcc_ms")) + pccMilestones(),
+    reports: () => head("prep_t","prep_s") + pccReports()
+  }[pv] || (() => head("pd_t","pd_s") + pccDash());
+  m.innerHTML = V();
+  wirePcc();
+}
+function wirePcc() {
+  const q = id => document.getElementById(id);
+  wireExports();
+  if (q("pnew")) q("pnew").onclick = pDialogNewProject;
+  if (q("pback")) q("pback").onclick = () => { pProject = null; pv = pv === "dash" ? "dash" : "projects"; render(); };
+  if (q("pedit")) q("pedit").onclick = () => pDialogEditProject(pById(pProject));
+  if (q("pnewtask")) q("pnewtask").onclick = () => pDialogNewTask(pById(pProject));
+  if (q("pnewrisk")) q("pnewrisk").onclick = () => pDialogNewRisk(pById(pProject));
+  if (q("pnewissue")) q("pnewissue").onclick = () => pDialogNewIssue(pById(pProject));
+  if (q("pq")) {
+    q("pq").oninput = e => { PF.q = e.target.value; renderMain();
+      const el = q("pq"); el.focus(); el.setSelectionRange(PF.q.length, PF.q.length); };
+    q("pstatus").onchange = e => { PF.status = e.target.value; renderMain(); };
+    q("ppm").onchange = e => { PF.pm = e.target.value; renderMain(); };
+    q("pclear").onclick = () => { PF = { q:"", status:"", pm:"", health:"" }; renderMain(); };
+  }
+  document.querySelectorAll("[data-ptab]").forEach(b => b.onclick = () => { pTab = b.dataset.ptab; renderMain(); });
+  document.querySelectorAll("[data-pp]").forEach(el => el.onclick = e => {
+    if (e.target.closest("button") && !e.target.closest("[data-pp]").isSameNode(e.target.closest("button"))) return;
+    pProject = el.dataset.pp; pTab = "overview"; render();
+  });
+  document.querySelectorAll("[data-ptdone]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const p = pById(pProject), x = p.tasks.find(y => y.id === b.dataset.ptdone);
+    x.status = "completed"; x.progress = 100; x.done = today();
+    plg(p, me, (L === "de" ? "Aufgabe erledigt: " : "Task completed: ") + x.title);
+    toast(t("t_ptask")); render();
+  });
+  document.querySelectorAll("[data-prep]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const [how, id] = b.dataset.prep.split("|");
+    pRepProject = id;
+    how === "pdf" ? openPrint("pcc_report") : exportTable("pcc_report");
+  });
+}
+let pRepProject = null;
+
+/* ---------- Export ---------- */
+const PCC_KINDS = ["pcc_dash","pcc_projects","pcc_risks","pcc_tasks","pcc_ms","pcc_report",
+  "pcc_ptasks","pcc_prisks","pcc_pact"];
+function pccDoc(kind) {
+  const ps = pFiltered();
+  const cur = pProject ? pById(pProject) : null;
+  const projMeta = p => [[t("f_key"), p.key], [t("col_project"), p.name],
+    [t("col_status"), t("ps_" + p.status)], [t("col_pm"), pUser(p.pm)],
+    [t("col_progress"), pProgress(p) + "%"],
+    [t("f_start"), fmtLong(p.start) + " – " + fmtLong(p.end)],
+    [t("f_health"), t("h_" + pHealth(p))]];
+  const taskRows = list => list.map(({p,x}) => [x.ref, x.title, p.key,
+    (p.ws.find(w => w.id === x.ws) || {}).name || "", x.assignee ? pUser(x.assignee) : "",
+    t("ts_" + x.status), x.prio, fmtLong(x.due), (pTaskDone(x) ? 100 : x.progress || 0) + "%"]);
+  const TASK_COLS = [t("f_key"), t("col_task"), t("col_project"), t("col_ws"), t("col_assignee"),
+    t("col_status"), t("col_prio"), t("col_due"), t("col_progress")];
+  const riskRows = list => list.map(({p,r}) => [r.ref, r.title, p.key, r.cat, r.prob, r.imp,
+    rScore(r), pUser(r.owner), t("rs_" + r.status), fmtLong(r.due), r.mitigation]);
+  const RISK_COLS = [t("f_key"), t("col_title"), t("col_project"), t("col_cat"), t("col_prob"),
+    t("col_imp"), t("col_score"), t("col_owner"), t("col_status"), t("col_due"), t("f_mit")];
+
+  if (kind === "pcc_dash") {
+    const risks = [], over = [], ms = [];
+    ps.forEach(p => { pOpenRisks(p).forEach(r => risks.push({ p, r }));
+      pOverdueTasks(p).forEach(x => over.push({ p, x }));
+      p.ms.filter(m => m.status !== "completed").forEach(m => ms.push({ p, m })); });
+    risks.sort((a,b) => rScore(b.r) - rScore(a.r));
+    ms.sort((a,b) => a.m.date < b.m.date ? -1 : 1);
+    return { title:t("exp_pcc_dash"),
+      meta:[[t("exp_count"), ps.length], [t("k_otasks"), over.length], [t("k_oriks"), risks.length]],
+      sections:[
+        { h:t("c_health"), cols:[t("f_key"), t("col_project"), t("col_status"), t("col_progress"),
+          t("col_pm"), t("col_next"), t("col_risks")],
+          rows:ps.map(p => { const n = pNextMs(p);
+            return [p.key, p.name, t("ps_" + p.status), pProgress(p) + "%", pUser(p.pm),
+              n ? n.name + " (" + fmtLong(n.date) + ")" : "—", pOpenRisks(p).length]; }) },
+        { h:t("c_upcoming"), cols:[t("col_date"), t("pn_milestones"), t("col_project"), t("col_owner"), t("col_status")],
+          rows:ms.slice(0,20).map(({p,m}) => [fmtLong(m.date), m.name, p.key, pUser(m.owner), t("ms_" + m.status)]) },
+        { h:t("c_crit"), cols:RISK_COLS, rows:riskRows(risks.slice(0,20)) },
+        { h:t("c_overdue"), cols:TASK_COLS, rows:taskRows(over) },
+        { h:t("c_activity"), cols:[t("exp_when"), t("exp_who"), t("col_project"), t("exp_what")],
+          rows:PLOG.slice(0,25).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who),
+            (pById(e.project) || {}).key || "", e.txt]) }] };
+  }
+  if (kind === "pcc_projects") return { title:t("pp_t"), meta:[[t("exp_count"), ps.length]],
+    sections:[{ cols:[t("f_key"), t("col_project"), t("col_status"), t("col_progress"), t("col_pm"),
+      t("f_start"), t("f_end"), t("col_risks"), t("c_overdue"), t("f_health")],
+      rows:ps.map(p => [p.key, p.name, t("ps_" + p.status), pProgress(p) + "%", pUser(p.pm),
+        fmtLong(p.start), fmtLong(p.end), pOpenRisks(p).length, pOverdueTasks(p).length, t("h_" + pHealth(p))]) }] };
+  if (kind === "pcc_tasks" || kind === "pcc_ptasks") {
+    const src = kind === "pcc_ptasks" ? [cur] : ps;
+    const rows = []; src.forEach(p => p.tasks.forEach(x => rows.push({ p, x })));
+    return { title:t("pt_t") + (kind === "pcc_ptasks" ? " — " + cur.key : ""),
+      meta:[[t("exp_count"), rows.length]], sections:[{ cols:TASK_COLS, rows:taskRows(rows) }] };
+  }
+  if (kind === "pcc_risks" || kind === "pcc_prisks") {
+    const src = kind === "pcc_prisks" ? [cur] : ps;
+    const rows = []; src.forEach(p => p.risks.forEach(r => rows.push({ p, r })));
+    rows.sort((a,b) => rScore(b.r) - rScore(a.r));
+    return { title:t("pr_t") + (kind === "pcc_prisks" ? " — " + cur.key : ""),
+      meta:[[t("exp_count"), rows.length]], sections:[{ cols:RISK_COLS, rows:riskRows(rows) }] };
+  }
+  if (kind === "pcc_ms") {
+    const rows = []; ps.forEach(p => p.ms.forEach(m => rows.push({ p, m })));
+    rows.sort((a,b) => a.m.date < b.m.date ? -1 : 1);
+    return { title:t("pm_t"), meta:[[t("exp_count"), rows.length]],
+      sections:[{ cols:[t("col_date"), t("pn_milestones"), t("col_project"), t("col_owner"), t("col_status")],
+        rows:rows.map(({p,m}) => [fmtLong(m.date), m.name, p.key, pUser(m.owner), t("ms_" + m.status)]) }] };
+  }
+  if (kind === "pcc_pact") return { title:t("tab_act") + " — " + cur.key, meta:projMeta(cur),
+    sections:[{ cols:[t("exp_when"), t("exp_who"), t("exp_what")],
+      rows:pActivity(cur).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who), e.txt]) }] };
+  if (kind === "pcc_report") {
+    const p = pById(pRepProject) || cur;
+    const tk = p.tasks.map(x => ({ p, x })), rk = p.risks.map(r => ({ p, r }));
+    return { title:t("exp_pcc_proj") + " — " + p.name, meta:projMeta(p), sign:true, sections:[
+      { h:t("tab_over"), cols:[t("col_title"), t("f_desc")],
+        rows:[[t("f_desc"), p.description], [t("f_obj"), p.objectives], [t("f_scope"), p.scope]] },
+      { h:t("pn_milestones"), cols:[t("col_date"), t("col_title"), t("col_owner"), t("col_status")],
+        rows:p.ms.map(m => [fmtLong(m.date), m.name, pUser(m.owner), t("ms_" + m.status)]) },
+      { h:t("pn_tasks"), cols:TASK_COLS, rows:taskRows(tk) },
+      { h:t("pn_risks"), cols:RISK_COLS, rows:riskRows(rk) },
+      { h:t("pn_issues"), cols:[t("f_key"), t("col_title"), t("col_owner"), t("col_prio"), t("col_status"), t("col_due")],
+        rows:p.issues.map(i => [i.ref, i.title, pUser(i.owner), i.prio, t("is_" + i.status), fmtLong(i.due)]) },
+      { h:t("tab_dec"), cols:[t("col_date"), t("col_title"), t("tab_dec"), t("f_maker")],
+        rows:p.decisions.map(d => [fmtLong(d.date), d.topic, d.decision, pUser(d.maker)]) },
+      { h:t("tab_team"), cols:[t("usr_name"), t("f_prole"), t("f_resp")],
+        rows:p.team.map(m => [pUser(m.user), m.role, m.resp]) },
+      { h:t("tab_docs"), cols:[t("col_title"), t("f_ver"), t("col_owner"), t("f_desc")],
+        rows:p.docs.map(d => [d.title, d.version, pUser(d.owner), d.description]) },
+      { h:t("tab_act"), cols:[t("exp_when"), t("exp_who"), t("exp_what")],
+        rows:pActivity(p).slice(0,30).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who), e.txt]) },
+      { h:t("ver_t"), cols:[t("f_ver"), t("col_date"), t("exp_who"), t("ver_sum")],
+        rows:p.versions.map(v => [v.v, fmtLong(v.date), pUser(v.by), v.summary]) }] };
+  }
+}
 
 function render() {
   const inApp = !!me;

@@ -1,4 +1,12 @@
-# AAA Flow
+# AAA Flow und Project Control Center
+
+Zwei Module einer Anwendung mit gemeinsamer Anmeldung, gemeinsamen Nutzern und
+gemeinsamem Design: **AAA Flow** steuert Trainingsvorgänge über drei Gates,
+das **Project Control Center** steuert Projekte auf Managementebene. Die
+Architektur des Control Centers liegt in
+[`docs/PCC-ARCHITECTURE.md`](docs/PCC-ARCHITECTURE.md).
+
+## AAA Flow
 
 Gate-Steuerung für Trainingsvorgänge der Aviation Academy Austria (AAA):
 von der Kundenanfrage bis zum vollständig abgelegten Trainingsnachweis über
