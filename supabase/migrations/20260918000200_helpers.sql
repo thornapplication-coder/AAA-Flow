@@ -2,7 +2,9 @@
 -- Project Control Center — Migration 2/5: Hilfsfunktionen
 -- Identität, Rollen, Sichtbarkeit, Referenznummern, Fortschritt, Gesamtlage
 -- Alle Sichtbarkeitsfunktionen sind SECURITY DEFINER, damit RLS-Policies sie
--- ohne Rekursion und ohne Rechteschleife nutzen können.
+-- ohne Rekursion und ohne Rechteschleife nutzen können. Die rechnenden
+-- Funktionen sind es ebenfalls — sie prüfen deshalb selbst, ob der Fragende
+-- das Projekt überhaupt sehen darf.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -98,7 +100,8 @@ end $$;
 create or replace function pcc.task_progress(p_task_id uuid)
 returns smallint
 language sql stable security definer set search_path = public, pcc as $$
-  with t as (select * from pcc.tasks where id = p_task_id)
+  with t as (select * from pcc.tasks where id = p_task_id
+             and pcc.can_read(project_id))
   select case
     when (select status from t) = 'completed' then 100::smallint
     when (select progress_mode from t) = 'manual' then (select progress from t)
@@ -113,7 +116,8 @@ $$;
 create or replace function pcc.project_progress(p_project_id uuid)
 returns smallint
 language sql stable security definer set search_path = public, pcc as $$
-  with p as (select * from pcc.projects where id = p_project_id)
+  with p as (select * from pcc.projects where id = p_project_id
+             and pcc.can_read(p_project_id))
   select case
     when (select progress_mode from p) = 'manual' then (select progress_manual from p)
     else coalesce((
@@ -139,7 +143,7 @@ language sql stable security definer set search_path = public, pcc as $$
            coalesce((value ->> 'amber_critical_risks')::integer, 1) as amber_risks
     from pcc.settings where key = 'health'
   ),
-  p as (select * from pcc.projects where id = p_project_id),
+  p as (select * from pcc.projects where id = p_project_id and pcc.can_read(p_project_id)),
   m as (
     select count(*) filter (
       where status <> 'completed' and due_date < current_date
@@ -160,6 +164,7 @@ language sql stable security definer set search_path = public, pcc as $$
     from pcc.risks where project_id = p_project_id
   )
   select case
+    when not exists (select 1 from p) then null::pcc.health
     when (select status from p) = 'completed' then 'green'::pcc.health
     when (select status from p) in ('delayed', 'cancelled')
       or (select overdue_ms from m) > 0

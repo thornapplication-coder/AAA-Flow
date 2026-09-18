@@ -29,9 +29,17 @@ begin
           coalesce(v_row ->> 'id', concat_ws(':', v_row ->> 'project_id', v_row ->> 'user_id',
                                              v_row ->> 'comment_id', v_row ->> 'key')),
           lower(tg_op), v_old, v_new,
-          nullif(current_setting('app.audit_reason', true), ''));
+          -- Die Begründung stammt aus einer Sitzungsvariablen. Übernommen wird
+          -- sie nur, wenn der Schreibvorgang aus einer geprüften Funktion kommt
+          -- — sonst könnte sich jeder eine Begründung erfinden.
+          case when public.internal_write_enabled()
+               then nullif(current_setting('app.audit_reason', true), '') end);
   return null;
 end $$;
+
+-- Rollenvergabe und Freigabe sind genau die Vorgänge, die ein Audit interessiert.
+create trigger users_audit after insert or update or delete on public.users
+  for each row execute function pcc.tg_audit();
 
 do $$
 declare t text;
@@ -82,9 +90,9 @@ returns trigger
 language plpgsql security definer set search_path = public, pcc as $$
 declare v_prefix text := tg_argv[0];
 begin
-  if new.ref is null or length(trim(new.ref)) = 0 then
-    new.ref := pcc.next_ref(new.project_id, v_prefix);
-  end if;
+  -- Immer aus dem Zähler, nie aus der Eingabe: eine frei gewählte Referenz
+  -- könnte sonst mit der einer anderen Art kollidieren (ein Issue namens T-1).
+  new.ref := pcc.next_ref(new.project_id, v_prefix);
   return new;
 end $$;
 
@@ -115,6 +123,36 @@ begin
     execute format('create trigger %I_ref_immutable before update on pcc.%I for each row execute function pcc.tg_ref_immutable()', t, t);
   end loop;
 end $$;
+
+-- -----------------------------------------------------------------------------
+-- Felder, die nicht der Oberfläche gehören
+-- Der Versionszähler steckt in der Projektzeile. Setzt ihn jemand zurück,
+-- kollidiert die nächste Version mit einer vorhandenen, und das Projekt lässt
+-- sich fachlich nicht mehr fortschreiben. Archivieren und Löschen laufen über
+-- Funktionen, die einen Grund verlangen.
+-- -----------------------------------------------------------------------------
+create or replace function pcc.tg_projects_guard()
+returns trigger
+language plpgsql as $$
+begin
+  if public.internal_write_enabled() then
+    return new;
+  end if;
+  if new.key is distinct from old.key then
+    raise exception 'PCC_IMMUTABLE: Der Projektschlüssel bleibt bestehen' using errcode = 'P0001';
+  end if;
+  if new.version_major is distinct from old.version_major
+     or new.version_minor is distinct from old.version_minor then
+    raise exception 'PCC_GUARD: Der Versionsstand wird von der Versionierung geführt' using errcode = 'P0001';
+  end if;
+  if new.archived_at is distinct from old.archived_at
+     or new.archived_by is distinct from old.archived_by then
+    raise exception 'PCC_GUARD: Archivieren nur über pcc.archive_project(), mit Grund' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+create trigger projects_guard before update on pcc.projects
+  for each row execute function pcc.tg_projects_guard();
 
 -- -----------------------------------------------------------------------------
 -- Archiv ist schreibgeschützt (Abschnitt 41: verwerfen statt löschen).
@@ -194,12 +232,14 @@ end $$;
 -- -----------------------------------------------------------------------------
 -- Herkunftsspalten setzen und schützen
 -- -----------------------------------------------------------------------------
+-- „Angelegt von" wird gesetzt, nicht mitgeliefert. Sonst ließe sich eine
+-- Meldung unter fremdem Namen einstellen.
 create or replace function pcc.tg_created_by()
 returns trigger
 language plpgsql as $$
 begin
-  new.created_by := coalesce(new.created_by, auth.uid());
-  new.updated_by := coalesce(new.updated_by, new.created_by);
+  new.created_by := coalesce(auth.uid(), new.created_by);
+  new.updated_by := new.created_by;
   return new;
 end $$;
 
@@ -235,10 +275,12 @@ begin
     return null;   -- Ereignis ist als nicht versionswürdig konfiguriert
   end if;
 
+  perform public.enable_internal_write();
   update pcc.projects
      set version_minor = version_minor + 1
    where id = p_project_id
   returning version_major || '.' || version_minor into v_version;
+  perform public.disable_internal_write();
 
   insert into pcc.project_versions (project_id, version, trigger_code, summary, created_by)
   values (p_project_id, v_version, p_trigger_code, p_summary, auth.uid())
@@ -266,12 +308,11 @@ begin
   if pg_trigger_depth() > 1 then return null; end if;   -- eigener Zähler-Update
 
   if new.status is distinct from old.status then
-    v_changes := v_changes || jsonb_build_array(jsonb_build_object(
+    v_changes := jsonb_build_array(jsonb_build_object(
       'entity_type', 'project', 'entity_id', new.id, 'entity_label', new.name,
       'field', 'status', 'old_value', old.status::text, 'new_value', new.status::text));
     perform pcc.new_version(new.id, 'project_status',
       'Projektstatus geändert: ' || old.status::text || ' → ' || new.status::text, v_changes);
-    return null;
   end if;
 
   if new.target_end_date is distinct from old.target_end_date then
@@ -483,6 +524,35 @@ begin
   return v_user;
 end $$;
 
+-- Das erste Konto. Ohne Super Admin gibt es niemanden, der freigeben könnte —
+-- und der Guard oben lässt auch im SQL-Editor keine Rollenvergabe durch, weil
+-- dort niemand angemeldet ist. Deshalb ein eigener Weg, der genau einmal
+-- funktioniert: Sobald ein aktiver Super Admin existiert, verweigert er sich.
+-- Aufrufbar nur mit direktem Datenbankzugang, nicht über die API.
+create or replace function pcc.bootstrap_super_admin(p_email text)
+returns public.users
+language plpgsql security definer set search_path = public, pcc as $$
+declare v_user public.users;
+begin
+  if exists (select 1 from public.users where role = 'super_admin' and active) then
+    raise exception 'PCC_STATE: Es gibt bereits einen Super Admin. Weitere Konten gibt dieser über pcc.approve_user() frei'
+      using errcode = 'P0001';
+  end if;
+  perform public.enable_internal_write();
+  update public.users
+     set role = 'super_admin', active = true, pending = false, approved_at = now()
+   where lower(email) = lower(trim(p_email))
+  returning * into v_user;
+  perform public.disable_internal_write();
+  if v_user.id is null then
+    raise exception 'PCC_STATE: Kein Konto mit der Adresse %. Erst anmelden, dann freischalten', p_email
+      using errcode = 'P0001';
+  end if;
+  insert into public.audit_log (user_id, entity, entity_id, action, reason)
+  values (v_user.id, 'public.users', v_user.id::text, 'bootstrap', 'Erster Super Admin bei der Inbetriebnahme');
+  return v_user;
+end $$;
+
 create or replace function pcc.set_role(p_user_id uuid, p_role pcc.user_role)
 returns public.users
 language plpgsql security definer set search_path = public, pcc as $$
@@ -501,7 +571,7 @@ begin
 end $$;
 
 -- Artikel 17 DSGVO. Der Vorgang bleibt nachvollziehbar, die Person nicht mehr
--- erkennbar (docs/PCC-ARCHITECTURE.md Abschnitt 7b).
+-- erkennbar (docs/ARCHITECTURE.md Abschnitt 7b).
 create or replace function pcc.anonymise_user(p_user_id uuid, p_reason text)
 returns void
 language plpgsql security definer set search_path = public, pcc as $$
@@ -622,6 +692,9 @@ begin
   if not pcc.can_edit(p_project_id) then
     raise exception 'PCC_AUTH: Das Projektteam pflegt die Projektleitung oder ein Admin' using errcode = 'P0001';
   end if;
+  if not exists (select 1 from public.users where id = p_user_id and active and role is not null) then
+    raise exception 'PCC_STATE: Nur freigegebene Konten können Projektmitglied sein' using errcode = 'P0001';
+  end if;
   insert into pcc.project_members (project_id, user_id, project_role, responsibilities, created_by)
   values (p_project_id, p_user_id, p_role, p_responsibilities, auth.uid())
   on conflict (project_id, user_id)
@@ -725,10 +798,15 @@ begin
 
   foreach v_user in array coalesce(p_mentions, '{}')
   loop
-    insert into pcc.mentions (comment_id, user_id) values (v_comment.id, v_user)
-    on conflict do nothing;
-    perform pcc.notify(v_user, p_project_id, 'mention', p_entity_type, p_entity_id,
-      'Sie wurden erwähnt', left(trim(p_body), 140));
+    -- Eine Erwähnung trägt den Anfang des Kommentars mit. Sie geht deshalb nur
+    -- an Personen, die das Projekt ohnehin lesen dürfen.
+    if exists (select 1 from public.users u
+               where u.id = v_user and u.active and u.role is not null) then
+      insert into pcc.mentions (comment_id, user_id) values (v_comment.id, v_user)
+      on conflict do nothing;
+      perform pcc.notify(v_user, p_project_id, 'mention', p_entity_type, p_entity_id,
+        'Sie wurden erwähnt', left(trim(p_body), 140));
+    end if;
   end loop;
   return v_comment;
 end $$;
@@ -774,6 +852,7 @@ begin
   if not pcc.can_contribute(v_old.project_id) then
     raise exception 'PCC_AUTH: In diesem Projekt haben Sie nur Leserecht' using errcode = 'P0001';
   end if;
+  perform public.enable_internal_write();
   insert into pcc.documents (project_id, entity_type, entity_id, title, description, kind,
                              storage_path, external_url, mime_type, size_bytes,
                              scan_state, version, supersedes_id, owner_user_id, created_by, updated_by)
@@ -783,9 +862,109 @@ begin
           case when p_kind = 'file' then 'pending' else 'clean' end::pcc.scan_state,
           v_old.version + 1, v_old.id, auth.uid(), auth.uid(), auth.uid())
   returning * into v_new;
+  perform public.disable_internal_write();
   return v_new;
 end $$;
 comment on function pcc.supersede_document is 'Ein Dokument wird nie überschrieben, sondern abgelöst. Der Stand zum Zeitpunkt eines Audits bleibt rekonstruierbar.';
+
+-- -----------------------------------------------------------------------------
+-- Dokumente: Quarantäne ist kein Vorschlag
+-- Abschnitt 7a verlangt, dass eine hochgeladene Datei bis zur Virenprüfung als
+-- „in Prüfung" gilt. Käme der Wert vom Client, wäre die Prüfung freiwillig.
+-- -----------------------------------------------------------------------------
+create or replace function pcc.tg_documents_guard()
+returns trigger
+language plpgsql as $$
+begin
+  if public.internal_write_enabled() then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    new.scan_state := case when new.kind = 'file' then 'pending' else 'clean' end;
+    new.version := coalesce(old.version, 1);
+    new.supersedes_id := null;
+    return new;
+  end if;
+  if new.scan_state is distinct from old.scan_state then
+    raise exception 'PCC_GUARD: Den Prüfstand setzt die Virenprüfung, nicht die Oberfläche' using errcode = 'P0001';
+  end if;
+  if new.project_id is distinct from old.project_id then
+    raise exception 'PCC_IMMUTABLE: Ein Dokument wechselt nicht das Projekt' using errcode = 'P0001';
+  end if;
+  if new.version is distinct from old.version or new.supersedes_id is distinct from old.supersedes_id then
+    raise exception 'PCC_GUARD: Fassungen entstehen über pcc.supersede_document()' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+create trigger documents_guard before insert or update on pcc.documents
+  for each row execute function pcc.tg_documents_guard();
+
+-- Die Virenprüfung läuft als Edge Function unter service_role und meldet das
+-- Ergebnis hierher zurück.
+create or replace function pcc.set_scan_state(p_document_id uuid, p_state pcc.scan_state)
+returns void
+language plpgsql security definer set search_path = public, pcc as $$
+begin
+  perform public.enable_internal_write();
+  update pcc.documents set scan_state = p_state where id = p_document_id;
+  perform public.disable_internal_write();
+end $$;
+
+-- Ein Kommentar bleibt, wo er geschrieben wurde.
+create or replace function pcc.tg_comments_guard()
+returns trigger
+language plpgsql as $$
+begin
+  if public.internal_write_enabled() then
+    return new;
+  end if;
+  if new.project_id is distinct from old.project_id
+     or new.entity_type is distinct from old.entity_type
+     or new.entity_id is distinct from old.entity_id
+     or new.user_id is distinct from old.user_id then
+    raise exception 'PCC_IMMUTABLE: Ein Kommentar wechselt nicht den Gegenstand' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+create trigger comments_guard before update on pcc.comments
+  for each row execute function pcc.tg_comments_guard();
+
+-- Benachrichtigungen gehören dem System. Der Empfänger darf sie lesen und als
+-- gelesen markieren — sonst nichts.
+create or replace function pcc.tg_notifications_guard()
+returns trigger
+language plpgsql as $$
+begin
+  if public.internal_write_enabled() then
+    return new;
+  end if;
+  if new.user_id is distinct from old.user_id or new.project_id is distinct from old.project_id
+     or new.kind is distinct from old.kind or new.title is distinct from old.title
+     or new.body is distinct from old.body or new.entity_type is distinct from old.entity_type
+     or new.entity_id is distinct from old.entity_id
+     or new.email_state is distinct from old.email_state then
+    raise exception 'PCC_GUARD: An einer Benachrichtigung lässt sich nur der Lesestand ändern' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+create trigger notifications_guard before update on pcc.notifications
+  for each row execute function pcc.tg_notifications_guard();
+
+-- Teilaufgaben bleiben eine Ebene tief (Abschnitt 21). Eine Aufgabe, die
+-- selbst schon Kind ist, kann kein Elternteil werden.
+create or replace function pcc.tg_task_depth()
+returns trigger
+language plpgsql as $$
+begin
+  if new.parent_task_id is not null
+     and exists (select 1 from pcc.tasks t
+                 where t.id = new.parent_task_id and t.parent_task_id is not null) then
+    raise exception 'PCC_STATE: Teilaufgaben gehen eine Ebene tief, nicht weiter' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+create trigger tasks_depth before insert or update on pcc.tasks
+  for each row execute function pcc.tg_task_depth();
 
 -- -----------------------------------------------------------------------------
 -- Löschen ist kein gewöhnliches Ändern

@@ -96,6 +96,14 @@ select test.login('pview');
 select test.ok(pcc.is_user() = true, 'Der freigegebene Nutzer ist angemeldet');
 select test.logout();
 
+-- Inbetriebnahme: das erste Konto bekommt die Rolle über einen eigenen Weg,
+-- und dieser Weg schließt sich danach wieder.
+select test.logout();
+select test.fails(format('select pcc.bootstrap_super_admin(%L)', 'psa@test.invalid'),
+                  'bereits einen Super Admin', 'Der Bootstrap funktioniert genau einmal');
+select test.fails('select pcc.bootstrap_super_admin(''niemand@test.invalid'')',
+                  'bereits einen Super Admin', 'Er verweigert sich auch bei unbekannter Adresse');
+
 -- Freigabe ist dem Super Admin vorbehalten
 select test.login('padmin');
 select test.fails(format('select pcc.approve_user(%L, ''viewer'')', test.uid('pnew')),
@@ -463,6 +471,60 @@ select test.ok((select count(*) from pcc.tasks t join pcc.workstreams w on w.id 
                 where t.project_id = test.pid('p3')) = 4,
                'Die Aufgaben der Vorlage hängen an den richtigen Workstreams');
 select test.logout();
+
+-- -----------------------------------------------------------------------------
+-- 13. Angriffe, die funktionieren müssten, wenn die Riegel fehlten
+-- -----------------------------------------------------------------------------
+select test.login('pview');
+select test.fails('select public.enable_internal_write()',
+                  'permission denied', 'Den internen Schreibmodus legt niemand von außen um');
+select test.fails(format('update public.users set role = ''super_admin'' where id = %L', test.uid('pview')),
+                  'PCC_AUTH', 'Niemand befördert sich selbst');
+select test.fails(format('select pcc.next_ref(%L, ''HACK'')', test.pid('p1')),
+                  'permission denied', 'Referenznummern vergibt der Trigger, nicht der Nutzer');
+select test.ok((select count(*) from pcc.v_pending_users) = 0,
+               'Offene Registrierungen sieht nur der Super Admin');
+select test.logout();
+
+select test.login('psa');
+select test.ok((select count(*) from pcc.v_pending_users) >= 0,
+               'Der Super Admin sieht die Freigabeliste');
+select test.logout();
+
+select test.login('ppm');
+-- Der Prüfstand eines Dokuments kommt von der Virenprüfung
+select test.fails(format('update pcc.documents set scan_state = ''clean'' where id = %L', test.pid('d1')),
+                  'PCC_GUARD', 'Ein Upload erklärt sich nicht selbst für geprüft');
+select test.fails(format('update pcc.documents set project_id = %L where id = %L', test.pid('p3'), test.pid('d1')),
+                  'PCC_IMMUTABLE', 'Ein Dokument wechselt nicht das Projekt');
+-- Der Versionszähler gehört der Versionierung
+select test.fails(format('update pcc.projects set version_minor = 0 where id = %L', test.pid('p1')),
+                  'PCC_GUARD', 'Der Versionsstand lässt sich nicht zurücksetzen');
+select test.fails(format('update pcc.projects set archived_at = now() where id = %L', test.pid('p1')),
+                  'PCC_GUARD', 'Archivieren geht nur mit Grund über die Funktion');
+select test.fails(format('update pcc.projects set key = ''XXX-99'' where id = %L', test.pid('p1')),
+                  'PCC_IMMUTABLE', 'Der Projektschlüssel bleibt bestehen');
+-- Eine Aufgabe ist nicht ihr eigenes Elternteil, und tiefer als eine Ebene geht es nicht
+select test.fails(format('update pcc.tasks set parent_task_id = id where id = %L', test.pid('t1')),
+                  'tasks_check', 'Eine Aufgabe ist nicht ihre eigene Teilaufgabe');
+-- Optimistisches Sperren (Abschnitt 5)
+select test.fails(format('update pcc.tasks set title = ''veraltet'', updated_at = %L where id = %L',
+                         '2020-01-01 00:00:00+00', test.pid('t1')),
+                  'PCC_CONFLICT', 'Ein überholter Stand überschreibt nichts still');
+-- Herkunft ist kein Client-Wert
+insert into pcc.issues (project_id, title, created_by)
+values (test.pid('p1'), 'Angeblich vom Super Admin', test.uid('psa'));
+select test.ok((select created_by from pcc.issues where title = 'Angeblich vom Super Admin') = test.uid('ppm'),
+               'Angelegt von wird gesetzt, nicht mitgeliefert');
+insert into pcc.issues (project_id, title, ref) values (test.pid('p1'), 'Frei gewählte Referenz', 'T-1');
+select test.ok((select ref from pcc.issues where title = 'Frei gewählte Referenz') like 'I-%',
+               'Die Referenznummer kommt aus dem Zähler');
+select test.logout();
+
+-- Rollenvergabe steht im Audit-Trail
+select test.logout();
+select test.ok((select count(*) from public.audit_log where entity = 'public.users') > 0,
+               'Wer wem welche Rolle gegeben hat, steht im Trail');
 
 select test.ok(true, 'Alle Prüfungen des Control Centers bestanden');
 rollback;

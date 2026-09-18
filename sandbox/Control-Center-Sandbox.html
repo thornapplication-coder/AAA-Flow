@@ -413,7 +413,6 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- i18n ---------- */
 const I = {
 de:{
-  ago:"her",
   c_activity:"Letzte Änderungen",
   c_crit:"Kritische Risiken",
   c_health:"Projektstatus",
@@ -445,7 +444,7 @@ de:{
   doc_h:"Dokumente liegen in der Anwendung. Eine neue Fassung löst die alte ab, statt sie zu überschreiben — der Stand zum Zeitpunkt eines Audits bleibt damit rekonstruierbar. Sehr große Dateien lassen sich stattdessen verlinken.",
   doc_link:"Verweis",
   doc_size:"Größe",
-  doc_soon:"Der Upload braucht das Supabase-Projekt. Siehe docs/PCC-ARCHITECTURE.md, Abschnitt 7a.",
+  doc_soon:"Dateien lassen sich ab dem Produktivbetrieb ablegen. Bis dahin bitte den Speicherort als Verweis eintragen.",
   doc_super:"abgelöst",
   doc_up:"Dokument hochladen",
   done:"Erledigt",
@@ -496,7 +495,6 @@ de:{
   h_amber:"Beobachten",
   h_green:"Gut",
   h_red:"Kritisch",
-  in_:"in",
   is_blocked:"Blockiert",
   is_closed:"Geschlossen",
   is_in_progress:"In Arbeit",
@@ -545,7 +543,7 @@ de:{
   p_noproj_s:"Passen Sie die Filter an oder legen Sie ein Projekt an.",
   p_score_h:"Score = Eintrittswahrscheinlichkeit × Auswirkung. Ab 15 gilt ein Risiko als kritisch.",
   p_search:"Projekt, Aufgabe, Risiko, Issue …",
-  pcc_note:"Prototyp. Anmeldung, Datenbank, Echtzeit und Autosave folgen mit dem Supabase-Projekt — siehe docs/PCC-ARCHITECTURE.md.",
+  pcc_note:"Prototyp mit Demodaten. Anmeldung, Datenbank, Echtzeit und automatisches Speichern folgen im Produktivbetrieb.",
   pd_s:"Wo stehen wir? Bestand, Kritisches, Termine und Verantwortung auf einen Blick.",
   pd_t:"Dashboard",
   pg_work:"Überblick",
@@ -614,7 +612,6 @@ de:{
   tab_team:"Team und RACI",
   tab_tl:"Timeline",
   tab_ver:"Versionen",
-  today:"heute",
   ts_blocked:"Blockiert",
   ts_cancelled:"Abgebrochen",
   ts_completed:"Erledigt",
@@ -626,7 +623,6 @@ de:{
   ver_t:"Versionsverlauf"
 },
 en:{
-  ago:"ago",
   c_activity:"Recent activity",
   c_crit:"Critical risks",
   c_health:"Project health",
@@ -658,7 +654,7 @@ en:{
   doc_h:"Documents live inside the application. A new version supersedes the old one instead of overwriting it, so the state at the time of an audit stays reconstructable. Very large files can be linked instead.",
   doc_link:"Link",
   doc_size:"Size",
-  doc_soon:"Upload requires the Supabase project. See docs/PCC-ARCHITECTURE.md, section 7a.",
+  doc_soon:"Files can be stored once the system goes live. Until then please add the location as a link.",
   doc_super:"superseded",
   doc_up:"Upload document",
   done:"Done",
@@ -709,7 +705,6 @@ en:{
   h_amber:"Watch",
   h_green:"Good",
   h_red:"Critical",
-  in_:"in",
   is_blocked:"Blocked",
   is_closed:"Closed",
   is_in_progress:"In progress",
@@ -758,7 +753,7 @@ en:{
   p_noproj_s:"Adjust the filters or create a project.",
   p_score_h:"Score = probability × impact. From 15 upwards a risk counts as critical.",
   p_search:"Project, task, risk, issue …",
-  pcc_note:"Prototype. Sign-in, database, real-time and autosave follow with the Supabase project — see docs/PCC-ARCHITECTURE.md.",
+  pcc_note:"Prototype with demo data. Sign-in, database, real-time and autosave follow once the system goes live.",
   pd_s:"Where do we stand? Volume, critical items, deadlines and ownership at a glance.",
   pd_t:"Dashboard",
   pg_work:"Overview",
@@ -827,7 +822,6 @@ en:{
   tab_team:"Team and RACI",
   tab_tl:"Timeline",
   tab_ver:"Versions",
-  today:"today",
   ts_blocked:"Blocked",
   ts_cancelled:"Cancelled",
   ts_completed:"Completed",
@@ -1511,10 +1505,15 @@ function pHealth(p) {
   return "green";
 }
 const healthCls = h => h === "red" ? "bad" : h === "amber" ? "warn" : "ok";
+/* Die Gesamtlage als Ampel, immer beschriftet: eine Farbe allein sagt nicht,
+   wofür sie steht. */
+const healthPill = p => { const h = pHealth(p);
+  return `<span class="pill ${h === "red" ? "p-late" : h === "amber" ? "p-work" : "p-done"}"
+    title="${esc(t("h_" + h + "_h"))}">${t("lb_health")}: ${t("h_" + h)}</span>`; };
 /* Sichtbarkeit: Abschnitt 5 gibt auch dem Viewer Leserecht auf Projekte, nicht
    nur auf eigene. Gelesen wird alles Nichtarchivierte, geändert je nach Rolle.
    Soll die Sicht je Projekt einschränkbar sein, ist das eine Erweiterung —
-   siehe PCC-ARCHITECTURE.md, offener Punkt. */
+   siehe docs/ARCHITECTURE.md, offener Punkt. */
 const pVisible = () => PROJECTS.filter(p => !p.archived);
 const pById = id => PROJECTS.find(x => x.id === id);
 const pill = (cls, txt) => `<span class="pill ${cls}">${esc(txt)}</span>`;
@@ -1602,6 +1601,9 @@ function pccDash() {
   const risks = [];
   ps.forEach(p => pOpenRisks(p).forEach(r => risks.push({ p, r })));
   risks.sort((a,b) => rScore(b.r) - rScore(a.r));
+  /* Eine Liste, die „kritisch" heißt und Unkritisches enthält, verliert ihre
+     Warnwirkung. Kritisch heißt hier: Risikowert 15 oder mehr. */
+  const critRisks = risks.filter(x => rScore(x.r) >= 15);
   const over = [];
   ps.forEach(p => pOverdueTasks(p).forEach(x => over.push({ p, x })));
   over.sort((a,b) => daysTo(a.x.due) - daysTo(b.x.due));
@@ -1611,12 +1613,21 @@ function pccDash() {
   ms.sort((a,b) => a.m.date < b.m.date ? -1 : 1);
   const soon = ms.filter(x => daysTo(x.m.date) >= 0 && daysTo(x.m.date) <= 30).length;
 
-  const kpi = (n, lb, cls) => `<div class="pkpi ${cls || ""}"><div class="n">${n}</div><div class="lb">${t(lb)}</div></div>`;
+  /* Die Kennzahlen zählen die gerechnete Gesamtlage, nicht den von Hand
+     gesetzten Projektstatus. Sonst stünde oben „alles im Plan", während die
+     Zeitstrahlen darunter rot sind — und die Leitung sähe die falsche Zahl
+     zuerst. */
+  const health = h => ps.filter(p => pHealth(p) === h).length;
+  const kpi = (n, lb, cls, title) => `<div class="pkpi ${cls || ""}"${
+    title ? ` title="${esc(title)}"` : ""}><div class="n">${n}</div><div class="lb">${t(lb)}</div></div>`;
+  const crit = risks.filter(x => rScore(x.r) >= 15).length;
   return `<div class="pkpis">
       ${kpi(ps.length, "k_total")}${kpi(active.length, "k_active")}
-      ${kpi(cnt("on_track"), "k_ontrack", "ok")}${kpi(cnt("at_risk"), "k_atrisk", "warn")}
-      ${kpi(cnt("delayed"), "k_delayed", "bad")}${kpi(cnt("completed"), "k_done")}
-      ${kpi(risks.length, "k_oriks", risks.some(x => rScore(x.r) >= 15) ? "bad" : "")}
+      ${kpi(health("green"), "k_hgreen", "ok", t("k_hgreen_h"))}
+      ${kpi(health("amber"), "k_hamber", "warn", t("k_hamber_h"))}
+      ${kpi(health("red"), "k_hred", "bad", t("k_hred_h"))}
+      ${kpi(cnt("completed"), "k_done")}
+      ${kpi(crit, "k_criks", crit ? "bad" : "", t("p_score_h"))}
       ${kpi(over.length, "k_otasks", over.length ? "bad" : "")}${kpi(soon, "k_ums")}
     </div>
 
@@ -1626,12 +1637,14 @@ function pccDash() {
     <div class="pcard"><header><h2>${t("c_health")}</h2>
       <span class="co">${active.length} ${t("k_active").toLowerCase()}</span></header>
       <div class="tblwrap aslist"><table><thead><tr>
-        <th>${t("col_project")}</th><th>${t("col_status")}</th><th>${t("col_progress")}</th>
+        <th>${t("col_project")}</th><th>${t("col_health")}</th><th>${t("col_status")}</th>
+        <th>${t("col_progress")}</th>
         <th>${t("col_pm")}</th><th>${t("col_next")}</th><th>${t("col_risks")}</th>
       </tr></thead><tbody>${ps.map(p => {
         const n = pNextMs(p), cr = pCritRisks(p).length;
         return `<tr data-pp="${p.id}">
           <td><b>${esc(p.name)}</b><div class="num">${esc(p.key)}</div></td>
+          <td>${healthPill(p)}</td>
           <td>${pStatusPill(p.status)}</td>
           <td style="min-width:130px">${pBar(pProgress(p), healthCls(pHealth(p)))}</td>
           <td class="co">${pUser(p.pm)}</td>
@@ -1639,7 +1652,7 @@ function pccDash() {
           <td>${pOpenRisks(p).length}${cr ? ` <span class="pill p-late">${cr} kritisch</span>` : ""}</td>
         </tr>`; }).join("")}</tbody></table></div>
       <div class="cards" style="padding:12px">${ps.map(p => `<article class="card" data-pp="${p.id}">
-        <div class="top"><span class="num">${esc(p.key)}</span>${pStatusPill(p.status)}</div>
+        <div class="top"><span class="num">${esc(p.key)}</span>${healthPill(p)}</div>
         <h4>${esc(p.name)}</h4>
         <div class="sub"><span>${pUser(p.pm)}</span></div>
         <div style="margin-top:8px">${pBar(pProgress(p), healthCls(pHealth(p)))}</div>
@@ -1657,14 +1670,14 @@ function pccDash() {
         </li>`).join("")}</ul>` : `<div class="inner muted">${t("p_none")}</div>`}
       </div>
 
-      <div class="pcard"><header><h2>${t("c_crit")}</h2></header>
-        ${risks.length ? `<ul class="plist">${risks.slice(0,6).map(({p,r}) => `<li class="clickable" data-pp="${p.id}">
-          <span class="when"><b>${rScore(r)}</b>Score</span>
+      <div class="pcard"><header><h2>${t("c_crit")}</h2>
+        <span class="co">${t("p_score_h")}</span></header>
+        ${critRisks.length ? `<ul class="plist">${critRisks.slice(0,6).map(({p,r}) => `<li class="clickable" data-pp="${p.id}">
+          <span class="when"><b>${rScore(r)}</b>${t("col_score")}</span>
           <span class="m"><b>${esc(r.title)}</b>
             <span class="sub">${esc(p.key)} · ${esc(r.cat)} · ${pUser(r.owner)}</span></span>
-          <span class="rt">${pill(rScore(r) >= 15 ? "p-late" : rScore(r) >= 8 ? "p-work" : "p-open",
-            rScore(r) >= 15 ? "High" : rScore(r) >= 8 ? "Medium" : "Low")}</span>
-        </li>`).join("")}</ul>` : `<div class="inner muted">${t("p_none")}</div>`}
+          <span class="rt">${pill("p-late", t("rl_crit"))}</span>
+        </li>`).join("")}</ul>` : `<div class="inner muted">${t("c_crit_none")}</div>`}
       </div>
 
       <div class="pcard"><header><h2>${t("c_overdue")}</h2></header>
@@ -1870,10 +1883,12 @@ function pHeader(p) {
       </span>
     </div>
     <div class="meta" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px">
-      <span class="num">${esc(p.key)}</span>${pStatusPill(p.status)}
-      ${pill(h === "red" ? "p-late" : h === "amber" ? "p-work" : "p-done", t("h_" + h))}
-      ${canEdit ? "" : `<span class="co">${t("p_noedit")}</span>`}
+      <span class="num">${esc(p.key)}</span>
+      <span class="pill ${"s-" + p.status}">${t("lb_status")}: ${t("ps_" + p.status)}</span>
+      ${healthPill(p)}
+      <span class="co">${esc(healthWhy(p))}</span>
     </div>
+    <div class="rolehint">${esc(roleHint(p))}</div>
     <div class="facts">
       <div><div class="k">${t("col_progress")}</div><div class="v">${pBar(pProgress(p), healthCls(h))}</div></div>
       <div><div class="k">${t("col_pm")}</div><div class="v">${pUser(p.pm)}</div></div>

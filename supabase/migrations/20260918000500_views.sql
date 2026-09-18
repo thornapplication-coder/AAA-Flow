@@ -164,10 +164,11 @@ where n.user_id = auth.uid();
 -- -----------------------------------------------------------------------------
 -- Offene Freigaben für den Super Admin (Abschnitt 4)
 -- -----------------------------------------------------------------------------
+-- Offene Registrierungen samt E-Mail sieht nur, wer sie freigeben kann.
 create view pcc.v_pending_users with (security_invoker = true) as
 select id, name, email, registered_at, pending, active
 from public.users
-where pending and not active;
+where pending and not active and pcc.is_super_admin();
 
 grant select on all tables in schema pcc to authenticated;
 revoke all on pcc.v_projects, pcc.v_tasks, pcc.v_milestones, pcc.v_risks,

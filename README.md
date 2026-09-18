@@ -82,6 +82,8 @@ supabase/migrations/     Schema 1.0.0 in fünf Migrationen (Schema, Helfer, Logi
 supabase/seed.sql        Versionsauslöser, Einstellungen, erste Projektvorlage
 supabase/tests/          SQL-Tests für Rechte, Versionierung, Gesamtlage, Dokumente, Löschweg
 scripts/db-check.sh      Migrationen + Seed + Tests gegen eine lokale PostgreSQL-Instanz
+scripts/local/auth_shim.sql   Ersatz für auth.users und auth.uid(), nur für db-check
+scripts/check-sandbox.mjs     Prototyp in drei Bildschirmbreiten auf Fehler und Überlauf prüfen
 src/                     Frontend-Gerüst (Auth, Routing, i18n, Theme, Projektübersicht)
 ```
 
@@ -115,20 +117,25 @@ Mit Supabase CLI und Docker geht alternativ `supabase start` und
    `supabase/seed.sql` im SQL-Editor ausführen. Nutzerkonto und Audit-Trail
    liegen in `public`, alles Fachliche in `pcc`; beide Schemas sind in
    `supabase/config.toml` für die API freigegeben.
-3. Ersten Nutzer über die Anmeldung registrieren, dann im SQL-Editor zum Super
-   Admin machen:
+3. Ersten Nutzer über die Anmeldung registrieren — das Profil entsteht gesperrt
+   und ohne Rolle. Dann im SQL-Editor:
    ```sql
-   update public.users
-      set role = 'super_admin', active = true, pending = false, approved_at = now()
-    where email = '<ihre-adresse>';
+   select pcc.bootstrap_super_admin('<ihre-adresse>');
    ```
-   Alle weiteren Konten gibt dieser Super Admin über `pcc.approve_user()` frei.
+   Die Funktion verweigert sich, sobald ein aktiver Super Admin existiert; ein
+   gewöhnliches `update` auf `public.users` weist der Guard ab. Alle weiteren
+   Konten gibt dieser Super Admin über `pcc.approve_user()` frei.
 4. Storage-Bucket `project-docs` **privat** anlegen (Abschnitt 7a der
    Architektur): Zugriff ausschließlich über signierte URLs, Upload zunächst
    nach `quarantine/`.
-5. Tagesjob: `pg_cron` im Dashboard aktivieren (die Migration richtet den Job
-   `pcc_daily` dann selbst ein) oder `pcc.run_daily_jobs()` täglich aus einer
-   Edge Function aufrufen.
+5. Tagesjob: `pg_cron` **vor** `supabase db push` im Dashboard aktivieren — dann
+   richtet die Migration den Job `pcc_daily` selbst ein. Wurde sie schon
+   eingespielt, den Job von Hand nachtragen:
+   ```sql
+   select cron.schedule('pcc_daily', '0 5 * * *', 'select pcc.run_daily_jobs()');
+   ```
+   Ohne `pg_cron` muss `pcc.run_daily_jobs()` täglich aus einer Edge Function
+   oder einem externen Scheduler kommen.
 6. Automatisches Datenbank-Backup aktivieren; Storage wird davon **nicht**
    erfasst und braucht einen eigenen Abgleich (Abschnitt 7a).
 7. `.env` mit `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` befüllen.

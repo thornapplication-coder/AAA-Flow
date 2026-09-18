@@ -98,7 +98,8 @@ create index audit_log_created_idx on public.audit_log (created_at);
 -- Interner Schreibmodus
 -- Guard-Trigger sollen Nutzer bremsen, nicht die eigenen Funktionen. Eine
 -- transaktionslokale Einstellung schaltet sie für den Aufruf einer geprüften
--- Funktion frei. Über die API ist sie nicht erreichbar.
+-- Funktion frei. Das Ausführungsrecht wird in Migration 4 entzogen: wer den
+-- Schalter selbst umlegen könnte, hätte alle Guards auf einmal ausgehebelt.
 -- -----------------------------------------------------------------------------
 create or replace function public.internal_write_enabled()
 returns boolean
@@ -202,6 +203,7 @@ create table pcc.workstreams (
   unique (project_id, name)
 );
 create index workstreams_project_idx on pcc.workstreams (project_id, sort_order);
+create index members_user_idx on pcc.project_members (user_id);
 
 -- -----------------------------------------------------------------------------
 -- Aufgaben, Meilensteine, Risiken, Issues, Entscheidungen
@@ -228,13 +230,15 @@ create table pcc.tasks (
   updated_at       timestamptz not null default now(),
   updated_by       uuid references public.users (id),
   unique (project_id, ref),
-  check (due_date is null or start_date is null or due_date >= start_date)
+  check (due_date is null or start_date is null or due_date >= start_date),
+  check (parent_task_id is distinct from id)
 );
 comment on table pcc.tasks is 'Aufgabe. Eine Teilaufgabe ist eine Aufgabe mit parent_task_id (eine Ebene, Abschnitt 21).';
 create index tasks_project_idx on pcc.tasks (project_id, status);
 create index tasks_assignee_idx on pcc.tasks (assignee_user_id, status);
 create index tasks_due_idx on pcc.tasks (due_date) where status not in ('completed', 'cancelled');
 create index tasks_parent_idx on pcc.tasks (parent_task_id);
+create index tasks_workstream_idx on pcc.tasks (workstream_id);
 
 create table pcc.milestones (
   id                      uuid primary key default gen_random_uuid(),
@@ -260,6 +264,7 @@ create table pcc.milestones (
 comment on column pcc.milestones.baseline_date is 'Ursprünglich geplantes Datum. Jede Verschiebung erzeugt eine Version (Abschnitt 6).';
 create index milestones_project_idx on pcc.milestones (project_id, due_date);
 create index milestones_due_idx on pcc.milestones (due_date) where status <> 'completed';
+create index milestones_workstream_idx on pcc.milestones (workstream_id);
 
 create table pcc.risks (
   id            uuid primary key default gen_random_uuid(),
@@ -286,6 +291,7 @@ create table pcc.risks (
 comment on column pcc.risks.score is 'Generierte Spalte. Nie im Anwendungscode gerechnet, damit Filter und Sortierung serverseitig stimmen (Abschnitt 24).';
 create index risks_project_idx on pcc.risks (project_id, score desc);
 create index risks_open_idx on pcc.risks (project_id) where status in ('open', 'monitoring');
+create index risks_owner_idx on pcc.risks (owner_user_id);
 
 create table pcc.issues (
   id            uuid primary key default gen_random_uuid(),
@@ -308,6 +314,7 @@ create table pcc.issues (
 );
 comment on column pcc.issues.risk_id is 'Ein eingetretenes Risiko wird zum Issue und behält die Herkunft.';
 create index issues_project_idx on pcc.issues (project_id, status);
+create index issues_owner_idx on pcc.issues (owner_user_id, created_by);
 
 create table pcc.decisions (
   id             uuid primary key default gen_random_uuid(),
@@ -349,6 +356,7 @@ comment on table pcc.raci is 'Eigene Tabelle statt Feld an der Aufgabe: genau ei
 create unique index raci_one_accountable on pcc.raci (subject_type, subject_id) where letter = 'A';
 create index raci_subject_idx on pcc.raci (subject_type, subject_id);
 create index raci_user_idx on pcc.raci (user_id);
+create index raci_project_idx on pcc.raci (project_id);
 
 create table pcc.documents (
   id            uuid primary key default gen_random_uuid(),
@@ -376,13 +384,15 @@ create table pcc.documents (
   -- Abschnitt 7a: entweder Datei im Bucket oder externer Verweis, nie beides.
   check ((kind = 'file' and storage_path is not null and external_url is null)
       or (kind = 'link' and external_url is not null and storage_path is null)),
-  -- Ein Verweis wird nicht geprüft, er liegt nicht bei uns.
-  check (kind = 'link' or scan_state is not null)
+  -- Ohne Größe keine Datei: sonst ließe sich die 50-MB-Grenze umgehen, indem
+  -- die Angabe schlicht weggelassen wird.
+  check (kind <> 'file' or size_bytes is not null)
 );
 comment on table pcc.documents is 'Dokument. Eine neue Fassung löst die alte über supersedes_id ab, statt sie zu überschreiben (Abschnitt 7a).';
 comment on column pcc.documents.size_bytes is 'Harte Grenze 50 MB je Datei. Größeres bleibt extern.';
 create index documents_project_idx on pcc.documents (project_id) where deleted_at is null;
 create index documents_entity_idx on pcc.documents (entity_type, entity_id);
+create index documents_owner_idx on pcc.documents (owner_user_id);
 create unique index documents_supersedes_once on pcc.documents (supersedes_id) where supersedes_id is not null;
 
 create table pcc.comments (
@@ -400,12 +410,14 @@ create table pcc.comments (
 );
 create index comments_entity_idx on pcc.comments (entity_type, entity_id, created_at);
 create index comments_project_idx on pcc.comments (project_id, created_at desc);
+create index comments_user_idx on pcc.comments (user_id);
 
 create table pcc.mentions (
   comment_id uuid not null references pcc.comments (id) on delete cascade,
   user_id    uuid not null references public.users (id) on delete cascade,
   primary key (comment_id, user_id)
 );
+create index mentions_user_idx on pcc.mentions (user_id);
 
 create table pcc.notifications (
   id          uuid primary key default gen_random_uuid(),
@@ -421,6 +433,9 @@ create table pcc.notifications (
   created_at  timestamptz not null default now()
 );
 create index notifications_user_idx on pcc.notifications (user_id, read_at, created_at desc);
+-- Der Tageslauf fragt je Eintrag, ob heute schon gemeldet wurde.
+create index notifications_entity_idx on pcc.notifications (entity_id, kind, created_at);
+create index notifications_project_idx on pcc.notifications (project_id);
 
 -- -----------------------------------------------------------------------------
 -- Versionierung (Abschnitt 6)
@@ -487,9 +502,20 @@ create table pcc.settings (
 -- -----------------------------------------------------------------------------
 -- updated_at
 -- -----------------------------------------------------------------------------
+-- Optimistisches Sperren (Abschnitt 5). Schickt die Oberfläche den Stand mit,
+-- auf dem sie den Satz geladen hat, und ist dieser inzwischen überholt, wird
+-- der Schreibvorgang abgewiesen statt still zu überschreiben. Wer kein
+-- updated_at mitschickt, bekommt das alte Verhalten.
 create or replace function pcc.tg_touch()
 returns trigger language plpgsql as $$
 begin
+  if not public.internal_write_enabled()
+     and new.updated_at is distinct from old.updated_at
+     and new.updated_at < old.updated_at then
+    raise exception 'PCC_CONFLICT: Der Satz wurde inzwischen von jemand anderem geändert'
+      using errcode = 'P0001',
+            detail = 'Geladen: ' || new.updated_at || ', aktuell: ' || old.updated_at;
+  end if;
   new.updated_at := now();
   new.updated_by := coalesce(auth.uid(), new.updated_by);
   return new;

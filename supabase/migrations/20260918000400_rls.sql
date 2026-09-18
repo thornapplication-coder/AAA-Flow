@@ -152,9 +152,13 @@ create policy documents_select on pcc.documents for select to authenticated
   using (pcc.can_read(project_id) and (deleted_at is null or pcc.is_super_admin()));
 create policy documents_insert on pcc.documents for insert to authenticated
   with check (pcc.can_contribute(project_id));
+-- Eigentum allein genügt nicht: wer im Projekt nichts beitragen darf, ändert
+-- auch sein eigenes Dokument nicht.
 create policy documents_update on pcc.documents for update to authenticated
-  using (pcc.can_edit(project_id) or owner_user_id = auth.uid())
-  with check (pcc.can_edit(project_id) or owner_user_id = auth.uid());
+  using (pcc.can_contribute(project_id)
+         and (pcc.can_edit(project_id) or owner_user_id = auth.uid()))
+  with check (pcc.can_contribute(project_id)
+         and (pcc.can_edit(project_id) or owner_user_id = auth.uid()));
 
 -- -----------------------------------------------------------------------------
 -- Kommentare: eigene bearbeiten, fremde nur lesen. Löschen über delete_comment().
@@ -203,12 +207,32 @@ create policy settings_update on pcc.settings for update to authenticated
 -- ausschließlich von SECURITY-DEFINER-Funktionen gepflegt.
 
 -- -----------------------------------------------------------------------------
+-- Ausführungsrechte auf die gemeinsamen Hilfsfunktionen
+-- Der interne Schreibmodus hebelt sämtliche Guards aus. Er gehört den
+-- Funktionen dieses Schemas, nicht der API.
+-- -----------------------------------------------------------------------------
+revoke execute on function public.enable_internal_write() from public, anon, authenticated;
+revoke execute on function public.disable_internal_write() from public, anon, authenticated;
+-- Der Lesezugriff bleibt: die Guard-Trigger laufen im Recht des Aufrufers und
+-- müssen den Schalter abfragen können. Umlegen kann ihn nur noch, wer als
+-- Eigentümer der geprüften Funktionen läuft.
+
+-- -----------------------------------------------------------------------------
 -- Ausführungsrechte
 -- -----------------------------------------------------------------------------
 revoke all on all functions in schema pcc from public, anon;
 grant execute on all functions in schema pcc to authenticated;
 -- Der Tageslauf läuft über pg_cron als service_role, nicht aus der Oberfläche.
 revoke execute on function pcc.run_daily_jobs() from authenticated;
+-- Der Bootstrap gehört nicht an die API: er läuft einmal, mit direktem
+-- Datenbankzugang, bei der Inbetriebnahme.
+revoke execute on function pcc.bootstrap_super_admin(text) from authenticated, anon, public;
 revoke execute on function pcc.notify(uuid, uuid, pcc.notification_kind, pcc.entity_type, uuid, text, text) from authenticated;
 revoke execute on function pcc.new_version(uuid, text, text, jsonb) from authenticated;
+-- Referenznummern vergibt der Trigger. Von außen aufgerufen erzeugte sie nur
+-- Lücken in der Zählung fremder Projekte.
+revoke execute on function pcc.next_ref(uuid, text) from authenticated, anon, public;
+-- Den Prüfstand eines Dokuments meldet die Virenprüfung, nicht die Oberfläche.
+revoke execute on function pcc.set_scan_state(uuid, pcc.scan_state) from authenticated, anon, public;
+grant execute on function pcc.set_scan_state(uuid, pcc.scan_state) to service_role;
 grant execute on function pcc.run_daily_jobs() to service_role;
