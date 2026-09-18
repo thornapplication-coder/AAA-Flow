@@ -347,6 +347,31 @@ select test.fails(format('select pcc.post_comment(%L, ''task'', %L, ''Kein Recht
                   'PCC_AUTH', 'Ein Viewer kommentiert nicht');
 select test.logout();
 
+-- Löschen ist kein gewöhnliches Ändern (Abschnitt 7b)
+select test.login('ppm');
+select test.fails(format('update pcc.documents set deleted_at = now() where id = %L', test.pid('d2')),
+                  'PCC_AUTH', 'Auch der Eigentümer löscht ein Dokument nicht im Vorbeigehen');
+select test.logout();
+select test.login('psa');
+select test.fails(format('select pcc.delete_document(%L, '''')', test.pid('d2')),
+                  'PCC_STATE', 'Ohne Grundlage keine Dokumentlöschung');
+select pcc.delete_document(test.pid('d2'), 'Antrag nach Artikel 17 DSGVO vom 02.09.2026');
+select test.ok((select deleted_at is not null and deleted_reason is not null
+                from pcc.documents where id = test.pid('d2')),
+               'Der Super Admin löscht auf Antrag, mit Grundlage');
+select test.logout();
+select test.login('ppm');
+select test.ok((select count(*) from pcc.documents where id = test.pid('d2')) = 0,
+               'Gelöschte Dokumente sind für alle außer dem Super Admin verschwunden');
+with u as (update pcc.comments set body = 'nachtraeglich geaendert' where id = test.pid('c1') returning 1)
+select test.ok((select count(*) from u) = 0, 'Fremde Kommentare bleiben unangetastet');
+select test.logout();
+select test.login('pcon');
+update pcc.comments set body = 'Der Termin ist knapp — bitte um Entscheidung bis Freitag.' where id = test.pid('c1');
+select test.ok((select edited_at is not null from pcc.comments where id = test.pid('c1')),
+               'Ein bearbeiteter Kommentar sagt, dass er bearbeitet wurde');
+select test.logout();
+
 -- -----------------------------------------------------------------------------
 -- 9. Archiv und endgültiges Löschen (Abschnitt 41)
 -- -----------------------------------------------------------------------------

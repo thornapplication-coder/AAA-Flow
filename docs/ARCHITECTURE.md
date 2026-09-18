@@ -248,12 +248,14 @@ enthalten personenbezogene Daten — Namen, Verantwortlichkeiten, gelegentlich
 Beurteilungen. Verlangt eine Person die Löschung, muss die Anwendung sie
 ausführen können, ohne den Projektverlauf zu zerstören.
 
-Vorgesehener Weg, ausschließlich für den Super Admin:
+Umgesetzter Weg, ausschließlich für den Super Admin
+(`pcc.anonymise_user()`, `pcc.delete_comment()`, `pcc.delete_document()` —
+jede dieser Funktionen verlangt eine Grundlage im Klartext):
 
 | Objekt | Behandlung |
 |---|---|
 | `users` | Konto deaktiviert, Name ersetzt durch „Ehemaliger Mitarbeiter (Nr.)", E-Mail geleert. Die ID bleibt, damit Zuordnungen nicht brechen |
-| `comments`, `documents` | Auf Antrag einzeln löschbar, mit Eintrag im Audit-Trail: wer, wann, auf welcher Grundlage |
+| `comments`, `documents` | Auf Antrag einzeln löschbar, mit Eintrag im Audit-Trail: wer, wann, auf welcher Grundlage. Ein Trigger verhindert, dass jemand den Löschvermerk im Vorbeigehen setzt — auch der Eigentümer eines Dokuments nicht |
 | `audit_log` | Einträge bleiben, der Personenbezug wird durch die Pseudonymisierung in `users` aufgelöst. Der Vorgang selbst bleibt nachvollziehbar |
 | `tasks`, `risks`, `decisions` | Zuordnung bleibt über die ID bestehen und zeigt den pseudonymisierten Namen |
 

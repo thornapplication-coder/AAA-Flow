@@ -1,22 +1,70 @@
 {
-  "app": { "name": "Project Control Center", "tagline": "Projektsteuerung der Aviation Academy Austria" },
-  "nav": { "dashboard": "Dashboard", "projects": "Projekte", "tasks": "Aufgaben", "risks": "Risiken", "reports": "Berichte", "admin": "Administration" },
+  "app": {
+    "name": "Project Control Center",
+    "tagline": "Projektsteuerung der Aviation Academy Austria"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projekte",
+    "tasks": "Aufgaben",
+    "risks": "Risiken",
+    "reports": "Berichte",
+    "admin": "Administration"
+  },
   "auth": {
-    "login": "Anmelden", "logout": "Abmelden", "email": "E-Mail", "password": "Passwort",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
     "signup": "Noch kein Zugang? Nach der Registrierung gibt der Super Admin das Konto frei.",
     "failed": "Anmeldung fehlgeschlagen.",
     "pending": "Ihr Konto wartet auf die Freigabe durch den Super Admin. Sie erhalten eine Nachricht, sobald es so weit ist.",
     "noProfile": "Für dieses Konto existiert kein Profil. Bitte an den Super Admin wenden."
   },
-  "common": { "loading": "Lädt …", "language": "Sprache", "noEntries": "Keine Einträge.", "error": "Fehler", "comingSoon": "Dieser Bereich folgt im nächsten Ausbauschritt." },
-  "role": { "super_admin": "Super Admin", "admin": "Admin", "pm": "Project Manager", "contributor": "Contributor", "viewer": "Viewer" },
-  "status": { "not_started": "Nicht begonnen", "started": "Gestartet", "on_track": "Im Plan", "at_risk": "Gefährdet", "delayed": "Verzögert", "cancelled": "Abgebrochen", "completed": "Abgeschlossen" },
-  "health": { "green": "Gut", "amber": "Beobachten", "red": "Kritisch" },
+  "common": {
+    "loading": "Lädt …",
+    "language": "Sprache",
+    "noEntries": "Keine Einträge.",
+    "error": "Fehler",
+    "comingSoon": "Dieser Bereich folgt im nächsten Ausbauschritt.",
+    "updateAvailable": "Eine neue Fassung ist verfügbar. Jetzt laden?"
+  },
+  "role": {
+    "super_admin": "Super Admin",
+    "admin": "Admin",
+    "pm": "Project Manager",
+    "contributor": "Contributor",
+    "viewer": "Viewer"
+  },
+  "status": {
+    "not_started": "Nicht begonnen",
+    "started": "Gestartet",
+    "on_track": "Im Plan",
+    "at_risk": "Gefährdet",
+    "delayed": "Verzögert",
+    "cancelled": "Abgebrochen",
+    "completed": "Abgeschlossen"
+  },
+  "health": {
+    "green": "Gut",
+    "amber": "Beobachten",
+    "red": "Kritisch"
+  },
   "projects": {
     "title": "Projekte",
     "intro": "Alle laufenden Projekte. Gesamtlage und Fortschritt werden aus Aufgaben, Meilensteinen und Risiken gerechnet.",
-    "key": "Schlüssel", "name": "Projekt", "pm": "Projektleitung", "progress": "Fortschritt",
-    "nextMilestone": "Nächster Meilenstein", "openRisks": "Offene Risiken", "overdueTasks": "Überfällige Aufgaben"
+    "key": "Schlüssel",
+    "name": "Projekt",
+    "pm": "Projektleitung",
+    "progress": "Fortschritt",
+    "nextMilestone": "Nächster Meilenstein",
+    "openRisks": "Offene Risiken",
+    "overdueTasks": "Überfällige Aufgaben"
   },
-  "dashboard": { "total": "Projekte gesamt", "active": "Aktiv", "criticalRisks": "Kritische Risiken", "overdueTasks": "Überfällige Aufgaben" }
+  "dashboard": {
+    "total": "Projekte gesamt",
+    "active": "Aktiv",
+    "criticalRisks": "Kritische Risiken",
+    "overdueTasks": "Überfällige Aufgaben"
+  }
 }

@@ -6,6 +6,10 @@
 
 -- -----------------------------------------------------------------------------
 -- Projekte mit gerechneten Kennzahlen (Abschnitte 11, 12)
+-- Fortschritt und Gesamtlage werden je Zeile über Funktionen gerechnet. Bei der
+-- hier erwarteten Größenordnung — Dutzende Projekte, nicht Zehntausende — ist
+-- das die verständlichere Lösung. Wird die Zahl größer, tritt an ihre Stelle
+-- eine materialisierte Sicht, die der Tageslauf auffrischt.
 -- -----------------------------------------------------------------------------
 create view pcc.v_projects with (security_invoker = true) as
 select

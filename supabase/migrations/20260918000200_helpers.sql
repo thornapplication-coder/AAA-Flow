@@ -50,16 +50,6 @@ language sql stable security definer set search_path = public, pcc as $$
 $$;
 comment on function pcc.can_read(uuid) is 'Archivierte Projekte sehen nur Mitglieder und die Admin-Ebene.';
 
-create or replace function pcc.is_member(p_project_id uuid)
-returns boolean
-language sql stable security definer set search_path = public, pcc as $$
-  select pcc.is_admin()
-      or exists (select 1 from pcc.project_members m
-                 where m.project_id = p_project_id and m.user_id = auth.uid())
-      or exists (select 1 from pcc.projects p
-                 where p.id = p_project_id and p.pm_user_id = auth.uid());
-$$;
-
 create or replace function pcc.can_edit(p_project_id uuid)
 returns boolean
 language sql stable security definer set search_path = public, pcc as $$
@@ -144,7 +134,12 @@ $$;
 create or replace function pcc.health(p_project_id uuid)
 returns pcc.health
 language sql stable security definer set search_path = public, pcc as $$
-  with p as (select * from pcc.projects where id = p_project_id),
+  with cfg as (
+    select coalesce((value ->> 'red_critical_risks')::integer, 2) as red_risks,
+           coalesce((value ->> 'amber_critical_risks')::integer, 1) as amber_risks
+    from pcc.settings where key = 'health'
+  ),
+  p as (select * from pcc.projects where id = p_project_id),
   m as (
     select count(*) filter (
       where status <> 'completed' and due_date < current_date
@@ -159,7 +154,8 @@ language sql stable security definer set search_path = public, pcc as $$
   ),
   r as (
     select count(*) filter (
-      where score >= 15 and status in ('open', 'monitoring')
+      where score >= coalesce((select (value ->> 'critical_score')::integer from pcc.settings where key = 'risk'), 15)
+        and status in ('open', 'monitoring')
     ) as critical
     from pcc.risks where project_id = p_project_id
   )
@@ -167,13 +163,13 @@ language sql stable security definer set search_path = public, pcc as $$
     when (select status from p) = 'completed' then 'green'::pcc.health
     when (select status from p) in ('delayed', 'cancelled')
       or (select overdue_ms from m) > 0
-      or (select critical from r) >= 2 then 'red'::pcc.health
+      or (select critical from r) >= coalesce((select red_risks from cfg), 2) then 'red'::pcc.health
     when (select status from p) = 'at_risk'
       or (select overdue_tasks from t) > 0
-      or (select critical from r) >= 1
+      or (select critical from r) >= coalesce((select amber_risks from cfg), 1)
       or ((select target_end_date from p) is not null
           and (select target_end_date from p) < current_date) then 'amber'::pcc.health
     else 'green'::pcc.health
   end;
 $$;
-comment on function pcc.health(uuid) is 'Gesamtlage wird gerechnet, nie gesetzt. Rot bleibt selten, sonst verliert die Farbe ihre Aussage.';
+comment on function pcc.health(uuid) is 'Gesamtlage wird gerechnet, nie gesetzt. Schwellen aus pcc.settings; rot bleibt selten, sonst verliert die Farbe ihre Aussage.';

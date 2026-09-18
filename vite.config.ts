@@ -9,7 +9,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // Abschnitt 8 der Architektur: kein Neuladen mitten in einer Eingabe.
+      // Eine neue Fassung meldet sich und wird auf Klick übernommen.
+      registerType: 'prompt',
       includeAssets: ['icon.svg'],
       manifest: {
         name: 'Project Control Center',

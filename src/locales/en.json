@@ -1,22 +1,70 @@
 {
-  "app": { "name": "Project Control Center", "tagline": "Project control for Aviation Academy Austria" },
-  "nav": { "dashboard": "Dashboard", "projects": "Projects", "tasks": "Tasks", "risks": "Risks", "reports": "Reports", "admin": "Administration" },
+  "app": {
+    "name": "Project Control Center",
+    "tagline": "Project control for Aviation Academy Austria"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "risks": "Risks",
+    "reports": "Reports",
+    "admin": "Administration"
+  },
   "auth": {
-    "login": "Sign in", "logout": "Sign out", "email": "Email", "password": "Password",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "email": "Email",
+    "password": "Password",
     "signup": "No access yet? After registering, the super admin approves the account.",
     "failed": "Sign-in failed.",
     "pending": "Your account is waiting for approval by the super admin. You will be notified once it is done.",
     "noProfile": "No profile exists for this account. Please contact the super admin."
   },
-  "common": { "loading": "Loading …", "language": "Language", "noEntries": "No entries.", "error": "Error", "comingSoon": "This area follows in the next step." },
-  "role": { "super_admin": "Super Admin", "admin": "Admin", "pm": "Project Manager", "contributor": "Contributor", "viewer": "Viewer" },
-  "status": { "not_started": "Not started", "started": "Started", "on_track": "On track", "at_risk": "At risk", "delayed": "Delayed", "cancelled": "Cancelled", "completed": "Completed" },
-  "health": { "green": "Good", "amber": "Watch", "red": "Critical" },
+  "common": {
+    "loading": "Loading …",
+    "language": "Language",
+    "noEntries": "No entries.",
+    "error": "Error",
+    "comingSoon": "This area follows in the next step.",
+    "updateAvailable": "A new version is available. Load it now?"
+  },
+  "role": {
+    "super_admin": "Super Admin",
+    "admin": "Admin",
+    "pm": "Project Manager",
+    "contributor": "Contributor",
+    "viewer": "Viewer"
+  },
+  "status": {
+    "not_started": "Not started",
+    "started": "Started",
+    "on_track": "On track",
+    "at_risk": "At risk",
+    "delayed": "Delayed",
+    "cancelled": "Cancelled",
+    "completed": "Completed"
+  },
+  "health": {
+    "green": "Good",
+    "amber": "Watch",
+    "red": "Critical"
+  },
   "projects": {
     "title": "Projects",
     "intro": "All running projects. Health and progress are computed from tasks, milestones and risks.",
-    "key": "Key", "name": "Project", "pm": "Project manager", "progress": "Progress",
-    "nextMilestone": "Next milestone", "openRisks": "Open risks", "overdueTasks": "Overdue tasks"
+    "key": "Key",
+    "name": "Project",
+    "pm": "Project manager",
+    "progress": "Progress",
+    "nextMilestone": "Next milestone",
+    "openRisks": "Open risks",
+    "overdueTasks": "Overdue tasks"
   },
-  "dashboard": { "total": "Projects total", "active": "Active", "criticalRisks": "Critical risks", "overdueTasks": "Overdue tasks" }
+  "dashboard": {
+    "total": "Projects total",
+    "active": "Active",
+    "criticalRisks": "Critical risks",
+    "overdueTasks": "Overdue tasks"
+  }
 }

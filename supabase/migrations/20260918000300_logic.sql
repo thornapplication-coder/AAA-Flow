@@ -788,6 +788,72 @@ end $$;
 comment on function pcc.supersede_document is 'Ein Dokument wird nie überschrieben, sondern abgelöst. Der Stand zum Zeitpunkt eines Audits bleibt rekonstruierbar.';
 
 -- -----------------------------------------------------------------------------
+-- Löschen ist kein gewöhnliches Ändern
+-- Kommentare und Dokumente enthalten personenbezogene Daten. Entfernt werden
+-- sie nur auf Antrag und nur durch den Super Admin, mit Grundlage im Trail
+-- (Abschnitt 7b). Ohne diesen Riegel könnte der Eigentümer eines Dokuments es
+-- über die gewöhnliche Schreibberechtigung stillschweigend verschwinden lassen.
+-- -----------------------------------------------------------------------------
+create or replace function pcc.tg_delete_guard()
+returns trigger
+language plpgsql as $$
+begin
+  if public.internal_write_enabled() then
+    return new;
+  end if;
+  if new.deleted_at is distinct from old.deleted_at
+     or new.deleted_by is distinct from old.deleted_by
+     or new.deleted_reason is distinct from old.deleted_reason then
+    raise exception 'PCC_AUTH: Löschen nur über die dafür vorgesehene Funktion, mit Grundlage'
+      using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+
+create trigger documents_delete_guard before update on pcc.documents
+  for each row execute function pcc.tg_delete_guard();
+create trigger comments_delete_guard before update on pcc.comments
+  for each row execute function pcc.tg_delete_guard();
+
+-- Ein bearbeiteter Kommentar sagt das auch. Sonst ließe sich eine Aussage
+-- nachträglich verändern, ohne dass es jemand sieht.
+create or replace function pcc.tg_comment_edited()
+returns trigger
+language plpgsql as $$
+begin
+  if public.internal_write_enabled() then
+    return new;
+  end if;
+  if new.body is distinct from old.body then
+    new.edited_at := now();
+  end if;
+  return new;
+end $$;
+create trigger comments_edited before update on pcc.comments
+  for each row execute function pcc.tg_comment_edited();
+
+create or replace function pcc.delete_document(p_document_id uuid, p_reason text)
+returns void
+language plpgsql security definer set search_path = public, pcc as $$
+begin
+  if not pcc.is_super_admin() then
+    raise exception 'PCC_AUTH: Dokumente löscht auf Antrag nur der Super Admin' using errcode = 'P0001';
+  end if;
+  if coalesce(trim(p_reason), '') = '' then
+    raise exception 'PCC_STATE: Für die Löschung ist eine Grundlage anzugeben' using errcode = 'P0001';
+  end if;
+  perform set_config('app.audit_reason', p_reason, true);
+  perform public.enable_internal_write();
+  update pcc.documents
+     set deleted_at = now(), deleted_by = auth.uid(), deleted_reason = p_reason
+   where id = p_document_id;
+  perform public.disable_internal_write();
+  perform set_config('app.audit_reason', '', true);
+end $$;
+comment on function pcc.delete_document(uuid, text) is
+  'Löschverlangen nach Artikel 17 DSGVO: die Datei wird als gelöscht geführt, der Vorgang bleibt im Trail.';
+
+-- -----------------------------------------------------------------------------
 -- Tageslauf: Fristen, überfällige Einträge, Meilensteinstatus
 -- Auf Supabase über pg_cron, lokal manuell aufrufbar.
 -- -----------------------------------------------------------------------------

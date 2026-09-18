@@ -71,16 +71,6 @@ button:disabled{cursor:not-allowed}
 .btn-ghost{border:1px solid var(--line-strong);background:#fff;color:var(--navy-600);padding:7px 13px;border-radius:var(--r);font-size:13px;font-weight:600}
 .btn-ghost:hover{border-color:var(--navy-500);background:var(--surface-2)}
 
-/* ---------- Vorgangsbahn ---------- */
-.track{background:var(--navy-900);border-radius:8px;padding:16px 18px 14px;margin-bottom:20px;display:flex;align-items:stretch;overflow-x:auto}
-
-/* ---------- KPI ---------- */
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 15px}
-.kpi .n{font-size:24px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.kpi .lb{font-size:12px;color:var(--ink-soft);margin-top:2px}
-.kpi.warn .n{color:var(--late)}
-.kpi.ok .n{color:var(--done)}
-
 /* ---------- Filter ---------- */
 .filters{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .filters input[type=search]{border:1px solid var(--line-strong);border-radius:var(--r);padding:7px 10px;min-width:230px;flex:1 1 230px;max-width:340px}
@@ -118,20 +108,11 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .card .next b{color:var(--ink);font-weight:600}
 .card .foot{display:flex;align-items:center;gap:10px;margin-top:9px;flex-wrap:wrap}
 
-/* ---------- Drawer ---------- */
-
-/* ---------- Gate-Panel ---------- */
-
 .notice{background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--navy-600);border-radius:var(--r);padding:11px 13px;font-size:12.5px;color:var(--ink-soft);margin-bottom:16px}
 .notice b{color:var(--ink)}
 .notice.warn{border-left-color:var(--late);background:var(--late-bg);border-color:#F0D5CF;color:#7C3427}
 .notice.warn b{color:#7C3427}
 
-/* ---------- Kommunikation ---------- */
-.av{width:29px;height:29px;flex:0 0 29px;border-radius:5px;background:var(--navy-600);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
-.av.s{background:#6B4E9E}.av.t{background:#1F6E5A}.av.a{background:#B0641A}.av.d{background:var(--navy-700)}
-
-/* ---------- Audit ---------- */
 
 /* ---------- Dialog ---------- */
 .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(12,27,46,.5);z-index:20;padding:16px}
@@ -184,18 +165,12 @@ tbody tr[data-id]:hover{background:#F7FAFD}
   #print{display:block!important;position:static;overflow:visible}
   .pbar{display:none!important}
   .pdoc{max-width:none;padding:0}
- @page{margin:14mm 12mm}
+@page{margin:14mm 12mm}
   body{background:#fff}
 }
 
-/* ---------- Notizen ---------- */
 .ovlcard{background:var(--surface);border-radius:10px;width:min(620px,100%);margin:24px 0 96px;
   box-shadow:0 20px 60px rgba(12,27,46,.3);display:flex;flex-direction:column;max-height:calc(100vh - 140px)}
-.note{padding:11px 0;border-bottom:1px solid #F0F4F8}
-.note:last-of-type{border-bottom:none}
-.note .row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.note .row b{font-size:13px;font-weight:600}
-.note .edit{font-size:11.5px;color:var(--navy-600);text-decoration:underline;margin-top:4px}
 
 /* ---------- Anmeldung ---------- */
 .login{position:fixed;inset:0;overflow-y:auto;display:none;
@@ -238,9 +213,7 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .topbar .userchip .sw{border:1px solid #24405F;border-radius:var(--r);color:#9DB4CC;padding:5px 10px;font-size:12px}
 .topbar .userchip .sw:hover{background:var(--navy-700);color:#fff}
 
-/* ---------- Produktwechsler ---------- */
-
-/* ---------- Control Center ---------- */
+/* ---------- Kennzahlen, Projektansicht ---------- */
 .pkpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:12px;margin-bottom:20px}
 .pkpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 15px}
 .pkpi .n{font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
@@ -349,11 +322,10 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .toast.bad{background:#7C2D20}
 
-/* ---------- Ausnahmen, Stammdaten ---------- */
+/* ---------- Tabellenaktionen und Formularfelder ---------- */
 td.acts{white-space:nowrap}
 td.acts button{font-size:11.5px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 8px;color:var(--navy-600);background:#fff;margin-right:4px}
 td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
-tr.inactive td{opacity:.55}
 .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px 10px;
   border:1px solid var(--line-strong);border-radius:var(--r);padding:10px 11px;background:#fff}
 .checks label{display:flex;align-items:flex-start;gap:7px;font-size:13px;font-weight:400;color:var(--ink);
@@ -492,7 +464,7 @@ de:{
   exp_pdf:"PDF",
   exp_print:"Drucken",
   exp_printed:"Ausgedruckt am {d} von {n}",
-  exp_sandbox:"AAA Flow Sandbox — Demodaten, kein Echtsystem",
+  exp_sandbox:"Control Center Sandbox — Demodaten, kein Echtsystem",
   exp_sign1:"Datum, Unterschrift Training Admin",
   exp_sign2:"Datum, Unterschrift Head of Training",
   exp_what:"Ereignis",
@@ -705,7 +677,7 @@ en:{
   exp_pdf:"PDF",
   exp_print:"Print",
   exp_printed:"Printed on {d} by {n}",
-  exp_sandbox:"AAA Flow sandbox — demo data, not a live system",
+  exp_sandbox:"Control Center sandbox — demo data, not a live system",
   exp_sign1:"Date, signature Training Admin",
   exp_sign2:"Date, signature Head of Training",
   exp_what:"Event",
@@ -907,8 +879,8 @@ const byRole = (a,b) => (ROLE_ORDER[a.pcc] - ROLE_ORDER[b.pcc]) || byName(a,b);
 
 /* ---------- Datum und Arbeitstage ---------- */
 /* Simulierte Uhr: die Sandbox-Leiste verschiebt "heute" nach vorn, damit
-   Fristen, Überfälligkeit, Eskalation und Gate 3 erlebbar werden. Die
-   Demodaten entstehen einmal beim Laden relativ zum echten Datum. */
+   Termine, Überfälligkeit und die Gesamtlage erlebbar werden. Die Demodaten
+   entstehen einmal beim Laden relativ zum echten Datum. */
 let CLOCK = 0;                       // Verschiebung in Kalendertagen
 const iso = d => d.toISOString().slice(0,10);
 const todayD = () => { const d = new Date(); d.setDate(d.getDate() + CLOCK); return d; };
@@ -1047,7 +1019,7 @@ function renderPrint(def) {
        <tbody>${sec.rows.map(r => `<tr>${r.map(v => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`
     : `<p class="none">${t("exp_none")}</p>`;
   return `<div class="pdoc">
-    <div class="brand">Aviation Academy Austria · AAA Flow</div>
+    <div class="brand">Aviation Academy Austria · Project Control Center</div>
     <h1>${esc(def.title)}</h1>
     ${def.subtitle ? `<div class="sub">${esc(def.subtitle)}</div>` : ""}
     <div class="rule"></div>
@@ -1451,16 +1423,16 @@ P4.decisions = [{ id:pid(), ref:"D-1", date:D(-20), topic:"Eigener Simulator ode
   impact:"Abhängigkeit von externen Slots, laufende Kosten je Stunde." }];
 P4.docs = [];
 
-/* 5 — AAA Flow selbst, im Plan */
-const P5 = mkProject({ key:"FLOW-26", name:"AAA Flow — Digitalisierung der Trainingsnachweise",
-  description:"Einführung der Gate-Steuerung für Trainingsvorgänge über Sales, Training Admin und ATO.",
-  objectives:"Keine vergessenen Aufgaben, prüfbare Vollständigkeit der Trainingsunterlagen, belastbare Kennzahlen für die Leitung.",
-  scope:"In Scope: Gate-Steuerung, Kommunikation, Audit-Trail, Auswertung. Nicht in Scope: Scheduling, Grading, Rechnungsstellung.",
+/* 5 — das Control Center selbst, im Plan */
+const P5 = mkProject({ key:"PCC-26", name:"Project Control Center — Einführung",
+  description:"Ablösung der Projektlisten in Excel durch eine gemeinsame Steuerung für alle laufenden Vorhaben.",
+  objectives:"Ein Stand für alle Beteiligten, keine vergessenen Aufgaben, belastbare Kennzahlen für die Leitung.",
+  scope:"In Scope: Projekte, Aufgaben, Meilensteine, Risiken, Berichte. Nicht in Scope: Zeiterfassung, Budgetbuchhaltung.",
   status:"on_track", pm:"u1", start:D(-16), end:D(90), health:"green" });
 P5.team = [{ user:"u1", role:"Project Manager", resp:"Fachliche Leitung, Spezifikation" },
-  { user:"u3", role:"Training Admin", resp:"Prozessabgleich, Prüfpunkt-Katalog" },
-  { user:"u6", role:"Sales", resp:"Akzeptanz an Gate 1" },
-  { user:"u2", role:"ATO", resp:"Gate 2 und Gate 3" }];
+  { user:"u3", role:"Training Admin", resp:"Abgleich mit den bestehenden Abläufen" },
+  { user:"u6", role:"Sales", resp:"Anforderungen aus dem Vertrieb" },
+  { user:"u2", role:"Head of Training", resp:"Abnahme und Einführung" }];
 P5.ws = [{ id:pid(), name:"Spezifikation", owner:"u1" }, { id:pid(), name:"Umsetzung", owner:"u1" },
   { id:pid(), name:"Einführung", owner:"u3" }];
 {
@@ -1469,34 +1441,32 @@ P5.ws = [{ id:pid(), name:"Spezifikation", owner:"u1" }, { id:pid(), name:"Umset
     prio:"High", start:D(-16), due:D(-14), done:D(-15), progress:100 });
   const t = mkTask(P5, { title:"Prototyp bauen und abnehmen", ws:w2.id, assignee:"u1",
     status:"in_progress", prio:"Critical", start:D(-15), due:D(5), progress:85 });
-  mkSub(P5, t, "Datenmodell und Gate-Logik", "completed", "u1");
-  mkSub(P5, t, "Vorgangsakte und Kommunikation", "completed", "u1");
-  mkSub(P5, t, "Admin-Panel und Export", "completed", "u1");
+  mkSub(P5, t, "Datenmodell und Rechte", "completed", "u1");
+  mkSub(P5, t, "Projektakte und Berichte", "completed", "u1");
+  mkSub(P5, t, "Export und Versionsverlauf", "completed", "u1");
   mkSub(P5, t, "Rückmeldungen einarbeiten", "in_progress", "u1");
   mkTask(P5, { title:"Supabase-Projekt aufsetzen", ws:w2.id, assignee:"u1",
     status:"not_started", prio:"High", start:D(6), due:D(20), progress:0,
-    description:"Region EU/Frankfurt, Schemas für Flow und Control Center." });
-  mkTask(P5, { title:"Pilotbetrieb mit zwei Mustern", ws:w3.id, assignee:"u3",
+    description:"Region EU/Frankfurt, Schema pcc, Storage für Projektdokumente." });
+  mkTask(P5, { title:"Pilotbetrieb mit zwei Projekten", ws:w3.id, assignee:"u3",
     status:"not_started", prio:"Medium", start:D(40), due:D(80), progress:0 });
 }
 P5.ms = [{ id:pid(), ref:"M-1", name:"Spezifikation freigegeben", date:D(-14), owner:"u1", status:"completed", ws:P5.ws[0].id },
   { id:pid(), ref:"M-2", name:"Prototyp abgenommen", date:D(6), owner:"u1", status:"in_progress", ws:P5.ws[1].id },
   { id:pid(), ref:"M-3", name:"Pilotbetrieb startet", date:D(42), owner:"u3", status:"planned", ws:P5.ws[2].id },
   { id:pid(), ref:"M-4", name:"Vollbetrieb", date:D(88), owner:"u1", status:"planned", ws:P5.ws[2].id }];
-P5.risks = [{ id:pid(), ref:"R-1", title:"Sales nimmt Gate 1 nicht an",
-  description:"Sales trägt den größten Erfassungsaufwand bei geringstem unmittelbarem Nutzen.",
+P5.risks = [{ id:pid(), ref:"R-1", title:"Projektleitungen pflegen die Daten nicht",
+  description:"Der Nutzen entsteht erst, wenn alle ihre Aufgaben und Termine aktuell halten.",
   cat:"Akzeptanz", prob:3, imp:5, owner:"u6", status:"monitoring", due:D(60),
-  mitigation:"Statustransparenz und Kommunikationsstrang als Gegenwert, Begleitung in den ersten drei Monaten.",
-  conting:"Erfassung an Gate 1 auf das Nötigste kürzen." }];
+  mitigation:"Kurze Wege beim Pflegen, Erinnerungen statt Nachfragen, Begleitung in den ersten drei Monaten.",
+  conting:"Pflege auf Meilensteine und Risiken beschränken, Aufgaben später nachziehen." }];
 P5.issues = [];
-P5.decisions = [{ id:pid(), ref:"D-1", date:D(-15), topic:"Sperre am Gate 3",
-  decision:"Kein Kursabschlussnachweis, solange Pflicht-Records fehlen.", maker:"u1",
-  participants:["u2","u3"], rationale:"Ohne harte Sperre trudeln Records nach und erzeugen Beanstandungen.",
-  impact:"Zusätzliche Regel im Prüfpunkt-Katalog, vollständig innerhalb der ATO." }];
-P5.docs = [{ id:pid(), title:"AAA Flow Spezifikation", kind:"file", file:"AAAFlowSPEC_v02.md", size:"24 KB",
-  version:"0.2", owner:"u1", at:D(-16), description:"Fachliche Spezifikation, Grundlage der Umsetzung." },
-  { id:pid(), title:"Control Center Architektur", kind:"file", file:"PCC-ARCHITECTURE.md", size:"17 KB",
-  version:"1.0", owner:"u1", at:today(), description:"Phase 1 nach Abschnitt 62, zur Freigabe." }];
+P5.decisions = [{ id:pid(), ref:"D-1", date:D(-15), topic:"Rechte in der Datenbank statt in der Oberfläche",
+  decision:"Row Level Security entscheidet, wer was sieht und ändert.", maker:"u1",
+  participants:["u2","u3"], rationale:"Prüfungen im Frontend lassen sich über die Schnittstelle umgehen.",
+  impact:"Mehr Aufwand in der Datenbank, dafür keine zweite Wahrheit im Anwendungscode." }];
+P5.docs = [{ id:pid(), title:"Control Center Architektur", kind:"file", file:"ARCHITECTURE.md", size:"18 KB",
+  version:"1.0", owner:"u1", at:today(), description:"Technologie, Datenmodell, Rechte, Aufbewahrung." }];
 
 /* 6 — abgeschlossen */
 const P6 = mkProject({ key:"PHE-25", name:"Phenom Course Supervisor Staffing",
