@@ -3,6 +3,27 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 2.0.1 — 2026-09-18
+
+Vier Architekturentscheidungen festgehalten und eingearbeitet
+(`docs/PCC-ARCHITECTURE.md`):
+
+- **Selbstregistrierung** im Control Center erlaubt, Zugang erst nach Freigabe
+  durch den Super Admin. Flow bleibt geschlossen; Rollen je Modul getrennt.
+- **Sichtbarkeit:** jeder freigegebene Nutzer liest alle nicht archivierten
+  Projekte, Änderungsrechte weiterhin nach Rolle.
+- **Versionen** entstehen nur bei fachlich bedeutsamen Ereignissen; die Liste
+  liegt als Konfiguration vor, nicht im Code.
+- **Dokumente** werden in die Anwendung hochgeladen statt nur verlinkt. Neuer
+  Abschnitt 7a beschreibt die vier Pflichten, die damit von SharePoint auf die
+  Anwendung übergehen: Zugriffsschutz über signierte URLs, Virenprüfung in
+  Quarantäne, Aufbewahrung und eine eigene Sicherung des Speichers. Eine neue
+  Fassung löst die alte ab, statt sie zu überschreiben.
+- Prototyp: Dokumentenreiter zeigt Datei, Größe, Version und Ablösung; ein
+  externer Verweis bleibt je Dokument möglich.
+- Offene Punkte neu geordnet; die Aufbewahrungsfrist für Dokumente ist durch
+  die Upload-Entscheidung zum dringlichsten geworden.
+
 ## 2.0.0 — 2026-09-18
 
 - **Project Control Center** als zweites Modul derselben Anwendung. Ein

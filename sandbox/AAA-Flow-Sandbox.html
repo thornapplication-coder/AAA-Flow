@@ -3267,10 +3267,12 @@ P1.decisions = [{ id:pid(), ref:"D-1", date:D(-55), topic:"Standort des Simulato
   decision:"Aufstellung in Halle 3 statt Halle 1.", maker:"u1", participants:["u2","u3"],
   rationale:"Halle 3 bietet die notwendige Deckenhöhe und liegt näher an den Briefingräumen.",
   impact:"Umbaukosten rund 40.000 EUR, Zeitplan unverändert." }];
-P1.docs = [{ id:pid(), title:"QTG CL650 Rev. 3", kind:"link", url:"https://sharepoint.example/qtg-cl650",
-  version:"3.0", owner:"u2", description:"Qualification Test Guide, eingereichte Fassung." },
-  { id:pid(), title:"Abnahmeprotokoll FAT", kind:"link", url:"https://sharepoint.example/fat",
-  version:"1.0", owner:"u2", description:"Unterzeichnetes Protokoll mit Mängelliste." }];
+P1.docs = [{ id:pid(), title:"QTG CL650 Rev. 3", kind:"file", file:"QTG_CL650_Rev3.pdf", size:"8,4 MB",
+  version:"3.0", owner:"u2", at:D(-30), description:"Qualification Test Guide, eingereichte Fassung." },
+  { id:pid(), title:"Abnahmeprotokoll FAT", kind:"file", file:"FAT_Protokoll_CL650.pdf", size:"2,1 MB",
+  version:"1.0", owner:"u2", at:D(-42), description:"Unterzeichnetes Protokoll mit Mängelliste." },
+  { id:pid(), title:"Konfigurationsliste Hersteller", kind:"link", url:"https://sharepoint.example/config",
+  version:"—", owner:"u3", at:D(-5), description:"Liegt beim Hersteller, wird verlinkt statt kopiert." }];
 
 /* 2 — Handbuchrevision, gefährdet */
 const P2 = mkProject({ key:"OMB-26", name:"OM-B Revision 2026",
@@ -3325,8 +3327,10 @@ P2.decisions = [{ id:pid(), ref:"D-1", date:D(-40), topic:"Zweistufige Einreichu
   decision:"Grundsätzlich einstufig einreichen, zweistufig nur als Rückfallebene.", maker:"u1",
   participants:["u2","u3"], rationale:"Zwei Einreichungen binden doppelt Behördenkapazität.",
   impact:"Erhöht den Termindruck auf die Autoren." }];
-P2.docs = [{ id:pid(), title:"OM-B Vorlage 2026", kind:"link", url:"https://sharepoint.example/omb-template",
-  version:"2.1", owner:"u2", description:"Verbindliche Kapitelstruktur." }];
+P2.docs = [{ id:pid(), title:"OM-B Vorlage 2026", kind:"file", file:"OMB_Vorlage_2026.docx", size:"1,2 MB",
+  version:"2.1", owner:"u2", at:D(-70), description:"Verbindliche Kapitelstruktur." },
+  { id:pid(), title:"OM-B Vorlage 2026", kind:"file", file:"OMB_Vorlage_2026_v20.docx", size:"1,1 MB",
+  version:"2.0", owner:"u2", at:D(-85), superseded:true, description:"Abgelöst durch Version 2.1." }];
 
 /* 3 — EBT, gestartet */
 const P3 = mkProject({ key:"EBT-27", name:"EBT Implementation",
@@ -3441,9 +3445,10 @@ P5.decisions = [{ id:pid(), ref:"D-1", date:D(-15), topic:"Sperre am Gate 3",
   decision:"Kein Kursabschlussnachweis, solange Pflicht-Records fehlen.", maker:"u1",
   participants:["u2","u3"], rationale:"Ohne harte Sperre trudeln Records nach und erzeugen Beanstandungen.",
   impact:"Zusätzliche Regel im Prüfpunkt-Katalog, vollständig innerhalb der ATO." }];
-P5.docs = [{ id:pid(), title:"AAA Flow Spezifikation v0.2", kind:"link",
-  url:"https://sharepoint.example/aaa-flow-spec", version:"0.2", owner:"u1",
-  description:"Fachliche Spezifikation, Grundlage der Umsetzung." }];
+P5.docs = [{ id:pid(), title:"AAA Flow Spezifikation", kind:"file", file:"AAAFlowSPEC_v02.md", size:"24 KB",
+  version:"0.2", owner:"u1", at:D(-16), description:"Fachliche Spezifikation, Grundlage der Umsetzung." },
+  { id:pid(), title:"Control Center Architektur", kind:"file", file:"PCC-ARCHITECTURE.md", size:"17 KB",
+  version:"1.0", owner:"u1", at:today(), description:"Phase 1 nach Abschnitt 62, zur Freigabe." }];
 
 /* 6 — abgeschlossen */
 const P6 = mkProject({ key:"PHE-25", name:"Phenom Course Supervisor Staffing",
@@ -3516,6 +3521,10 @@ Object.assign(I.de, {
   t_pstatus:"Projektstatus geändert.", t_ptask:"Aufgabe aktualisiert.",
   ver_t:"Versionsverlauf", ver_sum:"Zusammenfassung", ver_changes:"Änderungen",
   exp_pcc_dash:"Dashboard-Bericht", exp_pcc_proj:"Projektbericht",
+  doc_file:"Datei", doc_link:"Verweis", doc_size:"Größe", doc_super:"abgelöst",
+  doc_up:"Dokument hochladen",
+  doc_h:"Dokumente liegen in der Anwendung. Eine neue Fassung löst die alte ab, statt sie zu überschreiben — der Stand zum Zeitpunkt eines Audits bleibt damit rekonstruierbar. Sehr große Dateien lassen sich stattdessen verlinken.",
+  doc_soon:"Der Upload braucht das Supabase-Projekt. Siehe docs/PCC-ARCHITECTURE.md, Abschnitt 7a.",
   pcc_note:"Prototyp. Anmeldung, Datenbank, Echtzeit und Autosave folgen mit dem Supabase-Projekt — siehe docs/PCC-ARCHITECTURE.md."
 });
 Object.assign(I.en, {
@@ -3572,6 +3581,10 @@ Object.assign(I.en, {
   t_pstatus:"Project status changed.", t_ptask:"Task updated.",
   ver_t:"Version history", ver_sum:"Summary", ver_changes:"Changes",
   exp_pcc_dash:"Dashboard report", exp_pcc_proj:"Project report",
+  doc_file:"File", doc_link:"Link", doc_size:"Size", doc_super:"superseded",
+  doc_up:"Upload document",
+  doc_h:"Documents live inside the application. A new version supersedes the old one instead of overwriting it, so the state at the time of an audit stays reconstructable. Very large files can be linked instead.",
+  doc_soon:"Upload requires the Supabase project. See docs/PCC-ARCHITECTURE.md, section 7a.",
   pcc_note:"Prototype. Sign-in, database, real-time and autosave follow with the Supabase project — see docs/PCC-ARCHITECTURE.md."
 });
 
@@ -4102,15 +4115,29 @@ function pTabTeam(p) {
     <div class="notice" style="margin-top:14px">R = Responsible · A = Accountable · C = Consulted · I = Informed</div>`;
 }
 function pTabDocs(p) {
-  return p.docs.length ? `<div class="tblwrap aslist"><table><thead><tr>
-      <th>${t("col_title")}</th><th>${t("f_ver")}</th><th>${t("col_owner")}</th><th>${t("f_desc")}</th>
-    </tr></thead><tbody>${p.docs.map(d => `<tr>
-      <td><b>${esc(d.title)}</b><div class="num">${esc(d.url || "")}</div></td>
-      <td class="co">${esc(d.version)}</td><td class="co">${pUser(d.owner)}</td>
-      <td class="co">${esc(d.description)}</td></tr>`).join("")}</tbody></table></div>
-      <div class="cards">${p.docs.map(d => `<article class="card"><h4>${esc(d.title)}</h4>
-        <div class="sub"><span>${esc(d.version)}</span><span>·</span><span>${pUser(d.owner)}</span></div></article>`).join("")}</div>`
-    : `<p class="muted">${t("p_none")}</p>`;
+  /* Dokumente liegen in der Anwendung (Entscheidung 18.09.2026). Ein externer
+     Verweis bleibt je Dokument möglich, etwa für sehr große Dateien. */
+  const row = d => `<tr class="${d.superseded ? "inactive" : ""}">
+    <td><b>${esc(d.title)}</b><div class="num">${esc(d.file || d.url || "")}</div></td>
+    <td>${d.kind === "file" ? pill("p-done", t("doc_file")) : pill("p-open", t("doc_link"))}</td>
+    <td class="co">${esc(d.version)}${d.superseded ? ` · ${t("doc_super")}` : ""}</td>
+    <td class="co">${d.size || "—"}</td>
+    <td class="co">${pUser(d.owner)}${d.at ? `<div class="num">${fmtDate(d.at)}</div>` : ""}</td>
+    <td class="co">${esc(d.description)}</td></tr>`;
+  return `<div class="notice">${t("doc_h")}</div>
+    ${pCanContribute(p) ? `<div class="hdacts" style="margin-bottom:12px">
+      <button class="btn-primary" id="pupload">+ ${t("doc_up")}</button></div>` : ""}
+    ${p.docs.length ? `<div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("col_title")}</th><th>${t("col_status")}</th><th>${t("f_ver")}</th>
+      <th>${t("doc_size")}</th><th>${t("col_owner")}</th><th>${t("f_desc")}</th>
+    </tr></thead><tbody>${p.docs.map(row).join("")}</tbody></table></div>
+    <div class="cards">${p.docs.map(d => `<article class="card">
+      <div class="top">${d.kind === "file" ? pill("p-done", t("doc_file")) : pill("p-open", t("doc_link"))}
+        <span class="num">${esc(d.version)}</span></div>
+      <h4>${esc(d.title)}</h4>
+      <div class="sub"><span>${esc(d.file || d.url || "")}</span></div>
+      <div class="sub"><span>${d.size || "—"}</span><span>·</span><span>${pUser(d.owner)}</span></div>
+    </article>`).join("")}</div>` : `<p class="muted">${t("p_none")}</p>`}`;
 }
 function pTabActivity(p) {
   const rows = pActivity(p);
@@ -4332,6 +4359,7 @@ function wirePcc() {
   if (q("pnewtask")) q("pnewtask").onclick = () => pDialogNewTask(pById(pProject));
   if (q("pnewrisk")) q("pnewrisk").onclick = () => pDialogNewRisk(pById(pProject));
   if (q("pnewissue")) q("pnewissue").onclick = () => pDialogNewIssue(pById(pProject));
+  if (q("pupload")) q("pupload").onclick = () => toast(t("doc_soon"), true);
   if (q("pq")) {
     q("pq").oninput = e => { PF.q = e.target.value; renderMain();
       const el = q("pq"); el.focus(); el.setSelectionRange(PF.q.length, PF.q.length); };
@@ -4448,8 +4476,10 @@ function pccDoc(kind) {
         rows:p.decisions.map(d => [fmtLong(d.date), d.topic, d.decision, pUser(d.maker)]) },
       { h:t("tab_team"), cols:[t("usr_name"), t("f_prole"), t("f_resp")],
         rows:p.team.map(m => [pUser(m.user), m.role, m.resp]) },
-      { h:t("tab_docs"), cols:[t("col_title"), t("f_ver"), t("col_owner"), t("f_desc")],
-        rows:p.docs.map(d => [d.title, d.version, pUser(d.owner), d.description]) },
+      { h:t("tab_docs"), cols:[t("col_title"), t("col_status"), t("f_ver"), t("doc_size"), t("col_owner"), t("f_desc")],
+        rows:p.docs.map(d => [d.title, d.kind === "file" ? t("doc_file") : t("doc_link"),
+          d.version + (d.superseded ? " (" + t("doc_super") + ")" : ""), d.size || "—",
+          pUser(d.owner), d.description]) },
       { h:t("tab_act"), cols:[t("exp_when"), t("exp_who"), t("exp_what")],
         rows:pActivity(p).slice(0,30).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who), e.txt]) },
       { h:t("ver_t"), cols:[t("f_ver"), t("col_date"), t("exp_who"), t("ver_sum")],

@@ -145,13 +145,25 @@ erzeugt aber `active = false, pending = true`. Ohne Freigabe durch den Super
 Admin greift keine einzige RLS-Policy — der Nutzer sieht nichts. Die Freigabe
 läuft über eine Edge Function mit der Admin-API.
 
-> **Unterschied zu AAA Flow, der eine Entscheidung braucht:** In Flow ist
-> Selbstregistrierung ausgeschlossen (Spec Flow, Abschnitt 3), im Control
-> Center ausdrücklich vorgesehen. Bei gemeinsamem Login heißt das: Wer sich
-> selbst registriert, bekommt ein Konto ohne Flow-Rolle. Er sieht das Control
-> Center nach Freigabe, Flow erst, wenn ein Flow-Superadmin ihm dort eine
-> Rolle gibt. Das halte ich für richtig, es sollte aber bewusst so gewollt
-> sein.
+> **Entschieden am 18.09.2026:** Selbstregistrierung ist im Control Center
+> erlaubt, in Flow bleibt sie ausgeschlossen. Wer sich registriert, erhält ein
+> Konto ohne Flow-Rolle: nach Freigabe durch den Super Admin sieht er das
+> Control Center, Flow erst, wenn ein Flow-Superadmin ihm dort zusätzlich eine
+> Rolle vergibt. Technisch: `public.users` trägt `pcc_role` und `flow_role`
+> getrennt, beide dürfen NULL sein; eine NULL-Rolle sperrt das jeweilige Modul
+> vollständig, weil keine RLS-Policy greift.
+
+### Sichtbarkeit von Projekten
+
+**Entschieden am 18.09.2026:** Jeder freigegebene Nutzer liest alle nicht
+archivierten Projekte. Abschnitt 5 gibt dem Viewer ausdrücklich Leserecht auf
+Projekte, und ein Management-Dashboard mit Löchern wäre wertlos. Geändert wird
+weiterhin nur nach Rolle.
+
+Technisch heißt das: die SELECT-Policy prüft nur `active AND pcc_role IS NOT
+NULL`, die INSERT-, UPDATE- und DELETE-Policies prüfen `pcc.can_edit()`. Eine
+spätere Einschränkung je Projekt bliebe eine reine Erweiterung der
+SELECT-Policy um ein Feld `projects.restricted`.
 
 ---
 
@@ -179,10 +191,12 @@ Fassungen nebeneinander zur Auswahl. Kein stilles Überschreiben.
 Nicht jede Feldänderung ist eine Version — sonst steht nach einer Woche
 Version 4.312 da und niemand liest sie mehr.
 
-**Regel:** Eine Version entsteht bei fachlich bedeutsamen Ereignissen:
-Statuswechsel des Projekts, Verschiebung eines Meilensteins, Änderung des
-Enddatums, neues Risiko ab Score 15, Abschluss eines Workstreams, Freigabe
-durch den PM. Alles Übrige steht im Audit Trail und im Activity Log.
+**Regel, entschieden am 18.09.2026:** Eine Version entsteht bei fachlich
+bedeutsamen Ereignissen — Statuswechsel des Projekts, Verschiebung eines
+Meilensteins, Änderung des Enddatums, neues Risiko ab Score 15, Abschluss
+eines Workstreams, Freigabe durch den PM. Alles Übrige steht im Audit Trail
+und im Activity Log. Die Liste ist in `pcc.version_triggers` als Konfiguration
+hinterlegt, damit sie ohne Codeänderung erweitert werden kann.
 
 `version_changes` hält je Version die Einzeländerungen (Objekt, Feld, alt,
 neu). Wiederherstellung ist vorbereitet, aber nicht Teil der ersten Fassung:
@@ -202,6 +216,31 @@ Der Export prüft die Rechte erneut serverseitig: Ein Viewer exportiert nur,
 was er sehen darf.
 
 ---
+
+## 7a. Dokumente (Abschnitt 27)
+
+**Entschieden am 18.09.2026:** Dokumente werden **in die Anwendung
+hochgeladen**, nicht nur verlinkt. Damit wird das Control Center zur führenden
+Ablage für Projektdokumente.
+
+Das ist bewusst gegen meine Empfehlung entschieden worden und zieht vier
+Pflichten nach sich, die sonst SharePoint getragen hätte:
+
+| Pflicht | Umsetzung |
+|---|---|
+| **Zugriffsschutz** | Supabase Storage Bucket `project-docs`, privat. Zugriff ausschließlich über signierte URLs mit kurzer Gültigkeit; die Storage-Policy prüft dieselbe Projektmitgliedschaft wie die Tabellen. Kein öffentlicher Bucket |
+| **Virenprüfung** | Upload landet zuerst in `quarantine/`, eine Edge Function prüft und verschiebt erst danach nach `project-docs/`. Bis dahin ist das Dokument als „in Prüfung" gekennzeichnet und nicht herunterladbar |
+| **Aufbewahrung** | Dokumente unterliegen jetzt der Aufbewahrungspflicht des Unternehmens. Die Frist ist noch zu benennen (offener Punkt 6); ohne sie gibt es keine Löschregel und der Speicher wächst unbegrenzt |
+| **Sicherung** | Storage wird getrennt von der Datenbank gesichert. Supabase sichert Storage nicht im Datenbank-Backup mit — dafür ist ein eigener Abgleich in ein zweites Ziel einzurichten |
+
+Grenzen: 50 MB je Datei, erlaubte Typen PDF, Office, Bilder, Text. Größere
+Dateien und Videos bleiben extern; das Feld für einen externen Verweis bleibt
+deshalb erhalten und lässt sich je Dokument statt eines Uploads verwenden.
+
+Versionen eines Dokuments werden als eigene Zeilen geführt, nicht überschrieben:
+`documents.version` plus `supersedes_id`. Ein Dokument wird nie ersetzt,
+sondern abgelöst — sonst ist der Stand zum Zeitpunkt eines Audits nicht mehr
+rekonstruierbar.
 
 ## 8. PWA und Auto-Update (Abschnitte 36, 37)
 
@@ -259,12 +298,20 @@ warum die Schätzung nicht doppelt so hoch ausfällt.
 
 ## 11. Offene Punkte
 
-| # | Punkt | Braucht |
+### Entschieden am 18.09.2026
+
+| # | Punkt | Entscheidung |
 |---|---|---|
-| 1 | Selbstregistrierung im Control Center bei gemeinsamem Login mit Flow | Ihre Entscheidung, siehe Abschnitt 4 |
-| 2 | Projektschlüssel: fortlaufend oder sprechend (`SIM-26`) | Ihre Vorgabe |
-| 3 | Welche Ereignisse erzeugen eine neue Version | Vorschlag in Abschnitt 6, bestätigen |
-| 4 | Dokumente: Upload in Supabase Storage oder ausschließlich SharePoint-Verweise | Ihre IT-Vorgabe |
-| 5 | Microsoft Entra ID als Anmeldeweg ab wann | Abschnitt 4 nennt es als spätere Ergänzung |
-| 6 | Aufbewahrungsfristen für Projektdaten und Audit | wie bei Flow offen |
-| 7 | Sichtbarkeit: derzeit sieht jede freigegebene Rolle alle Projekte lesend (Abschnitt 5 gibt dem Viewer Leserecht auf Projekte). Soll die Sicht je Projekt einschränkbar sein? | Ihre Entscheidung |
+| 1 | Selbstregistrierung im Control Center | erlaubt, Zugang erst nach Freigabe durch den Super Admin; Flow bleibt geschlossen |
+| 2 | Sichtbarkeit von Projekten | jeder freigegebene Nutzer liest alle nicht archivierten Projekte |
+| 3 | Auslöser für eine neue Version | nur fachlich bedeutsame Ereignisse, Liste in Abschnitt 6 |
+| 4 | Dokumente | Upload in die Anwendung, Folgen in Abschnitt 7a |
+
+### Noch offen
+
+| # | Punkt | Braucht | Dringlichkeit |
+|---|---|---|---|
+| 5 | **Aufbewahrungsfrist für Dokumente** | Ihre Vorgabe | **hoch** — durch die Entscheidung zum Upload trägt die Anwendung die Aufbewahrungspflicht selbst |
+| 6 | Aufbewahrungsfristen für Projektdaten und Audit | Ihre Vorgabe | mittel |
+| 7 | Projektschlüssel: fortlaufend oder sprechend (`SIM-26`) | Ihre Vorgabe | gering, im Prototyp sprechend |
+| 8 | Microsoft Entra ID als Anmeldeweg ab wann | Ihre IT-Planung | gering, Architektur hält es offen |
