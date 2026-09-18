@@ -27,6 +27,9 @@ export function AppShell() {
             {profile?.name}
             {profile?.role ? ` · ${t(`role.${profile.role}`)}` : ''}
           </span>
+          <span className="version" title={t('app.version', { version: __APP_VERSION__ })}>
+            {__APP_VERSION__}
+          </span>
           <button
             type="button"
             aria-label={t('common.language')}

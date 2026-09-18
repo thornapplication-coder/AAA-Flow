@@ -94,6 +94,9 @@ input, select {
 .nav a.active, .nav a:hover { background: var(--aaa-navy-700); opacity: 1; }
 .topbar .user { display: flex; align-items: center; gap: 10px; font-size: 14px; }
 .topbar .user button { background: transparent; color: var(--aaa-on-navy); border-color: rgba(255,255,255,0.35); padding: 6px 10px; }
+/* Die Fassung steht klein daneben: im Zweifelsfall weiß der Support sofort,
+   welcher Stand vor ihm liegt. */
+.topbar .user .version { font-size: 12px; opacity: 0.6; font-variant-numeric: tabular-nums; }
 .content { padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; }
 
 .tile {
@@ -133,7 +136,8 @@ table.list tbody tr:last-child td { border-bottom: none; }
 /* iPhone: Tabellen weichen Kartenlisten */
 @media (max-width: 640px) {
   .topbar { gap: 12px; padding: 0 12px; }
-  .topbar .user .name { display: none; }
+  .topbar .user .name,
+  .topbar .user .version { display: none; }
   /* Solange es keine Kartenliste gibt, bleibt die Tabelle — dann aber
      seitlich scrollbar statt abgeschnitten. */
   table.list { min-width: 640px; }

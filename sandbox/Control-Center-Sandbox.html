@@ -132,6 +132,13 @@ tbody tr[data-id]:hover{background:#F7FAFD}
   white-space:pre;overflow-wrap:normal;overflow-x:auto}
 .fld .hint{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
 .modal .err{color:var(--late);font-size:12px;margin-top:8px;min-height:16px}
+.modal .err ul{margin:0;padding-left:16px}
+.fld label .req{color:var(--late);margin-left:2px}
+/* Ein Dialog, der nur den ersten Fehler nennt, schickt in drei Anläufe. Die
+   beanstandeten Felder werden zugleich benannt und markiert. */
+.fld.bad input,.fld.bad textarea,.fld.bad select{border-color:var(--late);background:#FFF6F6}
+.fld.bad label{color:var(--late)}
+.reqnote{grid-column:1/-1;font-size:11.5px;color:var(--ink-soft)}
 .modal .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .modal .btns button{padding:8px 15px;border-radius:var(--r);font-size:13px;font-weight:600;border:1px solid var(--line-strong)}
 .modal .btns .go{background:var(--navy-600);color:#fff;border-color:var(--navy-600)}
@@ -262,14 +269,14 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 
 /* Timeline */
 .tl{overflow-x:auto}
-.tlgrid{min-width:640px}
-.tlhead{display:flex;border-bottom:1px solid var(--line);padding-left:190px}
+.tlgrid{min-width:640px;--tlnm:190px}
+.tlhead{display:flex;border-bottom:1px solid var(--line);padding-left:var(--tlnm)}
 .tlhead span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;padding:6px 0 6px 6px;border-left:1px solid var(--line)}
 .tlrow{display:flex;align-items:center;border-bottom:1px solid #F0F4F8;min-height:44px}
 .tlrow:last-child{border-bottom:none}
-.tlrow .nm{flex:0 0 190px;padding:8px 12px 8px 0;font-size:13px;font-weight:600;min-width:0;
-  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.tlrow .nm .co{font-weight:400;font-size:11.5px}
+.tlrow .nm{flex:0 0 var(--tlnm);padding:8px 12px 8px 0;font-size:13px;font-weight:600;min-width:0;overflow:hidden}
+.tlrow .nm .t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tlrow .nm .co{font-weight:400;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tlrow .tltrack{flex:1;position:relative;height:44px}
 .tlrow .tltrack .grid{position:absolute;inset:0;display:flex}
 .tlrow .tltrack .grid span{flex:1;border-left:1px solid #EDF1F6}
@@ -283,6 +290,19 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .tlrow .tltrack .ms i.done{background:var(--done);border-color:var(--done)}
 .tlrow .tltrack .ms i.late{background:var(--late);border-color:var(--late)}
 .tlnow{position:absolute;top:0;bottom:0;width:1px;background:var(--late);opacity:.5}
+/* Die Linie ohne Beschriftung war eine rote Markierung ohne Aussage. */
+.tlnowhd{position:absolute;top:0;bottom:0;width:1px;background:var(--late);opacity:.55}
+.tlnowhd b{position:absolute;top:2px;left:3px;font-size:10px;font-weight:700;letter-spacing:.04em;
+  color:var(--late);text-transform:uppercase;white-space:nowrap;background:#fff;padding:0 3px;border-radius:3px}
+.tlleg{display:flex;flex-wrap:wrap;gap:6px 18px;padding:10px 0 2px 0;font-size:11.5px;color:var(--ink-soft)}
+.tlleg span{display:inline-flex;align-items:center;gap:6px}
+.tlleg i{width:14px;height:8px;border-radius:4px;display:inline-block}
+.tlleg i.ok{background:var(--done)} .tlleg i.warn{background:var(--work)}
+.tlleg i.bad{background:var(--late)} .tlleg i.done{background:var(--navy-400)}
+.tlleg i.dot{width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--navy-800)}
+.tlleg i.dotdone{width:10px;height:10px;border-radius:50%;background:var(--done);border:2px solid var(--done)}
+.tlleg i.dotlate{width:10px;height:10px;border-radius:50%;background:var(--late);border:2px solid var(--late)}
+.tlleg i.now{width:2px;height:12px;border-radius:0;background:var(--late)}
 
 /* Risk-Matrix */
 .rmx{border-collapse:collapse;width:auto}
@@ -376,8 +396,8 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
   td.acts button{min-height:32px;padding:6px 10px}
   .back{min-height:36px;display:inline-flex;align-items:center}
   /* Der Zeitstrahl braucht die Breite für die Monate, nicht für die Namen. */
-  .tlrow .nm{flex:0 0 108px;font-size:12px}
-  .tlhead{padding-left:108px}
+  .tlgrid{--tlnm:108px}
+  .tlrow .nm{font-size:12px}
   .tblwrap.aslist{display:none}
   .cards{display:flex}
   .filters{padding:10px 12px}
@@ -436,6 +456,32 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- i18n ---------- */
 const I = {
 de:{
+  e_pend:"Ein Zieltermin gehört dazu.",
+  e_pkeyfmt:"Der Schlüssel folgt dem Muster XLS-27: Kürzel, Bindestrich, Jahr.",
+  e_pstart:"Ein Beginn gehört dazu.",
+  h_pkey:"Kürzel, Bindestrich, zweistelliges Jahr — zum Beispiel XLS-27.",
+  req_note:"* Pflichtfeld",
+  ev_critrisk:"Kritisches Risiko aufgenommen: {x}",
+  ev_issuenew:"Problem gemeldet: {x}",
+  ev_msdone:"Meilenstein erreicht: {x}",
+  ev_pcreated:"Projekt angelegt",
+  ev_pcreated_x:"Projekt angelegt — {x}",
+  ev_pstatus:"Projektstatus geändert",
+  ev_pstatus_x:"Projektstatus geändert auf {x}",
+  ev_pupdated:"Projekt geändert",
+  ev_risknew:"Risiko angelegt: {x}",
+  ev_taskdone:"Aufgabe erledigt: {x}",
+  ev_tasknew:"Aufgabe angelegt: {x}",
+  ev_undone:"Erledigt zurückgenommen: {x}",
+  rl_crit_s:"kritisch",
+  tl_leg:"Zeichenerklärung",
+  tl_leg_done:"abgeschlossen",
+  tl_leg_late:"Meilenstein überfällig",
+  tl_leg_ms:"Meilenstein",
+  tl_leg_msdone:"Meilenstein erreicht",
+  tl_leg_now:"heute",
+  tl_more:"{n} weitere im {x}",
+  tl_now:"Heute",
   tf_14:"Fällig in 14 Tagen",
   tf_all:"Alle Status",
   tf_late:"Überfällig",
@@ -445,7 +491,7 @@ de:{
   tf_week:"Fällig in 7 Tagen",
   tf_who:"Alle Zuständigen",
   cnt_crit:"kritische Risiken",
-  cnt_issues:"offene Issues",
+  cnt_issues:"offene Probleme",
   cnt_over:"überfällige Aufgaben",
   exp_filter:"Filter",
   exp_nofilter:"ohne Einschränkung",
@@ -486,12 +532,14 @@ de:{
   why_ms:"{n} überfällige Meilensteine",
   why_ok:"Alles im Rahmen.",
   why_risk:"{n} kritische Risiken",
+  why_risk1:"1 kritisches Risiko",
   why_status:"Status {s}",
   why_task:"{n} überfällige Aufgaben",
+  why_task1:"1 überfällige Aufgabe",
   c_activity:"Letzte Änderungen",
   c_crit:"Kritische Risiken",
   c_health:"Projektstatus",
-  c_mtl:"Management Timeline",
+  c_mtl:"Projektverlauf",
   c_overdue:"Überfällige Aufgaben",
   c_upcoming:"Anstehende Meilensteine",
   cancel:"Abbrechen",
@@ -512,7 +560,7 @@ de:{
   col_status:"Status",
   col_task:"Aufgabe",
   col_title:"Titel",
-  col_ws:"Workstream",
+  col_ws:"Teilprojekt",
   create:"Anlegen",
   days:"Tage",
   doc_file:"Datei",
@@ -523,14 +571,14 @@ de:{
   doc_super:"abgelöst",
   doc_up:"Dokument hochladen",
   done:"Erledigt",
-  e_dates:"Das Kursende darf nicht vor dem Kursbeginn liegen.",
+  e_dates:"Das geplante Ende darf nicht vor dem Start liegen.",
   e_pkey:"Bitte einen Projektschlüssel angeben, etwa SIM-26.",
   e_pkeydup:"Diesen Projektschlüssel gibt es bereits.",
   e_pname:"Bitte einen Projektnamen angeben (mindestens 3 Zeichen).",
   edit:"Bearbeiten",
   exp_close:"Schließen",
   exp_copy:"In die Zwischenablage kopieren",
-  exp_count:"Datensätze",
+  exp_count:"Einträge",
   exp_manual:"Bitte den Text markieren und mit Strg+C beziehungsweise Cmd+C kopieren.",
   exp_none:"Keine Einträge.",
   exp_pcc_dash:"Dashboard-Bericht",
@@ -539,8 +587,8 @@ de:{
   exp_print:"Drucken",
   exp_printed:"Ausgedruckt am {d} von {n}",
   exp_sandbox:"Control Center Sandbox — Demodaten, kein Echtsystem",
-  exp_sign1:"Datum, Unterschrift Training Admin",
-  exp_sign2:"Datum, Unterschrift Head of Training",
+  exp_sign1:"Datum, Unterschrift Projektleitung",
+  exp_sign2:"Datum, Unterschrift Sponsor",
   exp_what:"Ereignis",
   exp_when:"Zeitpunkt",
   exp_who:"Person",
@@ -562,7 +610,7 @@ de:{
   f_rat:"Begründung",
   f_res:"Lösung",
   f_resp:"Verantwortung",
-  f_scope:"Scope",
+  f_scope:"Abgrenzung",
   f_start:"Start",
   f_ver:"Version",
   grp_org:"Organisation",
@@ -613,22 +661,22 @@ de:{
   p_noproj:"Keine Projekte",
   p_noproj_s:"Passen Sie die Filter an oder legen Sie ein Projekt an.",
   p_score_h:"Risikowert = Eintrittswahrscheinlichkeit × Auswirkung. Ab 15 gilt ein Risiko als kritisch.",
-  p_search:"Projekt, Aufgabe, Risiko, Issue …",
+  p_search:"Projekt, Aufgabe, Risiko, Problem …",
   pcc_note:"Prototyp mit Demodaten. Anmeldung, Datenbank, Echtzeit und automatisches Speichern folgen im Produktivbetrieb.",
   pd_s:"Wo stehen wir? Bestand, Kritisches, Termine und Verantwortung auf einen Blick.",
   pd_t:"Dashboard",
   pi_s:"Aktuelle Probleme und Blockaden.",
-  pi_t:"Issues",
+  pi_t:"Probleme",
   pm_s:"Alle Meilensteine in zeitlicher Folge.",
   pm_t:"Meilensteine",
   pn_dash:"Dashboard",
-  pn_issues:"Issues",
+  pn_issues:"Probleme",
   pn_milestones:"Meilensteine",
   pn_projects:"Projekte",
   pn_reports:"Berichte",
   pn_risks:"Risiken",
   pn_tasks:"Aufgaben",
-  pn_timeline:"Timeline",
+  pn_timeline:"Projektverlauf",
   pp_s:"Alle Projekte im Rahmen Ihrer Berechtigung.",
   pp_t:"Projekte",
   pr_admin:"Admin",
@@ -650,7 +698,7 @@ de:{
   pt_s:"Alle Aufgaben über alle Projekte, filterbar.",
   pt_t:"Aufgaben",
   ptl_s:"Projektverläufe und Meilensteine über alle Projekte.",
-  ptl_t:"Timeline",
+  ptl_t:"Projektverlauf",
   reset:"Zurücksetzen",
   results:"Treffer",
   rs_accepted:"Akzeptiert",
@@ -680,12 +728,12 @@ de:{
   tab_act:"Aktivität",
   tab_dec:"Entscheidungen",
   tab_docs:"Dokumente",
-  tab_issues:"Issues",
+  tab_issues:"Probleme",
   tab_over:"Überblick",
   tab_risks:"Risiken",
   tab_tasks:"Aufgaben",
   tab_team:"Team und RACI",
-  tab_tl:"Timeline",
+  tab_tl:"Projektverlauf",
   tab_ver:"Versionen",
   ts_blocked:"Blockiert",
   ts_cancelled:"Abgebrochen",
@@ -698,6 +746,32 @@ de:{
   ver_t:"Versionsverlauf"
 },
 en:{
+  e_pend:"A target date is required.",
+  e_pkeyfmt:"The key follows the pattern XLS-27: code, hyphen, year.",
+  e_pstart:"A start date is required.",
+  h_pkey:"Code, hyphen, two-digit year — for example XLS-27.",
+  req_note:"* required",
+  ev_critrisk:"Critical risk added: {x}",
+  ev_issuenew:"Issue raised: {x}",
+  ev_msdone:"Milestone completed: {x}",
+  ev_pcreated:"Project created",
+  ev_pcreated_x:"Project created — {x}",
+  ev_pstatus:"Project status changed",
+  ev_pstatus_x:"Project status changed to {x}",
+  ev_pupdated:"Project updated",
+  ev_risknew:"Risk created: {x}",
+  ev_taskdone:"Task completed: {x}",
+  ev_tasknew:"Task created: {x}",
+  ev_undone:"Completion undone: {x}",
+  rl_crit_s:"critical",
+  tl_leg:"Legend",
+  tl_leg_done:"completed",
+  tl_leg_late:"milestone overdue",
+  tl_leg_ms:"milestone",
+  tl_leg_msdone:"milestone met",
+  tl_leg_now:"today",
+  tl_more:"{n} more under {x}",
+  tl_now:"Today",
   tf_14:"Due within 14 days",
   tf_all:"All statuses",
   tf_late:"Overdue",
@@ -748,8 +822,10 @@ en:{
   why_ms:"{n} overdue milestones",
   why_ok:"All within plan.",
   why_risk:"{n} critical risks",
+  why_risk1:"1 critical risk",
   why_status:"Status {s}",
   why_task:"{n} overdue tasks",
+  why_task1:"1 overdue task",
   c_activity:"Recent activity",
   c_crit:"Critical risks",
   c_health:"Project health",
@@ -785,7 +861,7 @@ en:{
   doc_super:"superseded",
   doc_up:"Upload document",
   done:"Done",
-  e_dates:"Course end cannot be before course start.",
+  e_dates:"The target end cannot be before the start.",
   e_pkey:"Please enter a project key, e.g. SIM-26.",
   e_pkeydup:"This project key already exists.",
   e_pname:"Please enter a project name (at least 3 characters).",
@@ -801,8 +877,8 @@ en:{
   exp_print:"Print",
   exp_printed:"Printed on {d} by {n}",
   exp_sandbox:"Control Center sandbox — demo data, not a live system",
-  exp_sign1:"Date, signature Training Admin",
-  exp_sign2:"Date, signature Head of Training",
+  exp_sign1:"Date, signature project manager",
+  exp_sign2:"Date, signature sponsor",
   exp_what:"Event",
   exp_when:"Time",
   exp_who:"Person",
@@ -1073,7 +1149,12 @@ function renderDialog(err) {
   const fields = cfg.build(values);
   document.getElementById("mTitle").textContent = cfg.title;
   document.getElementById("mText").textContent = cfg.text || "";
-  document.getElementById("mErr").textContent = err || "";
+  /* err ist entweder ein Satz oder eine Liste {f, m}: Feldname und Grund. */
+  const errs = Array.isArray(err) ? err : err ? [{ f:null, m:err }] : [];
+  const bad = new Set(errs.map(x => x.f).filter(Boolean));
+  document.getElementById("mErr").innerHTML = errs.length === 1
+    ? esc(errs[0].m)
+    : errs.length ? `<ul>${errs.map(x => `<li>${esc(x.m)}</li>`).join("")}</ul>` : "";
   document.getElementById("mCancel").textContent = t("cancel");
   document.getElementById("mOk").textContent = cfg.okLabel || t("ok");
   document.getElementById("mBody").innerHTML = fields.map(f => {
@@ -1094,12 +1175,13 @@ function renderDialog(err) {
         : `<input type="${f.type || "text"}" data-f="${f.name}" value="${esc(v)}"
              placeholder="${esc(f.placeholder || "")}" ${f.disabled ? "disabled" : ""}
              ${f.reactive ? 'data-reactive="1"' : ""} ${f.list ? `list="${f.list}"` : ""}>`;
-    return `<div class="fld${f.half ? " half" : ""}">
-      ${f.type === "toggle" ? `<label>${esc(f.label)}</label>` : `<label for="">${esc(f.label)}</label>`}${inner}
+    const star = f.req ? `<span class="req" aria-hidden="true">*</span>` : "";
+    return `<div class="fld${f.half ? " half" : ""}${bad.has(f.name) ? " bad" : ""}">
+      ${f.type === "toggle" ? `<label>${esc(f.label)}${star}</label>` : `<label for="">${esc(f.label)}${star}</label>`}${inner}
       ${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ""}
       ${f.list ? `<datalist id="${f.list}">${(f.listOptions || []).map(o => `<option value="${esc(o)}"></option>`).join("")}</datalist>` : ""}
     </div>`;
-  }).join("");
+  }).join("") + (fields.some(f => f.req) ? `<div class="reqnote">${t("req_note")}</div>` : "");
   document.getElementById("modal").classList.add("on");
   if (card && cardTop) card.scrollTop = cardTop;
   document.querySelectorAll("#mBody [data-f]").forEach(el => {
@@ -1125,7 +1207,13 @@ function renderDialog(err) {
 document.getElementById("mOk").onclick = () => {
   if (!dlg) return;
   const e = dlg.cfg.validate ? dlg.cfg.validate(dlg.values) : null;
-  if (e) return renderDialog(e);
+  if (e && (!Array.isArray(e) || e.length)) {
+    renderDialog(e);
+    const first = Array.isArray(e) ? e.find(x => x.f) : null;
+    const el = first && document.querySelector(`#mBody [data-f="${first.f}"]`);
+    if (el) el.focus();
+    return;
+  }
   const { cfg, values } = dlg;
   closeDialog();
   cfg.onSubmit(values);
@@ -1140,7 +1228,7 @@ document.getElementById("modal").onclick = e => { if (e.target.id === "modal") c
    wo die Ansicht eine Liste ist.
    ========================================================================== */
 const XLS_KINDS = ["pcc_dash","pcc_projects","pcc_risks","pcc_tasks","pcc_ms",
-  "pcc_report","pcc_ptasks","pcc_prisks","pcc_pact"];
+  "pcc_report","pcc_ptasks","pcc_prisks","pcc_pact","pcc_pdec"];
 const fmtLong = d => d ? new Date(d).toLocaleDateString(L === "de" ? "de-AT" : "en-GB",
   { day:"2-digit", month:"2-digit", year:"numeric" }) : t("none");
 
@@ -1658,8 +1746,10 @@ function healthWhy(p) {
   const ms = p.ms.filter(pMsOverdue).length, cr = pCritRisks(p).length, ot = pOverdueTasks(p).length;
   if (p.status === "delayed" || p.status === "cancelled") r.push(t("why_status", { s:t("ps_" + p.status) }));
   if (ms) r.push(t("why_ms", { n:ms }));
-  if (cr) r.push(t("why_risk", { n:cr }));
-  if (ot) r.push(t("why_task", { n:ot }));
+  /* Einzahl ist kein Schönheitsfehler: „1 kritische Risiken" liest sich wie
+     ein Fehler in der Zählung und untergräbt das Vertrauen in die Zahl. */
+  if (cr) r.push(cr === 1 ? t("why_risk1") : t("why_risk", { n:cr }));
+  if (ot) r.push(ot === 1 ? t("why_task1") : t("why_task", { n:ot }));
   return r.length ? r.join(" · ") : t("why_ok");
 }
 
@@ -1694,6 +1784,12 @@ const pBar = (v, cls) => `<div style="display:flex;align-items:center;gap:8px">
 
 /* ---------- Audit und Versionen ---------- */
 const PLOG = [];
+/* Ein Eintrag hält den Schlüssel fest, nicht den Satz. Erst beim Anzeigen wird
+   daraus Text — sonst stünde der halbe Verlauf nach dem Sprachwechsel noch auf
+   Deutsch da. {k, x} heißt: Vorlage k mit Einsetzung x. */
+const evText = v => v == null ? ""
+  : typeof v === "string" ? v
+  : t(v.k, v.x == null ? null : { x:v.x });
 function plg(p, who, txt, reason, ts) {
   PLOG.unshift({ ts:ts || nowTs(), who, project:p ? p.id : null, txt, reason:reason || null });
 }
@@ -1702,23 +1798,22 @@ function pver(p, summary, changes, ts, by) {
   p.versions.unshift({ v:"1." + n, date:ts || today(), by:by || me, summary, changes:changes || [] });
 }
 PROJECTS.forEach(p => {
-  pver(p, L === "de" ? "Projekt angelegt" : "Project created", [], p.start, p.pm);
-  plg(p, p.pm, (L === "de" ? "Projekt angelegt — " : "Project created — ") + p.name, null, p.start);
+  pver(p, { k:"ev_pcreated" }, [], p.start, p.pm);
+  plg(p, p.pm, { k:"ev_pcreated_x", x:p.name }, null, p.start);
   p.ms.filter(m => m.status === "completed").forEach(m => {
-    pver(p, (L === "de" ? "Meilenstein erreicht: " : "Milestone completed: ") + m.name,
-      [{ e:m.name, f:"Status", o:t("ms_in_progress"), n:t("ms_completed") }], m.date, m.owner);
-    plg(p, m.owner, (L === "de" ? "Meilenstein erreicht: " : "Milestone completed: ") + m.name, null, m.date);
+    pver(p, { k:"ev_msdone", x:m.name },
+      [{ e:m.name, f:{ k:"col_status" }, o:{ k:"ms_in_progress" }, n:{ k:"ms_completed" } }], m.date, m.owner);
+    plg(p, m.owner, { k:"ev_msdone", x:m.name }, null, m.date);
   });
-  p.risks.forEach(r => plg(p, r.owner, (L === "de" ? "Risiko angelegt: " : "Risk created: ") + r.ref + " " + r.title,
+  p.risks.forEach(r => plg(p, r.owner, { k:"ev_risknew", x:r.ref + " " + r.title },
     null, addBusinessDays(p.start, 5)));
   p.tasks.filter(x => x.done).forEach(x => plg(p, x.assignee,
-    (L === "de" ? "Aufgabe erledigt: " : "Task completed: ") + x.title, null, x.done));
+    { k:"ev_taskdone", x:x.title }, null, x.done));
 });
 PROJECTS.filter(p => p.status === "at_risk" || p.status === "delayed").forEach(p => {
-  pver(p, L === "de" ? "Projektstatus geändert" : "Project status changed",
-    [{ e:p.name, f:"Status", o:t("ps_on_track"), n:t("ps_" + p.status) }], D(-12), p.pm);
-  plg(p, p.pm, (L === "de" ? "Projektstatus geändert auf " : "Project status changed to ") + t("ps_" + p.status),
-    null, D(-12));
+  pver(p, { k:"ev_pstatus" },
+    [{ e:p.name, f:{ k:"col_status" }, o:{ k:"ps_on_track" }, n:{ k:"ps_" + p.status } }], D(-12), p.pm);
+  plg(p, p.pm, { k:"ev_pstatus_x", x:t("ps_" + p.status) }, null, D(-12));
 });
 PLOG.sort((a,b) => a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0);
 const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
@@ -1739,19 +1834,30 @@ function tlWindow(ps) {
 }
 const tlPct = (date, w) => Math.max(0, Math.min(100,
   (new Date(date) - w.from) / (w.to - w.from) * 100));
-function timelineHTML(ps, clickable) {
+/* Die Zeichenerklärung steht dort, wo der Zeitstrahl für sich allein steht —
+   im Projektverlauf. Auf dem Dashboard, wo er nur einer von acht Blöcken ist,
+   bliebe sie Beiwerk. */
+function tlLegend() {
+  const it = (cls, key) => `<span><i class="${cls}"></i>${t(key)}</span>`;
+  return `<div class="tlleg">
+    ${it("ok", "h_green")}${it("warn", "h_amber")}${it("bad", "h_red")}${it("done", "tl_leg_done")}
+    ${it("dot", "tl_leg_ms")}${it("dotdone", "tl_leg_msdone")}${it("dotlate", "tl_leg_late")}
+    ${it("now", "tl_leg_now")}</div>`;
+}
+function timelineHTML(ps, clickable, legend) {
   if (!ps.length) return `<p class="muted">${t("p_none")}</p>`;
   const w = tlWindow(ps);
   const mName = d => d.toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { month:"short" }).toUpperCase();
   const nowPct = tlPct(today(), w);
   return `<div class="tl"><div class="tlgrid">
-    <div class="tlhead">${w.months.map(m =>
-      `<span>${mName(m)}${m.getMonth() === 0 ? " " + m.getFullYear() : ""}</span>`).join("")}</div>
+    <div class="tlhead" style="position:relative">${w.months.map(m =>
+      `<span>${mName(m)}${m.getMonth() === 0 ? " " + m.getFullYear() : ""}</span>`).join("")}
+      <div class="tlnowhd" style="left:calc(var(--tlnm) + (100% - var(--tlnm)) * ${nowPct / 100})"><b>${t("tl_now")}</b></div></div>
     ${ps.map(p => {
       const a = tlPct(p.start, w), b = tlPct(p.end, w);
       const cls = p.status === "completed" ? "done" : healthCls(pHealth(p));
       return `<div class="tlrow"${clickable ? ` data-pp="${p.id}" style="cursor:pointer"` : ""}>
-        <div class="nm">${esc(p.name.length > 34 ? p.name.slice(0,32) + "…" : p.name)}
+        <div class="nm"><div class="t">${esc(p.name)}</div>
           <div class="co">${esc(p.key)} · ${pUser(p.pm)}</div></div>
         <div class="tltrack">
           <div class="grid">${w.months.map(() => "<span></span>").join("")}</div>
@@ -1761,7 +1867,7 @@ function timelineHTML(ps, clickable) {
             <i class="${m.status === "completed" ? "done" : pMsOverdue(m) ? "late" : ""}"></i></div>`).join("")}
         </div></div>`;
     }).join("")}
-  </div></div>`;
+  </div>${legend ? tlLegend() : ""}</div>`;
 }
 
 /* ---------- Dashboard ---------- */
@@ -1789,6 +1895,11 @@ function pccDash() {
      Zeitstrahlen darunter rot sind — und die Leitung sähe die falsche Zahl
      zuerst. */
   const health = h => ps.filter(p => pHealth(p) === h).length;
+  /* Auf dem Dashboard steht der Zeitstrahl als Überblick, nicht als Verzeichnis:
+     acht Zeilen, die dringendsten zuerst. Alles Weitere zeigt der Projektverlauf. */
+  const hRank = { red:0, amber:1, green:2 };
+  const tlHead = active.slice().sort((a,b) =>
+    hRank[pHealth(a)] - hRank[pHealth(b)] || (a.end < b.end ? -1 : 1)).slice(0, 8);
   const kpi = (n, lb, cls, title) => `<div class="pkpi ${cls || ""}"${
     title ? ` title="${esc(title)}"` : ""}><div class="n">${n}</div><div class="lb">${t(lb)}</div></div>`;
   const crit = risks.filter(x => rScore(x.r) >= 15).length;
@@ -1802,8 +1913,10 @@ function pccDash() {
       ${kpi(over.length, "k_otasks", over.length ? "bad" : "")}${kpi(soon, "k_ums")}
     </div>
 
-    <div class="pcard"><header><h2>${t("c_mtl")}</h2></header>
-      <div class="inner">${timelineHTML(active, true)}</div></div>
+    <div class="pcard"><header><h2>${t("c_mtl")}</h2>
+      ${active.length > 8 ? `<span class="co">${t("tl_more", { n:active.length - 8, x:t("ptl_t") })}</span>` : ""}
+      </header>
+      <div class="inner">${timelineHTML(tlHead, true)}</div></div>
 
     <div class="pcard"><header><h2>${t("c_health")}</h2>
       <span class="co">${active.length} ${t("k_active").toLowerCase()}</span></header>
@@ -1820,7 +1933,7 @@ function pccDash() {
           <td style="min-width:130px">${pBar(pProgress(p), healthCls(pHealth(p)))}</td>
           <td class="co">${pUser(p.pm)}</td>
           <td class="co">${n ? esc(n.name) + `<div class="num">${fmtDate(n.date)}</div>` : t("none")}</td>
-          <td>${pOpenRisks(p).length}${cr ? ` <span class="pill p-late">${cr} kritisch</span>` : ""}</td>
+          <td>${pOpenRisks(p).length}${cr ? ` <span class="pill p-late">${cr} ${t("rl_crit_s")}</span>` : ""}</td>
         </tr>`; }).join("")}</tbody></table></div>
       <div class="cards" style="padding:12px">${ps.map(p => `<article class="card" data-pp="${p.id}">
         <div class="top"><span class="num">${esc(p.key)}</span>${healthPill(p)}</div>
@@ -1865,7 +1978,7 @@ function pccDash() {
           const p = pById(e.project);
           return `<li${p ? ` class="clickable" data-pp="${p.id}"` : ""}>
             <span class="when">${fmtDate(e.ts.slice(0,10))}</span>
-            <span class="m"><b>${esc(e.txt)}</b>
+            <span class="m"><b>${esc(evText(e.txt))}</b>
               <span class="sub">${esc(pUser(e.who))}${p ? " · " + esc(p.key) : ""}</span></span>
           </li>`; }).join("")}</ul>
       </div>
@@ -2235,7 +2348,8 @@ function pTabIssues(p) {
     </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`}`;
 }
 function pTabDecisions(p) {
-  return p.decisions.map(d => `<div class="pcard"><header>
+  return `<div class="hdacts" style="margin-bottom:12px">${expBtns("pcc_pdec")}</div>` +
+    p.decisions.map(d => `<div class="pcard"><header>
       <h2>${esc(d.ref)} · ${esc(d.topic)}</h2><span class="co">${fmtLong(d.date)}</span>
     </header><div class="inner kv2">
       <div><div class="k">${t("tab_dec")}</div><div class="v"><b>${esc(d.decision)}</b></div></div>
@@ -2293,22 +2407,46 @@ function pTabActivity(p) {
   return `<div class="hdacts" style="margin-bottom:12px">${expBtns("pcc_pact")}</div>
     <ul class="plist">${rows.map(e => `<li>
       <span class="when">${fmtDate(e.ts.slice(0,10))}</span>
-      <span class="m"><b>${esc(e.txt)}</b><span class="sub">${esc(pUser(e.who))}</span></span>
+      <span class="m"><b>${esc(evText(e.txt))}</b><span class="sub">${esc(pUser(e.who))}</span></span>
     </li>`).join("") || `<li class="muted">${t("p_none")}</li>`}</ul>`;
 }
 function pTabVersions(p) {
   return p.versions.map(v => `<div class="pcard"><header>
       <h2>${t("f_ver")} ${v.v}</h2><span class="co">${fmtLong(v.date)} · ${pUser(v.by)}</span></header>
-    <div class="inner"><b>${esc(v.summary)}</b>
+    <div class="inner"><b>${esc(evText(v.summary))}</b>
       ${v.changes.length ? `<table style="margin-top:10px"><thead><tr>
         <th>${t("col_title")}</th><th>${t("exp_what")}</th><th>${L === "de" ? "alt" : "old"}</th><th>${L === "de" ? "neu" : "new"}</th>
-      </tr></thead><tbody>${v.changes.map(c => `<tr><td>${esc(c.e)}</td><td class="co">${esc(c.f)}</td>
-        <td class="co">${esc(c.o)}</td><td><b>${esc(c.n)}</b></td></tr>`).join("")}</tbody></table>` : ""}
+      </tr></thead><tbody>${v.changes.map(c => `<tr><td>${esc(c.e)}</td><td class="co">${esc(evText(c.f))}</td>
+        <td class="co">${esc(evText(c.o))}</td><td><b>${esc(evText(c.n))}</b></td></tr>`).join("")}</tbody></table>` : ""}
     </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`;
 }
+function pTabTimeline(p) {
+  const ms = p.ms.slice().sort((a,b) => a.date < b.date ? -1 : 1);
+  return `<div class="pcard"><div class="inner">${timelineHTML([p], false, true)}</div></div>
+    <div class="pcard"><header><h2>${t("pn_milestones")}</h2>
+      <span class="co">${ms.length} ${t("results")}</span></header>
+    ${ms.length ? `<div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("col_date")}</th><th>${t("col_title")}</th><th>${t("col_ws")}</th>
+      <th>${t("col_owner")}</th><th>${t("col_status")}</th>
+    </tr></thead><tbody>${ms.map(m => `<tr>
+      <td class="num">${fmtLong(m.date)}</td>
+      <td><b>${esc(m.name)}</b><div class="num">${m.ref}</div></td>
+      <td class="co">${esc((p.ws.find(w => w.id === m.ws) || {}).name || "—")}</td>
+      <td class="co">${pUser(m.owner)}</td>
+      <td>${pill(m.status === "completed" ? "p-done" : pMsOverdue(m) ? "p-late"
+        : m.status === "in_progress" ? "p-work" : "p-open", t("ms_" + m.status))}</td>
+    </tr>`).join("")}</tbody></table></div>
+    <div class="cards">${ms.map(m => `<article class="card">
+      <div class="top"><span class="num">${m.ref}</span>${pill(m.status === "completed" ? "p-done"
+        : pMsOverdue(m) ? "p-late" : m.status === "in_progress" ? "p-work" : "p-open", t("ms_" + m.status))}</div>
+      <h4>${esc(m.name)}</h4>
+      <div class="sub"><span>${fmtLong(m.date)}</span><span>·</span><span>${pUser(m.owner)}</span></div>
+    </article>`).join("")}</div>` : `<div class="inner muted">${t("p_none")}</div>`}
+    </div>`;
+}
 function pccDetail(p) {
-  const body = { overview:pTabOverview, timeline:() => `<div class="pcard"><div class="inner">${timelineHTML([p], false)}</div></div>`
-      + pTabOverview(p), tasks:pTabTasks, risks:pTabRisks, issues:pTabIssues, decisions:pTabDecisions,
+  const body = { overview:pTabOverview, timeline:pTabTimeline,
+    tasks:pTabTasks, risks:pTabRisks, issues:pTabIssues, decisions:pTabDecisions,
     team:pTabTeam, docs:pTabDocs, activity:pTabActivity, versions:pTabVersions }[pTab] || pTabOverview;
   return pHeader(p) + body(p);
 }
@@ -2321,29 +2459,40 @@ function pDialogNewProject() {
     values:{ key:"", name:"", pm:me, description:"", objectives:"", scope:"",
              start:today(), end:addBusinessDays(today(), 60), status:"not_started" },
     build: () => [
-      { name:"name", label:t("col_project"), type:"text", placeholder:"z. B. XLS Recurrent Redesign" },
-      { name:"key", label:t("f_key"), type:"text", half:true, placeholder:"XLS-27" },
-      { name:"pm", label:t("col_pm"), type:"select", half:true, options:
+      { name:"name", label:t("col_project"), type:"text", req:true, placeholder:"z. B. XLS Recurrent Redesign" },
+      { name:"key", label:t("f_key"), type:"text", req:true, half:true, placeholder:"XLS-27",
+        hint:t("h_pkey") },
+      { name:"pm", label:t("col_pm"), type:"select", req:true, half:true, options:
         USERS.filter(u => ["super_admin","admin","pm"].includes(u.pcc)).sort(byName).map(u => ({ v:u.id, l:u.name })) },
       { name:"description", label:t("f_desc"), type:"textarea" },
       { name:"objectives", label:t("f_obj"), type:"textarea" },
       { name:"scope", label:t("f_scope"), type:"textarea" },
-      { name:"start", label:t("f_start"), type:"date", half:true },
-      { name:"end", label:t("f_end"), type:"date", half:true },
+      { name:"start", label:t("f_start"), type:"date", req:true, half:true },
+      { name:"end", label:t("f_end"), type:"date", req:true, half:true },
       { name:"status", label:t("col_status"), type:"select", options:
         P_STATUS.map(s => ({ v:s, l:t("ps_" + s) })) }
     ],
-    validate: v => (v.name || "").trim().length < 3 ? t("e_pname")
-      : !(v.key || "").trim() ? t("e_pkey")
-      : PROJECTS.some(p => p.key.toLowerCase() === v.key.trim().toLowerCase()) ? t("e_pkeydup")
-      : (v.end && v.start && v.end < v.start) ? t("e_dates") : null,
+    /* Alle Beanstandungen auf einmal: wer drei Felder falsch ausgefüllt hat,
+       soll das in einem Anlauf sehen und nicht in dreien. */
+    validate: v => {
+      const e = [];
+      if ((v.name || "").trim().length < 3) e.push({ f:"name", m:t("e_pname") });
+      const key = (v.key || "").trim();
+      if (!key) e.push({ f:"key", m:t("e_pkey") });
+      else if (!/^[A-Z][A-Z0-9]{1,9}-[0-9]{2}$/.test(key.toUpperCase())) e.push({ f:"key", m:t("e_pkeyfmt") });
+      else if (PROJECTS.some(p => p.key.toLowerCase() === key.toLowerCase())) e.push({ f:"key", m:t("e_pkeydup") });
+      if (!v.start) e.push({ f:"start", m:t("e_pstart") });
+      if (!v.end) e.push({ f:"end", m:t("e_pend") });
+      if (v.end && v.start && v.end < v.start) e.push({ f:"end", m:t("e_dates") });
+      return e;
+    },
     onSubmit: v => {
       const p = mkProject({ key:v.key.trim().toUpperCase(), name:v.name.trim(), pm:v.pm,
         description:v.description || "", objectives:v.objectives || "", scope:v.scope || "",
         status:v.status, start:v.start, end:v.end, health:"green" });
       p.team = [{ user:v.pm, role:"Project Manager", resp:"" }];
-      pver(p, L === "de" ? "Projekt angelegt" : "Project created", []);
-      plg(p, me, (L === "de" ? "Projekt angelegt — " : "Project created — ") + p.name);
+      pver(p, { k:"ev_pcreated" }, []);
+      plg(p, me, { k:"ev_pcreated_x", x:p.name });
       toast(t("t_pnew", { n:p.key }));
       pProject = p.id; pTab = "overview"; render();
     }
@@ -2366,8 +2515,12 @@ function pDialogEditProject(p) {
       { name:"start", label:t("f_start"), type:"date", half:true },
       { name:"end", label:t("f_end"), type:"date", half:true }
     ],
-    validate: v => (v.name || "").trim().length < 3 ? t("e_pname")
-      : (v.end && v.start && v.end < v.start) ? t("e_dates") : null,
+    validate: v => {
+      const e = [];
+      if ((v.name || "").trim().length < 3) e.push({ f:"name", m:t("e_pname") });
+      if (v.end && v.start && v.end < v.start) e.push({ f:"end", m:t("e_dates") });
+      return e;
+    },
     onSubmit: v => {
       const ch = [];
       if (v.status !== p.status) ch.push({ e:p.name, f:t("col_status"), o:t("ps_" + p.status), n:t("ps_" + v.status) });
@@ -2376,7 +2529,7 @@ function pDialogEditProject(p) {
       Object.assign(p, { name:v.name.trim(), status:v.status, description:v.description,
         objectives:v.objectives, scope:v.scope, start:v.start, end:v.end });
       if (ch.length) {
-        pver(p, L === "de" ? "Projekt geändert" : "Project updated", ch);
+        pver(p, { k:"ev_pupdated" }, ch);
         ch.forEach(c => plg(p, me, `${c.f}: ${c.o} → ${c.n}`));
       }
       toast(ch.length ? t("t_pstatus") : t("t_psaved")); render();
@@ -2389,7 +2542,7 @@ function pDialogNewTask(p) {
     values:{ title:"", ws:p.ws[0] ? p.ws[0].id : "", assignee:me, prio:"Medium",
              due:addBusinessDays(today(), 10), description:"" },
     build: () => [
-      { name:"title", label:t("col_title"), type:"text" },
+      { name:"title", label:t("col_title"), type:"text", req:true },
       { name:"ws", label:t("col_ws"), type:"select", half:true, options:p.ws.map(w => ({ v:w.id, l:w.name })) },
       { name:"assignee", label:t("col_assignee"), type:"select", half:true, options:
         p.team.map(m => ({ v:m.user, l:user(m.user).name })) },
@@ -2397,11 +2550,11 @@ function pDialogNewTask(p) {
       { name:"due", label:t("col_due"), type:"date", half:true },
       { name:"description", label:t("f_desc"), type:"textarea" }
     ],
-    validate: v => (v.title || "").trim().length < 3 ? t("e_pname") : null,
+    validate: v => (v.title || "").trim().length < 3 ? [{ f:"title", m:t("e_pname") }] : [],
     onSubmit: v => {
       const x = mkTask(p, { title:v.title.trim(), ws:v.ws, assignee:v.assignee, prio:v.prio,
         due:v.due, description:v.description, status:"not_started", start:today() });
-      plg(p, me, (L === "de" ? "Aufgabe angelegt: " : "Task created: ") + x.title);
+      plg(p, me, { k:"ev_tasknew", x:x.title });
       toast(t("t_ptask")); render();
     }
   });
@@ -2412,7 +2565,7 @@ function pDialogNewRisk(p) {
     values:{ title:"", cat:"", prob:"3", imp:"3", owner:me, due:addBusinessDays(today(), 20),
              description:"", mitigation:"", conting:"" },
     build: () => [
-      { name:"title", label:t("col_title"), type:"text" },
+      { name:"title", label:t("col_title"), type:"text", req:true },
       { name:"cat", label:t("col_cat"), type:"text", half:true, placeholder:"Lieferant, Behörde, Personal …" },
       { name:"owner", label:t("col_owner"), type:"select", half:true, options:
         p.team.map(m => ({ v:m.user, l:user(m.user).name })) },
@@ -2423,14 +2576,14 @@ function pDialogNewRisk(p) {
       { name:"mitigation", label:t("f_mit"), type:"textarea" },
       { name:"conting", label:t("f_cont"), type:"textarea" }
     ],
-    validate: v => (v.title || "").trim().length < 3 ? t("e_pname") : null,
+    validate: v => (v.title || "").trim().length < 3 ? [{ f:"title", m:t("e_pname") }] : [],
     onSubmit: v => {
       const r = { id:pid(), ref:"R-" + (p.risks.length + 1), title:v.title.trim(),
         description:v.description, cat:v.cat || "—", prob:+v.prob, imp:+v.imp, owner:v.owner,
         status:"open", due:v.due, mitigation:v.mitigation, conting:v.conting };
       p.risks.push(r);
-      plg(p, me, (L === "de" ? "Risiko angelegt: " : "Risk created: ") + r.ref + " " + r.title);
-      if (rScore(r) >= 15) pver(p, (L === "de" ? "Kritisches Risiko aufgenommen: " : "Critical risk added: ") + r.title,
+      plg(p, me, { k:"ev_risknew", x:r.ref + " " + r.title });
+      if (rScore(r) >= 15) pver(p, { k:"ev_critrisk", x:r.title },
         [{ e:r.ref, f:t("col_score"), o:"—", n:String(rScore(r)) }]);
       toast(t("t_psaved")); render();
     }
@@ -2441,18 +2594,18 @@ function pDialogNewIssue(p) {
     title:t("pn_issues"), text:"", okLabel:t("create"),
     values:{ title:"", owner:me, prio:"Medium", due:addBusinessDays(today(), 5), description:"" },
     build: () => [
-      { name:"title", label:t("col_title"), type:"text" },
+      { name:"title", label:t("col_title"), type:"text", req:true },
       { name:"owner", label:t("col_owner"), type:"select", half:true, options:
         p.team.map(m => ({ v:m.user, l:user(m.user).name })) },
       { name:"prio", label:t("col_prio"), type:"select", half:true, options:P_PRIO.map(x => ({ v:x, l:x })) },
       { name:"due", label:t("col_due"), type:"date", half:true },
       { name:"description", label:t("f_desc"), type:"textarea" }
     ],
-    validate: v => (v.title || "").trim().length < 3 ? t("e_pname") : null,
+    validate: v => (v.title || "").trim().length < 3 ? [{ f:"title", m:t("e_pname") }] : [],
     onSubmit: v => {
       p.issues.push({ id:pid(), ref:"I-" + (p.issues.length + 1), title:v.title.trim(),
         description:v.description, owner:v.owner, prio:v.prio, status:"open", due:v.due, resolution:"" });
-      plg(p, me, (L === "de" ? "Issue gemeldet: " : "Issue raised: ") + v.title.trim());
+      plg(p, me, { k:"ev_issuenew", x:v.title.trim() });
       toast(t("t_psaved")); render();
     }
   });
@@ -2491,8 +2644,9 @@ function renderPcc(m) {
   const V = {
     dash:    () => head("pd_t","pd_s", expBtns("pcc_dash") + newBtn) + pccDash(),
     projects:() => head("pp_t","pp_s", expBtns("pcc_projects") + newBtn) + pccProjects(),
-    timeline:() => head("ptl_t","ptl_s") + `<div class="pcard"><div class="inner">${
-      timelineHTML(pVisible().filter(p => p.status !== "cancelled"), true)}</div></div>`,
+    timeline:() => { const rows = pFiltered().filter(p => p.status !== "cancelled");
+      return head("ptl_t","ptl_s") + pFilterBar(rows.length)
+        + `<div class="pcard"><div class="inner">${timelineHTML(rows, true, true)}</div></div>`; },
     tasks:   () => head("pt_t","pt_s", expBtns("pcc_tasks")) + pccTasks(),
     risks:   () => head("pr_t","pr_s", expBtns("pcc_risks")) + pccRisks(),
     issues:  () => head("pi_t","pi_s") + pccIssues(),
@@ -2533,12 +2687,12 @@ function wirePcc() {
     const p = pById(pProject), x = p.tasks.find(y => y.id === b.dataset.ptdone);
     const prev = { status:x.status, progress:x.progress, done:x.done };
     x.status = "completed"; x.progress = 100; x.done = today();
-    plg(p, me, (L === "de" ? "Aufgabe erledigt: " : "Task completed: ") + x.title);
+    plg(p, me, { k:"ev_taskdone", x:x.title });
     /* Ein Fehlgriff auf dem Tablet schließt sonst still die Aufgabe eines
        Kollegen. Also mit Namen melden und mit einem Weg zurück. */
     toast(t("t_pdone", { r:x.ref, n:x.title }), false, {
       label:t("undo"), fn:() => { Object.assign(x, prev);
-        plg(p, me, (L === "de" ? "Erledigt zurückgenommen: " : "Completion undone: ") + x.title);
+        plg(p, me, { k:"ev_undone", x:x.title });
         render(); } });
     render();
   });
@@ -2605,7 +2759,7 @@ function pccDoc(kind) {
         { h:t("c_overdue"), cols:TASK_COLS, rows:taskRows(over) },
         { h:t("c_activity"), cols:[t("exp_when"), t("exp_who"), t("col_project"), t("exp_what")],
           rows:PLOG.slice(0,25).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who),
-            (pById(e.project) || {}).key || "", e.txt]) }] };
+            (pById(e.project) || {}).key || "", evText(e.txt)]) }] };
   }
   if (kind === "pcc_projects") return { title:t("pp_t"), meta:listMeta(),
     sections:[{ cols:[t("f_key"), t("col_project"), t("col_status"), t("col_progress"), t("col_pm"),
@@ -2632,9 +2786,14 @@ function pccDoc(kind) {
       sections:[{ cols:[t("col_date"), t("pn_milestones"), t("col_project"), t("col_owner"), t("col_status")],
         rows:rows.map(({p,m}) => [fmtLong(m.date), m.name, p.key, pUser(m.owner), t("ms_" + m.status)]) }] };
   }
+  if (kind === "pcc_pdec") return { title:t("tab_dec") + " — " + cur.key, meta:projMeta(cur),
+    sections:[{ cols:[t("f_ref"), t("col_date"), t("col_title"), t("tab_dec"), t("f_rat"),
+      t("f_imp2"), t("f_maker"), t("f_part")],
+      rows:cur.decisions.map(d => [d.ref, fmtLong(d.date), d.topic, d.decision, d.rationale,
+        d.impact, pUser(d.maker), d.participants.map(pUser).join(", ")]) }] };
   if (kind === "pcc_pact") return { title:t("tab_act") + " — " + cur.key, meta:projMeta(cur),
     sections:[{ cols:[t("exp_when"), t("exp_who"), t("exp_what")],
-      rows:pActivity(cur).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who), e.txt]) }] };
+      rows:pActivity(cur).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who), evText(e.txt)]) }] };
   if (kind === "pcc_report") {
     const p = pById(pRepProject) || cur;
     const tk = p.tasks.map(x => ({ p, x })), rk = p.risks.map(r => ({ p, r }));
@@ -2656,9 +2815,9 @@ function pccDoc(kind) {
           d.version + (d.superseded ? " (" + t("doc_super") + ")" : ""), d.size || "—",
           pUser(d.owner), d.description]) },
       { h:t("tab_act"), cols:[t("exp_when"), t("exp_who"), t("exp_what")],
-        rows:pActivity(p).slice(0,30).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who), e.txt]) },
+        rows:pActivity(p).slice(0,30).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who), evText(e.txt)]) },
       { h:t("ver_t"), cols:[t("f_ver"), t("col_date"), t("exp_who"), t("ver_sum")],
-        rows:p.versions.map(v => [v.v, fmtLong(v.date), pUser(v.by), v.summary]) }] };
+        rows:p.versions.map(v => [v.v, fmtLong(v.date), pUser(v.by), evText(v.summary)]) }] };
   }
 }
 

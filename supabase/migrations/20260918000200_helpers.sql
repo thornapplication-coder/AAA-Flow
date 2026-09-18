@@ -10,11 +10,34 @@
 -- -----------------------------------------------------------------------------
 -- Identität und Rollen
 -- -----------------------------------------------------------------------------
+-- Diese Funktion steckt in jeder Policy und lief bisher je Zeile gegen
+-- public.users. Der Wert ändert sich innerhalb einer Anfrage nicht, also wird
+-- er transaktionslokal gemerkt. Ein leerer Eintrag bedeutet „kein Zugang" und
+-- wird als Sonderwert abgelegt, damit auch er nur einmal kostet.
 create or replace function pcc.my_role()
 returns pcc.user_role
-language sql stable security definer set search_path = public, pcc as $$
-  select role from public.users
-  where id = auth.uid() and active and not pending;
+language plpgsql stable security definer set search_path = public, pcc as $$
+declare
+  v_key   text := coalesce(auth.uid()::text, '-');
+  v_cache text := nullif(current_setting('app.pcc_role', true), '');
+  v_role  text;
+begin
+  -- Der Merker trägt die Kennung mit: wechselt der angemeldete Nutzer
+  -- innerhalb derselben Transaktion, verfällt er von selbst.
+  if v_cache is not null and split_part(v_cache, '|', 1) = v_key then
+    return nullif(split_part(v_cache, '|', 2), '-')::pcc.user_role;
+  end if;
+  select role::text into v_role from public.users
+   where id = auth.uid() and active and not pending;
+  perform set_config('app.pcc_role', v_key || '|' || coalesce(v_role, '-'), true);
+  return v_role::pcc.user_role;
+end $$;
+
+-- Nach jeder Änderung an Rolle oder Freigabe muss der Merker fallen.
+create or replace function pcc.forget_role()
+returns void
+language sql volatile as $$
+  select set_config('app.pcc_role', '', true);
 $$;
 
 create or replace function pcc.is_user()
@@ -51,6 +74,21 @@ language sql stable security definer set search_path = public, pcc as $$
   );
 $$;
 comment on function pcc.can_read(uuid) is 'Archivierte Projekte sehen nur Mitglieder und die Admin-Ebene.';
+
+-- Dieselbe Frage für eine andere Person: Darf sie dieses Projekt lesen? Wird
+-- gebraucht, bevor eine Erwähnung den Anfang eines Kommentars mitschickt.
+create or replace function pcc.can_read_as(p_project_id uuid, p_user_id uuid)
+returns boolean
+language sql stable security definer set search_path = public, pcc as $$
+  select exists (select 1 from public.users u
+                 where u.id = p_user_id and u.active and not u.pending and u.role is not null)
+     and (exists (select 1 from public.users u
+                  where u.id = p_user_id and u.role in ('super_admin', 'admin'))
+          or exists (select 1 from pcc.projects p
+                     where p.id = p_project_id and p.archived_at is null)
+          or exists (select 1 from pcc.project_members m
+                     where m.project_id = p_project_id and m.user_id = p_user_id));
+$$;
 
 create or replace function pcc.can_edit(p_project_id uuid)
 returns boolean

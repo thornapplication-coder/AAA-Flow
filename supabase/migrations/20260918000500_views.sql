@@ -107,8 +107,7 @@ left join public.users u on u.id = i.owner_user_id;
 create view pcc.v_dashboard with (security_invoker = true) as
 select
   count(*)                                                       as projects_total,
-  count(*) filter (where not archived
-    and status not in ('completed', 'cancelled'))                as projects_active,
+  count(*) filter (where status not in ('completed', 'cancelled')) as projects_active,
   count(*) filter (where status = 'on_track')                    as projects_on_track,
   count(*) filter (where status = 'at_risk')                     as projects_at_risk,
   count(*) filter (where status = 'delayed')                     as projects_delayed,
@@ -155,6 +154,25 @@ from public.audit_log a
 left join public.users u on u.id = a.user_id
 left join pcc.projects p on p.id = a.project_id;
 
+-- -----------------------------------------------------------------------------
+-- Versionsverlauf eines Projekts (Abschnitt 22)
+-- Sortiert wird nach Haupt- und Nebennummer, nicht nach Text: sonst käme 1.10
+-- vor 1.9 zu liegen. Die Anzahl der erfassten Änderungen hängt gleich mit dran.
+-- -----------------------------------------------------------------------------
+create view pcc.v_versions with (security_invoker = true) as
+select
+  v.id, v.project_id, p.key as project_key, v.version,
+  split_part(v.version, '.', 1)::integer as version_major,
+  split_part(v.version, '.', 2)::integer as version_minor,
+  v.trigger_code, t.label_de as trigger_label_de, t.label_en as trigger_label_en, v.summary,
+  v.created_at, v.created_by, u.name as created_by_name,
+  (select count(*) from pcc.version_changes c where c.version_id = v.id) as change_count
+from pcc.project_versions v
+join pcc.projects p on p.id = v.project_id
+left join pcc.version_triggers t on t.code = v.trigger_code
+left join public.users u on u.id = v.created_by
+order by v.project_id, version_major desc, version_minor desc;
+
 create view pcc.v_my_notifications with (security_invoker = true) as
 select n.*, p.key as project_key, p.name as project_name
 from pcc.notifications n
@@ -173,7 +191,8 @@ where pending and not active and pcc.is_super_admin();
 grant select on all tables in schema pcc to authenticated;
 revoke all on pcc.v_projects, pcc.v_tasks, pcc.v_milestones, pcc.v_risks,
   pcc.v_issues, pcc.v_dashboard, pcc.v_overdue_tasks, pcc.v_upcoming_milestones,
-  pcc.v_risk_matrix, pcc.v_activity, pcc.v_my_notifications, pcc.v_pending_users from anon;
+  pcc.v_risk_matrix, pcc.v_activity, pcc.v_versions, pcc.v_my_notifications,
+  pcc.v_pending_users from anon;
 
 -- -----------------------------------------------------------------------------
 -- Tageslauf einplanen. Auf Supabase steht pg_cron zur Verfügung, lokal in der

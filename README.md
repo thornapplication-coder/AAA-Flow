@@ -52,9 +52,9 @@ Rest. Was die Oberfläche nicht anbietet, gibt auch die API nicht heraus.
 Demodaten, ohne Backend — einfach im Browser öffnen. Er dient dazu, Oberfläche
 und Bedienung zu entscheiden, bevor sie gegen Supabase gebaut werden.
 
-Enthalten sind Dashboard mit Kennzahlen und Management-Timeline, Projektliste
-mit Filtern, Projektakte mit Überblick, Timeline, Aufgaben samt Teilaufgaben,
-Risiken mit 5×5-Matrix, Issues, Entscheidungen, Team und RACI, Dokumente,
+Enthalten sind Dashboard mit Kennzahlen und Projektverlauf, Projektliste
+mit Filtern, Projektakte mit Überblick, Projektverlauf, Aufgaben samt Teilaufgaben,
+Risiken mit 5×5-Matrix, Problemen, Entscheidungen, Team und RACI, Dokumente,
 Aktivität und Versionsverlauf. Dazu Aufgaben-, Risiko- und Meilensteinlisten
 über alle Projekte hinweg sowie ein Berichtsbereich.
 
@@ -76,15 +76,24 @@ Weichen Prototyp und Datenbank voneinander ab, gilt die Datenbank.
 ## Struktur
 
 ```
-docs/                    Architektur und Changelog
-sandbox/                 Klickbarer Prototyp mit Demodaten, ohne Backend
-supabase/migrations/     Schema 1.0.0 in fünf Migrationen (Schema, Helfer, Logik, RLS, Sichten)
-supabase/seed.sql        Versionsauslöser, Einstellungen, erste Projektvorlage
-supabase/tests/          SQL-Tests für Rechte, Versionierung, Gesamtlage, Dokumente, Löschweg
-scripts/db-check.sh      Migrationen + Seed + Tests gegen eine lokale PostgreSQL-Instanz
-scripts/local/auth_shim.sql   Ersatz für auth.users und auth.uid(), nur für db-check
+.github/workflows/ci.yml      Drei Jobs: Frontend, Prototyp, Datenbank
+docs/                         Architektur und Changelog
+index.html                    Einstiegsseite der Anwendung
+public/                       Statisches Beiwerk: Symbole für Browser und Installation
+sandbox/                      Klickbarer Prototyp mit Demodaten, ohne Backend
 scripts/check-sandbox.mjs     Prototyp in drei Bildschirmbreiten auf Fehler und Überlauf prüfen
-src/                     Frontend-Gerüst (Auth, Routing, i18n, Theme, Projektübersicht)
+scripts/db-check.sh           Migrationen + Seed + Tests gegen eine lokale PostgreSQL-Instanz
+scripts/local/auth_shim.sql   Ersatz für auth.users und auth.uid(), nur für db-check
+scripts/make-icons.py         Erzeugt die PNG-Symbole aus dem Entwurf in public/icon.svg
+src/                          Frontend (Auth, Routing, i18n, Theme, Projektübersicht)
+supabase/config.toml          Einstellungen der Supabase-CLI
+supabase/migrations/          Schema 1.0.0 in sechs Migrationen (Schema, Helfer, Logik,
+                              RLS, Sichten, Storage-Policies)
+supabase/seed.sql             Versionsauslöser, Einstellungen, erste Projektvorlage
+supabase/tests/               SQL-Tests für Rechte, Versionierung, Gesamtlage, Dokumente,
+                              Löschweg, Schwärzung und die Angriffe, die scheitern müssen
+tsconfig.json                 TypeScript für die Anwendung (tsconfig.node.json für die Werkzeuge)
+vite.config.ts                Build, PWA-Manifest, Fassungsnummer aus package.json
 ```
 
 ## Lokale Entwicklung
@@ -125,9 +134,11 @@ Mit Supabase CLI und Docker geht alternativ `supabase start` und
    Die Funktion verweigert sich, sobald ein aktiver Super Admin existiert; ein
    gewöhnliches `update` auf `public.users` weist der Guard ab. Alle weiteren
    Konten gibt dieser Super Admin über `pcc.approve_user()` frei.
-4. Storage-Bucket `project-docs` **privat** anlegen (Abschnitt 7a der
-   Architektur): Zugriff ausschließlich über signierte URLs, Upload zunächst
-   nach `quarantine/`.
+4. Storage: den privaten Bucket `project-docs` samt Policies legt die Migration
+   `20260918000600_storage.sql` selbst an. Zugriff ausschließlich über signierte
+   URLs; ein Objekt heißt `<projekt-id>/<datei>`, und ladbar ist es erst, wenn
+   die Virenprüfung über `pcc.set_scan_state()` `clean` gemeldet hat
+   (Abschnitt 7a der Architektur).
 5. Tagesjob: `pg_cron` **vor** `supabase db push` im Dashboard aktivieren — dann
    richtet die Migration den Job `pcc_daily` selbst ein. Wurde sie schon
    eingespielt, den Job von Hand nachtragen:

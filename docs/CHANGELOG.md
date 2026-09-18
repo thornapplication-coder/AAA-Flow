@@ -34,14 +34,19 @@ Geschäftslogik in PostgreSQL, dazu ein klickbarer Prototyp der Oberfläche.
   `pcc.version_triggers`. Versionen sind unveränderlich.
 - **Dokumente:** Quarantäne bis zur Virenprüfung, 50 MB je Datei, Datei oder
   externer Verweis — nie beides. Eine neue Fassung löst die alte über
-  `supersedes_id` ab, statt sie zu überschreiben.
-- **Audit-Trail** aus Triggern, gegen Änderung und Löschung gesperrt.
+  `supersedes_id` ab, statt sie zu überschreiben. Die Storage-Policies des
+  privaten Buckets `project-docs` legt eine eigene Migration an; ladbar ist eine
+  Datei erst, wenn die Prüfung `clean` gemeldet hat.
+- **Audit-Trail** aus Triggern, gegen Änderung und Löschung gesperrt. Die
+  einzige Ausnahme ist die Schwärzung nach Artikel 17 — sie berührt nur das
+  benannte Feld und wird selbst protokolliert.
 - **Löschweg nach Artikel 17 DSGVO:** `pcc.anonymise_user()` pseudonymisiert
   das Konto; die fachliche Zuordnung bleibt über die ID bestehen.
-- **Zwölf Sichten**: Projekte mit gerechneten Kennzahlen (`v_projects`, die
+- **Dreizehn Sichten**: Projekte mit gerechneten Kennzahlen (`v_projects`, die
   Grundlage der Oberfläche), Dashboard, Aufgaben, Meilensteine, Risiken, Risk
   Matrix, Issues, überfällige Aufgaben, anstehende Meilensteine, Aktivität,
-  Benachrichtigungen und offene Freigaben — alle mit `security_invoker`.
+  Versionsverlauf, Benachrichtigungen und offene Freigaben — alle mit
+  `security_invoker`.
 - **Tageslauf** `pcc.run_daily_jobs()`: verzögerte Meilensteine,
   Vorlaufhinweise und Überfälligkeitsmeldungen; als `pg_cron`-Job eingeplant,
   wo die Erweiterung verfügbar ist.
@@ -51,7 +56,7 @@ Geschäftslogik in PostgreSQL, dazu ein klickbarer Prototyp der Oberfläche.
 ### Oberfläche
 
 - **Prototyp** `sandbox/Control-Center-Sandbox.html`: Dashboard mit Kennzahlen
-  und Management-Timeline, Projektliste mit Filtern, Projektakte mit zehn
+  und Projektverlauf, Projektliste mit Filtern, Projektakte mit zehn
   Reitern, Aufgaben-, Risiko- und Meilensteinlisten über alle Projekte,
   Berichte, Anmeldebildschirm mit Rollenschnellwahl, Sandbox-Leiste mit
   simuliertem Datum, PDF- und Excel-Export.
@@ -83,6 +88,27 @@ und Konsistenz des Repositories. Was daraus behoben wurde:
   Risikomatrix benannt; „Erledigt" nennt die Aufgabe und lässt sich zurücknehmen;
   deutsche Prioritäten statt Low/Medium/High; vier Kontraste auf WCAG AA
   gehoben; Fingerbreite Trefferflächen auf dem Telefon.
+
+### Behoben aus den Prüfberichten
+
+Was die vier Durchsichten zusätzlich aufgeworfen haben und was daraus geworden ist:
+
+| Befund | Behebung |
+|---|---|
+| Der Trail ließ kein Schwärzen zu, obwohl Artikel 17 es verlangt | `pcc.redact_audit()` schwärzt genau ein benanntes Feld; ein eigener Trigger auf `public.audit_log` erlaubt nur diesen einen Fall und weist jedes Löschen und jede andere Änderung weiter ab |
+| Meilensteine konnten voneinander im Kreis abhängen | Trigger `pcc.tg_milestone_cycle()` |
+| RACI konnte auf einen Gegenstand aus einem fremden Projekt zeigen | Trigger `pcc.tg_raci_subject()` |
+| Versionsnummern zählten über die Hauptnummer hinweg und wurden als Text sortiert | Zählung innerhalb der Hauptnummer, Sicht `pcc.v_versions` sortiert numerisch |
+| Delete-Rechte auf Dokumenten und Kommentaren, die keine Policy je zuließ | entzogen; gelöscht wird über `pcc.delete_document()` und `pcc.delete_comment()` |
+| `public.users` hing mit `on delete cascade` an `auth.users` | `on delete restrict`: ein entferntes Anmeldekonto nimmt das Profil nicht mit |
+| Der Ablagepfad eines Dokuments war frei wählbar | Check-Constraint `<projekt-id>/<datei>`, auf den sich die Storage-Policy stützt |
+| Der Reiter „Projektverlauf" wiederholte die Übersicht | eigener Inhalt: Zeitstrahl mit Zeichenerklärung und beschrifteter Heute-Linie, darunter die Termine des Projekts |
+| Verlauf und Versionen blieben nach dem Sprachwechsel deutsch | Ereignisse liegen als Schlüssel im Speicher und werden erst beim Anzeigen zu Text; die Prüfung `check:sandbox` fährt die englische Fassung eigens an |
+| Der Anlegedialog nannte immer nur den ersten Fehler | Pflichtfelder sind gekennzeichnet, alle Beanstandungen erscheinen zusammen, das erste betroffene Feld bekommt den Fokus |
+| Entscheidungen waren der einzige Reiter ohne Ausgabe | PDF und Excel wie überall sonst |
+| Wortschatz aus der Vorgeschichte | Issues → Probleme, Workstream → Teilprojekt, Scope → Abgrenzung, Management Timeline → Projektverlauf, Datensätze → Einträge; die Unterschriftszeilen des Berichts lauten Projektleitung und Sponsor |
+| Kein PWA-Symbol in den geforderten Größen | 192, 512 und ein maskierbares 512, erzeugt von `scripts/make-icons.py` |
+| Die Oberfläche nannte ihre Fassung nicht | Die Nummer kommt zur Bauzeit aus `package.json` und steht in der Kopfzeile |
 
 ### Hinweis zur Vorgeschichte
 

@@ -236,8 +236,8 @@ Pflichten nach sich, die sonst SharePoint getragen hätte:
 
 | Pflicht | Umsetzung |
 |---|---|
-| **Zugriffsschutz** | Supabase Storage Bucket `project-docs`, privat. Zugriff ausschließlich über signierte URLs mit kurzer Gültigkeit; die Storage-Policy prüft dieselbe Projektmitgliedschaft wie die Tabellen. Kein öffentlicher Bucket |
-| **Virenprüfung** | Upload landet zuerst in `quarantine/`, eine Edge Function prüft und verschiebt erst danach nach `project-docs/`. Bis dahin ist das Dokument als „in Prüfung" gekennzeichnet und nicht herunterladbar |
+| **Zugriffsschutz** | Supabase Storage Bucket `project-docs`, privat. Zugriff ausschließlich über signierte URLs mit kurzer Gültigkeit; die Storage-Policy prüft dieselbe Projektmitgliedschaft wie die Tabellen (`supabase/migrations/20260918000600_storage.sql`). Kein öffentlicher Bucket. Ein Objekt heißt `<projekt-id>/<datei>` — die erste Pfadebene ist die Projektzugehörigkeit, und ein Check-Constraint hält `documents.storage_path` daran fest |
+| **Virenprüfung** | Ein Upload steht auf `scan_state = 'pending'` und ist damit für niemanden ladbar: die Lese-Policy des Buckets verlangt `clean`. Eine Edge Function prüft die Datei und meldet das Ergebnis über `pcc.set_scan_state()` zurück. Die Quarantäne ist also ein Zustand, kein zweiter Ablageort — ein Verschieben zwischen Buckets könnte fehlschlagen und eine ungeprüfte Datei erreichbar zurücklassen |
 | **Aufbewahrung** | Entschieden am 18.09.2026: **unbegrenzt**. Es gibt keine automatische Löschregel; der Speicherbedarf wächst mit jedem Projekt. Rechnen Sie mit rund 1 bis 3 GB je Jahr bei der heutigen Projektzahl, das entspricht im Supabase-Pro-Tarif etwa 0,02 USD je GB und Monat — wirtschaftlich unkritisch, aber bewusst einzuplanen |
 | **Sicherung** | Storage wird getrennt von der Datenbank gesichert. Supabase sichert Storage nicht im Datenbank-Backup mit — dafür ist ein eigener Abgleich in ein zweites Ziel einzurichten |
 

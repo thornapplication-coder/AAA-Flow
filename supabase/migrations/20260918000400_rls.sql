@@ -12,8 +12,11 @@ revoke all on schema pcc from anon;
 -- sieht, entscheidet die Policy.
 grant select on all tables in schema pcc to authenticated;
 grant insert, update, delete on pcc.project_members, pcc.workstreams, pcc.tasks,
-      pcc.milestones, pcc.risks, pcc.issues, pcc.decisions, pcc.raci,
-      pcc.documents, pcc.comments to authenticated;
+      pcc.milestones, pcc.risks, pcc.issues, pcc.decisions, pcc.raci to authenticated;
+-- Dokumente und Kommentare verschwinden nie hart: pcc.delete_document() und
+-- pcc.delete_comment() setzen den Löschvermerk. Ein Delete-Recht gäbe es hier
+-- also nur zum Schein — die Policies lassen es ohnehin nicht zu.
+grant insert, update on pcc.documents, pcc.comments to authenticated;
 grant update on pcc.projects, pcc.notifications to authenticated;
 grant insert, update, delete on pcc.templates to authenticated;
 grant update on pcc.settings to authenticated;
@@ -64,7 +67,7 @@ create policy audit_log_select on public.audit_log for select to authenticated
       or (project_id is not null and pcc.can_read(project_id)));
 
 create trigger audit_log_immutable before update or delete on public.audit_log
-  for each row execute function pcc.tg_immutable();
+  for each row execute function pcc.tg_audit_immutable();
 comment on table public.audit_log is 'Vollständiger Audit-Trail. Kein Weg in der Anwendung ändert oder löscht einen Eintrag.';
 
 -- -----------------------------------------------------------------------------

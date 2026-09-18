@@ -313,15 +313,21 @@ select test.fails(format('insert into pcc.raci (project_id, subject_type, subjec
                   'raci_one_accountable', 'Eine Aufgabe hat genau ein A');
 
 select test.fails(format('insert into pcc.documents (project_id, title, kind, storage_path, external_url)
-                          values (%L, ''Doppelt'', ''file'', ''a/b.pdf'', ''https://x'')', test.pid('p1')),
+                          values (%L, ''Doppelt'', ''file'', %L, ''https://x'')',
+                         test.pid('p1'), test.pid('p1') || '/b.pdf'),
                   'documents_check', 'Ein Dokument ist entweder Datei oder Verweis, nie beides');
 select test.fails(format('insert into pcc.documents (project_id, title, kind, storage_path, size_bytes)
-                          values (%L, ''Zu groß'', ''file'', ''a/b.pdf'', 60000000)', test.pid('p1')),
+                          values (%L, ''Zu groß'', ''file'', %L, 60000000)',
+                         test.pid('p1'), test.pid('p1') || '/b.pdf'),
                   'size_bytes', 'Über 50 MB nimmt die Anwendung keine Datei an');
+select test.fails(format('insert into pcc.documents (project_id, title, kind, storage_path, size_bytes)
+                          values (%L, ''Fremder Pfad'', ''file'', ''anderes-projekt/b.pdf'', 1000)',
+                         test.pid('p1')),
+                  'documents_check', 'Der Ablagepfad muss mit der Projektkennung beginnen');
 
 with ins as (
   insert into pcc.documents (project_id, title, kind, storage_path, mime_type, size_bytes, owner_user_id)
-  values (test.pid('p1'), 'Qualification Test Guide', 'file', 'project-docs/qtg-v1.pdf',
+  values (test.pid('p1'), 'Qualification Test Guide', 'file', test.pid('p1') || '/qtg-v1.pdf',
           'application/pdf', 240000, test.uid('ppm'))
   returning id)
 insert into test_ids (key, id) select 'd1', id from ins;
@@ -329,7 +335,7 @@ select test.ok((select scan_state from pcc.documents where id = test.pid('d1')) 
                'Ein Upload ist bis zur Prüfung in Quarantäne');
 insert into test_ids (key, id)
 select 'd2', (pcc.supersede_document(test.pid('d1'), 'Qualification Test Guide', 'file',
-                                     'project-docs/qtg-v2.pdf', null, 'application/pdf', 260000)).id;
+                                     test.pid('p1') || '/qtg-v2.pdf', null, 'application/pdf', 260000)).id;
 select test.ok((select version = 2 and supersedes_id = test.pid('d1')
                 from pcc.documents where id = test.pid('d2')),
                'Eine neue Fassung löst die alte ab, statt sie zu überschreiben');
@@ -525,6 +531,70 @@ select test.logout();
 select test.logout();
 select test.ok((select count(*) from public.audit_log where entity = 'public.users') > 0,
                'Wer wem welche Rolle gegeben hat, steht im Trail');
+
+-- -----------------------------------------------------------------------------
+-- 14. Freigabe eines Stands, Abhängigkeiten, Schwärzung
+-- -----------------------------------------------------------------------------
+select test.login('pview');
+select test.fails(format('select pcc.release_version(%L, ''Stand zum Lenkungskreis'')', test.pid('p1')),
+                  'PCC_AUTH', 'Einen Stand gibt nicht jeder frei');
+select test.logout();
+
+select test.login('ppm');
+select test.fails(format('select pcc.release_version(%L, ''   '')', test.pid('p1')),
+                  'PCC_STATE', 'Zu einer Freigabe gehört eine Zusammenfassung');
+select test.ok(pcc.release_version(test.pid('p1'), 'Stand zum Lenkungskreis 09/2026') is not null,
+               'Die Projektleitung gibt einen Stand frei');
+select test.ok((select trigger_code from pcc.v_versions
+                where project_id = test.pid('p1')
+                order by version_major desc, version_minor desc limit 1) = 'pm_release',
+               'Der freigegebene Stand ist die jüngste Version');
+select test.ok((select count(*) from pcc.v_versions
+                where project_id = test.pid('p1') and version_major = 1) >= 4,
+               'Die Versionssicht zählt innerhalb der Hauptnummer');
+
+-- Ein Meilenstein wartet nicht auf sich selbst
+select test.fails(format('update pcc.milestones set depends_on_milestone_id = id where id = %L', test.pid('m1')),
+                  'PCC_STATE', 'Eine Abhängigkeit schließt keinen Kreis');
+-- Eine Verantwortung braucht einen Gegenstand im selben Projekt
+select test.fails(format('insert into pcc.raci (project_id, subject_type, subject_id, user_id, letter)
+                          values (%L, ''task'', %L, %L, ''C'')',
+                         test.pid('p1'), test.pid('p3'), test.uid('ppm')),
+                  'PCC_STATE', 'RACI verweist nicht ins Leere');
+select test.logout();
+
+-- Schwärzen nach Artikel 17: der Wortlaut geht, der Vorgang bleibt
+select test.login('ppm');
+select test.fails(format('select pcc.redact_audit(''pcc.comments'', %L, ''body'', ''Antrag'')', test.pid('c1')::text),
+                  'PCC_AUTH', 'Schwärzen darf nur der Super Admin');
+select test.logout();
+select test.login('psa');
+select test.ok(pcc.redact_audit('pcc.comments', test.pid('c1')::text, 'body',
+                                'Antrag nach Artikel 17 DSGVO vom 03.09.2026') > 0,
+               'Der Super Admin schwärzt ein benanntes Feld');
+select test.ok((select count(*) from public.audit_log
+                where entity = 'pcc.comments' and entity_id = test.pid('c1')::text
+                  and (new_value ->> 'body') = 'Der Termin ist knapp — bitte um Entscheidung bis Freitag.') = 0,
+               'Der geschwärzte Wortlaut steht nirgends mehr im Trail');
+select test.ok((select count(*) from public.audit_log
+                where entity = 'pcc.comments' and entity_id = test.pid('c1')::text
+                  and action = 'insert') = 1,
+               'Der Vorgang selbst bleibt im Trail stehen');
+select test.ok((select count(*) from public.audit_log
+                where entity = 'pcc.comments' and action = 'redact') >= 1,
+               'Die Schwärzung selbst ist protokolliert');
+-- Zwei Riegel liegen übereinander: das fehlende Recht und der Trigger.
+select test.fails('update public.audit_log set reason = ''nachtraeglich'' where id = (select min(id) from public.audit_log)',
+                  'permission denied', 'Am Trail selbst ändert auch der Super Admin nichts');
+select test.fails('delete from public.audit_log where id = (select min(id) from public.audit_log)',
+                  'permission denied', 'Und löschen lässt er sich erst recht nicht');
+select test.logout();
+-- Der Trigger ist der zweite Riegel: er hält selbst dann, wenn ein Zugang an
+-- Rechteschutz und Policy vorbeikäme (hier geprüft mit den Rechten des Besitzers).
+select test.fails('update public.audit_log set reason = ''nachtraeglich'' where id = (select min(id) from public.audit_log)',
+                  'PCC_IMMUTABLE', 'Der Trigger hält den Trail auch ohne Rechteschutz fest');
+select test.fails('delete from public.audit_log where id = (select min(id) from public.audit_log)',
+                  'PCC_IMMUTABLE', 'Kein Eintrag verschwindet aus dem Trail');
 
 select test.ok(true, 'Alle Prüfungen des Control Centers bestanden');
 rollback;

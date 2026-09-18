@@ -1,6 +1,7 @@
 {
   "app": {
     "name": "Project Control Center",
+    "version": "Fassung {{version}}",
     "tagline": "Projektsteuerung der Aviation Academy Austria"
   },
   "nav": {

@@ -29,7 +29,7 @@ function findChromium() {
 const browser = await chromium.launch({ executablePath: findChromium() })
 const findings = []
 
-async function run(width, height, label, userIndex) {
+async function run(width, height, label, userIndex, lang) {
   const page = await browser.newPage({ viewport: { width, height } })
   page.on('pageerror', (e) => findings.push(`[${label}] Laufzeitfehler: ${e.message}`))
   page.on('console', (m) => {
@@ -43,6 +43,12 @@ async function run(width, height, label, userIndex) {
   if (!logins.length) findings.push(`[${label}] Anmeldung zeigt keine Rollen`)
   await logins[userIndex % logins.length].click()
   await page.waitForTimeout(300)
+
+  if (lang) {
+    const sw = await page.$(`[data-l="${lang}"]:visible`)
+    if (!sw) findings.push(`[${label}] Sprachumschalter ${lang} fehlt`)
+    else { await sw.click(); await page.waitForTimeout(250) }
+  }
 
   const overflow = () => page.evaluate(() =>
     document.documentElement.scrollWidth - document.documentElement.clientWidth)
@@ -76,16 +82,34 @@ async function run(width, height, label, userIndex) {
   const raw = await page.evaluate(() => (document.body.innerText.match(/\b[a-z]{1,6}_[a-z0-9_]{2,}\b/g) || [])
     .filter((x) => !x.includes('@')))
   if (raw.length) findings.push(`[${label}] mutmaßlich unübersetzte Schlüssel: ${[...new Set(raw)].join(', ')}`)
+
+  /* Verlauf und Versionen entstehen aus Demodaten. Standen sie als fertige
+     Sätze im Speicher, blieben sie nach dem Sprachwechsel deutsch. */
+  if (lang === 'en') {
+    await (await page.$('[data-ptab="activity"]:visible'))?.click()
+    await page.waitForTimeout(200)
+    const txt = await page.evaluate(() => document.body.innerText)
+    for (const de of ['Projekt angelegt', 'Meilenstein erreicht', 'Aufgabe erledigt', 'Risiko angelegt']) {
+      if (txt.includes(de)) findings.push(`[${label}] deutscher Verlaufstext in der englischen Fassung: ${de}`)
+    }
+    await (await page.$('[data-ptab="versions"]:visible'))?.click()
+    await page.waitForTimeout(200)
+    const vtxt = await page.evaluate(() => document.body.innerText)
+    for (const de of ['Projekt angelegt', 'Projektstatus geändert', 'Meilenstein erreicht']) {
+      if (vtxt.includes(de)) findings.push(`[${label}] deutscher Versionstext in der englischen Fassung: ${de}`)
+    }
+  }
   await page.close()
 }
 
 await run(1440, 900, 'Desktop', 0)
 await run(1024, 768, 'Tablet', 2)
 await run(390, 844, 'Telefon', 5)
+await run(1440, 900, 'Desktop EN', 0, 'en')
 await browser.close()
 
 if (findings.length) {
   console.error(findings.join('\n'))
   process.exit(1)
 }
-console.log('Prototyp: keine Fehler, kein Überlauf bei 1440, 1024 und 390 Pixel Breite.')
+console.log('Prototyp: keine Fehler, kein Überlauf bei 1440, 1024 und 390 Pixel Breite; englische Fassung ohne deutsche Reste.')

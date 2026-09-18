@@ -1,6 +1,7 @@
 {
   "app": {
     "name": "Project Control Center",
+    "version": "Version {{version}}",
     "tagline": "Project control for Aviation Academy Austria"
   },
   "nav": {

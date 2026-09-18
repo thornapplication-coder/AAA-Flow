@@ -55,7 +55,10 @@ create type pcc.notification_kind as enum (
 create type public.ui_language as enum ('de', 'en');
 
 create table public.users (
-  id            uuid primary key references auth.users (id) on delete cascade,
+  -- Kein Kaskadenlöschen: ein entferntes Anmeldekonto darf das Profil nicht
+  -- stillschweigend mitnehmen, sonst verlöre der Trail seinen Bezug. Konten
+  -- werden gesperrt oder pseudonymisiert (Abschnitt 7b), nie gelöscht.
+  id            uuid primary key references auth.users (id) on delete restrict,
   name          text not null check (length(trim(name)) > 0),
   email         text not null unique,
   role          pcc.user_role,
@@ -386,10 +389,15 @@ create table pcc.documents (
       or (kind = 'link' and external_url is not null and storage_path is null)),
   -- Ohne Größe keine Datei: sonst ließe sich die 50-MB-Grenze umgehen, indem
   -- die Angabe schlicht weggelassen wird.
-  check (kind <> 'file' or size_bytes is not null)
+  check (kind <> 'file' or size_bytes is not null),
+  -- Der Ablagepfad beginnt mit der Projektkennung. Darauf stützt sich die
+  -- Storage-Policy (Migration 6): ohne diese Zusage wäre jede Datei im Bucket
+  -- für jeden lesbar, der irgendein Projekt sehen darf.
+  check (kind <> 'file' or storage_path like project_id::text || '/%')
 );
 comment on table pcc.documents is 'Dokument. Eine neue Fassung löst die alte über supersedes_id ab, statt sie zu überschreiben (Abschnitt 7a).';
 comment on column pcc.documents.size_bytes is 'Harte Grenze 50 MB je Datei. Größeres bleibt extern.';
+comment on column pcc.documents.storage_path is 'Objektname im Bucket project-docs, immer <projekt-id>/<datei>.';
 create index documents_project_idx on pcc.documents (project_id) where deleted_at is null;
 create index documents_entity_idx on pcc.documents (entity_type, entity_id);
 create index documents_owner_idx on pcc.documents (owner_user_id);

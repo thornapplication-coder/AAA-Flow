@@ -77,6 +77,32 @@ begin
     using errcode = 'P0001';
 end $$;
 
+-- Der Trail selbst kennt genau eine Ausnahme: das Schwärzen nach Artikel 17.
+-- Es darf nur die beiden Wertespalten berühren, nur im internen Schreibmodus
+-- und niemals einen Eintrag entfernen. Alles andere bleibt verboten.
+create or replace function pcc.tg_audit_immutable()
+returns trigger
+language plpgsql as $$
+begin
+  if tg_op = 'DELETE' then
+    raise exception 'PCC_IMMUTABLE: audit_log darf nicht gelöscht werden'
+      using errcode = 'P0001';
+  end if;
+  if public.internal_write_enabled()
+     and new.id         is not distinct from old.id
+     and new.user_id    is not distinct from old.user_id
+     and new.project_id is not distinct from old.project_id
+     and new.entity     is not distinct from old.entity
+     and new.entity_id  is not distinct from old.entity_id
+     and new.action     is not distinct from old.action
+     and new.reason     is not distinct from old.reason
+     and new.created_at is not distinct from old.created_at then
+    return new;
+  end if;
+  raise exception 'PCC_IMMUTABLE: audit_log darf nicht geändert oder gelöscht werden'
+    using errcode = 'P0001';
+end $$;
+
 create trigger project_versions_immutable before update or delete on pcc.project_versions
   for each row execute function pcc.tg_immutable_unless_purge();
 create trigger version_changes_immutable before update or delete on pcc.version_changes
@@ -182,6 +208,52 @@ begin
 end $$;
 
 -- -----------------------------------------------------------------------------
+-- Abhängigkeiten zwischen Meilensteinen bleiben azyklisch
+-- „A wartet auf B" und „B wartet auf A" ist kein Plan, sondern ein Stillstand.
+-- Die Selbstreferenz fängt schon der Constraint ab; hier geht es um den Kreis
+-- über mehrere Stufen.
+-- -----------------------------------------------------------------------------
+create or replace function pcc.tg_milestone_cycle()
+returns trigger
+language plpgsql as $$
+declare v_seen uuid[] := array[new.id]; v_cur uuid := new.depends_on_milestone_id;
+begin
+  while v_cur is not null loop
+    if v_cur = any(v_seen) then
+      raise exception 'PCC_STATE: Diese Abhängigkeit schließt einen Kreis' using errcode = 'P0001';
+    end if;
+    v_seen := v_seen || v_cur;
+    select depends_on_milestone_id into v_cur from pcc.milestones where id = v_cur;
+  end loop;
+  return new;
+end $$;
+create trigger milestones_cycle before insert or update on pcc.milestones
+  for each row execute function pcc.tg_milestone_cycle();
+
+-- RACI verweist auf einen Gegenstand. Zeigt der Verweis ins Leere oder in ein
+-- fremdes Projekt, steht dort eine Verantwortung ohne Gegenstand.
+create or replace function pcc.tg_raci_subject()
+returns trigger
+language plpgsql as $$
+declare v_ok boolean;
+begin
+  v_ok := case new.subject_type
+    when 'workstream' then exists (select 1 from pcc.workstreams w
+                                   where w.id = new.subject_id and w.project_id = new.project_id)
+    when 'task'       then exists (select 1 from pcc.tasks t
+                                   where t.id = new.subject_id and t.project_id = new.project_id)
+    when 'milestone'  then exists (select 1 from pcc.milestones m
+                                   where m.id = new.subject_id and m.project_id = new.project_id)
+    else false end;
+  if not v_ok then
+    raise exception 'PCC_STATE: Der Gegenstand gehört nicht zu diesem Projekt' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+create trigger raci_subject before insert or update on pcc.raci
+  for each row execute function pcc.tg_raci_subject();
+
+-- -----------------------------------------------------------------------------
 -- Statusabhängige Felder mitführen
 -- -----------------------------------------------------------------------------
 create or replace function pcc.tg_status_dates()
@@ -269,15 +341,30 @@ language plpgsql security definer set search_path = public, pcc as $$
 declare
   v_id      uuid;
   v_version text;
+  v_major   integer;
+  v_next    integer;
   v_change  jsonb;
 begin
   if not exists (select 1 from pcc.version_triggers where code = p_trigger_code and active) then
     return null;   -- Ereignis ist als nicht versionswürdig konfiguriert
   end if;
 
+  -- Die nächste Nummer entsteht aus den vorhandenen Versionen. Stünde sie nur
+  -- in der Projektzeile, ließe ein zurückgesetzter Zähler jede weitere Version
+  -- an der Eindeutigkeit scheitern. Gezählt wird innerhalb der Hauptnummer und
+  -- numerisch — als Text wäre 1.10 kleiner als 1.9.
+  select version_major into v_major from pcc.projects where id = p_project_id;
+  if v_major is null then
+    return null;   -- Projekt existiert nicht (mehr)
+  end if;
+  select coalesce(max(split_part(version, '.', 2)::integer), -1) + 1
+    into v_next
+    from pcc.project_versions
+   where project_id = p_project_id
+     and split_part(version, '.', 1)::integer = v_major;
   perform public.enable_internal_write();
   update pcc.projects
-     set version_minor = version_minor + 1
+     set version_minor = v_next
    where id = p_project_id
   returning version_major || '.' || version_minor into v_version;
   perform public.disable_internal_write();
@@ -519,6 +606,7 @@ begin
   if v_user.id is null then
     raise exception 'PCC_STATE: Konto nicht gefunden' using errcode = 'P0001';
   end if;
+  perform pcc.forget_role();
   perform pcc.notify(p_user_id, null, 'approval', null, null,
     'Ihr Zugang zum Project Control Center ist freigegeben', 'Rolle: ' || p_role::text);
   return v_user;
@@ -548,6 +636,7 @@ begin
     raise exception 'PCC_STATE: Kein Konto mit der Adresse %. Erst anmelden, dann freischalten', p_email
       using errcode = 'P0001';
   end if;
+  perform pcc.forget_role();
   insert into public.audit_log (user_id, entity, entity_id, action, reason)
   values (v_user.id, 'public.users', v_user.id::text, 'bootstrap', 'Erster Super Admin bei der Inbetriebnahme');
   return v_user;
@@ -567,6 +656,7 @@ begin
   perform public.enable_internal_write();
   update public.users set role = p_role where id = p_user_id returning * into v_user;
   perform public.disable_internal_write();
+  perform pcc.forget_role();
   return v_user;
 end $$;
 
@@ -594,6 +684,7 @@ begin
          role       = null
    where id = p_user_id;
   perform public.disable_internal_write();
+  perform pcc.forget_role();
   insert into public.audit_log (user_id, entity, entity_id, action, reason)
   values (auth.uid(), 'public.users', p_user_id::text, 'anonymise', p_reason);
   perform set_config('app.audit_reason', '', true);
@@ -639,8 +730,7 @@ begin
   values (v_project.id, v_pm, 'Project Manager', 'Gesamtsteuerung', auth.uid())
   on conflict do nothing;
 
-  insert into pcc.project_versions (project_id, version, trigger_code, summary, created_by)
-  values (v_project.id, '1.0', 'project_created', 'Projekt angelegt', auth.uid());
+  perform pcc.new_version(v_project.id, 'project_created', 'Projekt angelegt', '[]'::jsonb);
 
   -- Vorlage ausrollen (Abschnitt 30)
   if p_template_id is not null then
@@ -771,8 +861,61 @@ begin
 end $$;
 
 -- -----------------------------------------------------------------------------
+-- Ausdrückliche Freigabe eines Standes durch die Projektleitung
+-- Abschnitt 6 führt „Freigabe durch den PM" als Versionsauslöser. Ohne diesen
+-- Weg stünde der Auslöser in der Konfiguration, ohne dass ihn je etwas auslöst.
+-- -----------------------------------------------------------------------------
+create or replace function pcc.release_version(p_project_id uuid, p_summary text)
+returns uuid
+language plpgsql security definer set search_path = public, pcc as $$
+declare v_id uuid;
+begin
+  if not pcc.can_edit(p_project_id) then
+    raise exception 'PCC_AUTH: Einen Stand gibt die Projektleitung oder ein Admin frei' using errcode = 'P0001';
+  end if;
+  if coalesce(trim(p_summary), '') = '' then
+    raise exception 'PCC_STATE: Zu einer Freigabe gehört eine Zusammenfassung' using errcode = 'P0001';
+  end if;
+  v_id := pcc.new_version(p_project_id, 'pm_release', trim(p_summary), '[]'::jsonb);
+  if v_id is null then
+    raise exception 'PCC_STATE: Der Auslöser pm_release ist abgeschaltet' using errcode = 'P0001';
+  end if;
+  return v_id;
+end $$;
+
+-- -----------------------------------------------------------------------------
 -- Kommentare und Erwähnungen (Abschnitte 28, 29)
 -- -----------------------------------------------------------------------------
+-- Der Audit-Trail ist unveränderlich — mit genau einer Ausnahme, und die ist
+-- gesetzlich erzwungen: Ein Löschverlangen nach Artikel 17 DSGVO greift auch
+-- auf den Wortlaut, den der Trail mitgeschrieben hat. Geschwärzt wird nur das
+-- benannte Feld; wer wann was getan hat, bleibt vollständig erhalten, und die
+-- Schwärzung selbst wird protokolliert.
+create or replace function pcc.redact_audit(
+  p_entity text, p_entity_id text, p_field text, p_reason text
+)
+returns integer
+language plpgsql security definer set search_path = public, pcc as $$
+declare v_count integer;
+begin
+  if not pcc.is_super_admin() then
+    raise exception 'PCC_AUTH: Schwärzen darf nur der Super Admin' using errcode = 'P0001';
+  end if;
+  perform public.enable_internal_write();
+  update public.audit_log
+     set old_value = case when old_value ? p_field
+            then jsonb_set(old_value, array[p_field], '"(auf Antrag geschwärzt)"') else old_value end,
+         new_value = case when new_value ? p_field
+            then jsonb_set(new_value, array[p_field], '"(auf Antrag geschwärzt)"') else new_value end
+   where entity = p_entity and entity_id = p_entity_id
+     and (old_value ? p_field or new_value ? p_field);
+  get diagnostics v_count = row_count;
+  perform public.disable_internal_write();
+  insert into public.audit_log (user_id, entity, entity_id, action, reason)
+  values (auth.uid(), p_entity, p_entity_id, 'redact', p_reason);
+  return v_count;
+end $$;
+
 create or replace function pcc.post_comment(
   p_project_id  uuid,
   p_entity_type pcc.entity_type,
@@ -800,8 +943,7 @@ begin
   loop
     -- Eine Erwähnung trägt den Anfang des Kommentars mit. Sie geht deshalb nur
     -- an Personen, die das Projekt ohnehin lesen dürfen.
-    if exists (select 1 from public.users u
-               where u.id = v_user and u.active and u.role is not null) then
+    if pcc.can_read_as(p_project_id, v_user) then
       insert into pcc.mentions (comment_id, user_id) values (v_comment.id, v_user)
       on conflict do nothing;
       perform pcc.notify(v_user, p_project_id, 'mention', p_entity_type, p_entity_id,
@@ -827,6 +969,10 @@ begin
      set body = '(auf Antrag gelöscht)', deleted_at = now(),
          deleted_by = auth.uid(), deleted_reason = p_reason
    where id = p_comment_id;
+  -- Der Trail hält den Wortlaut fest. Bei einem Löschverlangen nach Artikel 17
+  -- wäre er dort weiter lesbar — also wird genau dieses Feld geschwärzt, der
+  -- Vorgang selbst bleibt stehen.
+  perform pcc.redact_audit('pcc.comments', p_comment_id::text, 'body', p_reason);
   perform public.disable_internal_write();
   perform set_config('app.audit_reason', '', true);
 end $$;
@@ -1014,6 +1160,7 @@ create trigger comments_edited before update on pcc.comments
 create or replace function pcc.delete_document(p_document_id uuid, p_reason text)
 returns void
 language plpgsql security definer set search_path = public, pcc as $$
+declare v_field text;
 begin
   if not pcc.is_super_admin() then
     raise exception 'PCC_AUTH: Dokumente löscht auf Antrag nur der Super Admin' using errcode = 'P0001';
@@ -1026,6 +1173,9 @@ begin
   update pcc.documents
      set deleted_at = now(), deleted_by = auth.uid(), deleted_reason = p_reason
    where id = p_document_id;
+  foreach v_field in array array['title', 'description', 'storage_path', 'external_url'] loop
+    perform pcc.redact_audit('pcc.documents', p_document_id::text, v_field, p_reason);
+  end loop;
   perform public.disable_internal_write();
   perform set_config('app.audit_reason', '', true);
 end $$;
