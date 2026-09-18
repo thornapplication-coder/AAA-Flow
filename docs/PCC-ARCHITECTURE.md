@@ -230,7 +230,7 @@ Pflichten nach sich, die sonst SharePoint getragen hätte:
 |---|---|
 | **Zugriffsschutz** | Supabase Storage Bucket `project-docs`, privat. Zugriff ausschließlich über signierte URLs mit kurzer Gültigkeit; die Storage-Policy prüft dieselbe Projektmitgliedschaft wie die Tabellen. Kein öffentlicher Bucket |
 | **Virenprüfung** | Upload landet zuerst in `quarantine/`, eine Edge Function prüft und verschiebt erst danach nach `project-docs/`. Bis dahin ist das Dokument als „in Prüfung" gekennzeichnet und nicht herunterladbar |
-| **Aufbewahrung** | Dokumente unterliegen jetzt der Aufbewahrungspflicht des Unternehmens. Die Frist ist noch zu benennen (offener Punkt 6); ohne sie gibt es keine Löschregel und der Speicher wächst unbegrenzt |
+| **Aufbewahrung** | Entschieden am 18.09.2026: **unbegrenzt**. Es gibt keine automatische Löschregel; der Speicherbedarf wächst mit jedem Projekt. Rechnen Sie mit rund 1 bis 3 GB je Jahr bei der heutigen Projektzahl, das entspricht im Supabase-Pro-Tarif etwa 0,02 USD je GB und Monat — wirtschaftlich unkritisch, aber bewusst einzuplanen |
 | **Sicherung** | Storage wird getrennt von der Datenbank gesichert. Supabase sichert Storage nicht im Datenbank-Backup mit — dafür ist ein eigener Abgleich in ein zweites Ziel einzurichten |
 
 Grenzen: 50 MB je Datei, erlaubte Typen PDF, Office, Bilder, Text. Größere
@@ -241,6 +241,29 @@ Versionen eines Dokuments werden als eigene Zeilen geführt, nicht überschriebe
 `documents.version` plus `supersedes_id`. Ein Dokument wird nie ersetzt,
 sondern abgelöst — sonst ist der Stand zum Zeitpunkt eines Audits nicht mehr
 rekonstruierbar.
+
+## 7b. Aufbewahrung und Löschung
+
+**Entschieden am 18.09.2026:** Projektdokumente und Audit-Trail werden
+**unbegrenzt** aufbewahrt. Keine automatische Löschung, kein Verfallsdatum.
+
+Davon unberührt bleibt eine Pflicht, die keine Aufbewahrungsregel aufhebt:
+**Löschverlangen nach Artikel 17 DSGVO.** Projektdokumente und Kommentare
+enthalten personenbezogene Daten — Namen, Verantwortlichkeiten, gelegentlich
+Beurteilungen. Verlangt eine Person die Löschung, muss die Anwendung sie
+ausführen können, ohne den Projektverlauf zu zerstören.
+
+Vorgesehener Weg, ausschließlich für den Super Admin:
+
+| Objekt | Behandlung |
+|---|---|
+| `users` | Konto deaktiviert, Name ersetzt durch „Ehemaliger Mitarbeiter (Nr.)", E-Mail geleert. Die ID bleibt, damit Zuordnungen nicht brechen |
+| `comments`, `documents` | Auf Antrag einzeln löschbar, mit Eintrag im Audit-Trail: wer, wann, auf welcher Grundlage |
+| `audit_log` | Einträge bleiben, der Personenbezug wird durch die Pseudonymisierung in `users` aufgelöst. Der Vorgang selbst bleibt nachvollziehbar |
+| `tasks`, `risks`, `decisions` | Zuordnung bleibt über die ID bestehen und zeigt den pseudonymisierten Namen |
+
+Damit ist das Prinzip gewahrt: **Was fachlich geschehen ist, bleibt
+nachvollziehbar; wer es war, ist auf Verlangen nicht mehr erkennbar.**
 
 ## 8. PWA und Auto-Update (Abschnitte 36, 37)
 
@@ -275,24 +298,35 @@ Implementierung nach Abschnitt 61.
 
 ## 10. Vorgeschlagene Reihenfolge
 
+**Entschieden am 18.09.2026: Das Control Center wird zuerst umgesetzt**,
+AAA Flow folgt danach. Die Reihenfolge unten ist entsprechend geordnet.
+
 | Schritt | Inhalt | Aufwand |
 |---|---|---|
 | 1 | **Diese Architektur freigeben** | Ihre Entscheidung |
-| 2 | Supabase-Projekt EU/Frankfurt, Schemas `flow` und `pcc`, `public.users` zusammenführen | 1 Tag |
-| 3 | Auth, Registrierung, Freigabe durch Super Admin, Rollen, RLS für beide Module | 2–3 Tage |
+| 2 | Supabase-Projekt EU/Frankfurt, Schema `pcc`, `public.users`; Schema `flow` wird mit angelegt, aber noch nicht bespielt | 1 Tag |
+| 3 | Auth, Selbstregistrierung, Freigabe durch Super Admin, Rollen, RLS | 2–3 Tage |
 | 4 | Control Center Kern: Projekte, Workstreams, Tasks, Subtasks, Meilensteine | 3–4 Tage |
 | 5 | Risiken, Issues, Decisions, RACI | 2–3 Tage |
 | 6 | Dashboard, Timeline, Suche, Filter | 2–3 Tage |
-| 7 | Kommentare, Benachrichtigungen, Dokumente, Activity, Audit | 2–3 Tage |
+| 7 | Kommentare, Benachrichtigungen, Dokumente mit Upload, Activity, Audit | 3–4 Tage |
 | 8 | Versionierung, Autosave, Echtzeit, Konfliktbehandlung | 3 Tage |
 | 9 | Export Excel und PDF, Dashboard-Bericht | 2 Tage |
 | 10 | PWA, Offline, Auto-Update | 1–2 Tage |
 | 11 | Tests nach Abschnitt 59, Sicherheitsdurchsicht, Bereitstellung | 3 Tage |
+| 12 | **Danach:** AAA Flow auf dieselbe Grundlage heben — Schema und Tests liegen fertig vor | 3–4 Tage |
 
-Zusammen rund **vier bis fünf Wochen** konzentrierter Arbeit für die in
-Abschnitt 60 aufgeführte Definition of Done. AAA Flow bringt Schema,
-Rechtemodell, Exportweg und Designsystem bereits mit — das ist der Grund,
-warum die Schätzung nicht doppelt so hoch ausfällt.
+Zusammen rund **vier bis fünf Wochen** für die in Abschnitt 60 aufgeführte
+Definition of Done, plus knapp eine Woche für Flow im Anschluss.
+
+> **Hinweis zur gewählten Reihenfolge:** Ich hatte vorgeschlagen, mit Flow zu
+> beginnen, weil dessen Schema, Rechtemodell und Testsuite bereits fertig sind
+> und das System in zwei bis drei Tagen produktiv wäre — die Plattform hätte
+> sich an einem kleinen, vollständig spezifizierten Modul bewiesen, bevor das
+> größere gebaut wird. Die Entscheidung fiel anders. Praktische Folge: Schritt
+> 3 legt Auth und RLS gleich so an, dass Flow ohne Umbau andocken kann, und
+> die Flow-Testsuite läuft ab Schritt 2 gegen dieselbe Instanz mit. Damit
+> bleibt der Nachteil der Reihenfolge klein.
 
 ---
 
@@ -309,9 +343,13 @@ warum die Schätzung nicht doppelt so hoch ausfällt.
 
 ### Noch offen
 
+| 5 | Aufbewahrung von Dokumenten, Projektdaten und Audit | unbegrenzt, Löschweg nach DSGVO in Abschnitt 7b |
+| 6 | Umsetzungsreihenfolge | Control Center zuerst, Flow danach |
+
+### Noch offen
+
 | # | Punkt | Braucht | Dringlichkeit |
 |---|---|---|---|
-| 5 | **Aufbewahrungsfrist für Dokumente** | Ihre Vorgabe | **hoch** — durch die Entscheidung zum Upload trägt die Anwendung die Aufbewahrungspflicht selbst |
-| 6 | Aufbewahrungsfristen für Projektdaten und Audit | Ihre Vorgabe | mittel |
-| 7 | Projektschlüssel: fortlaufend oder sprechend (`SIM-26`) | Ihre Vorgabe | gering, im Prototyp sprechend |
-| 8 | Microsoft Entra ID als Anmeldeweg ab wann | Ihre IT-Planung | gering, Architektur hält es offen |
+| 7 | Aufbewahrungsfrist für **Trainingsnachweise in Flow** | Bestätigung durch den Compliance Manager gegen die geltende Regelfassung — hier wird bewusst keine Zahl geraten | vor dem Flow-Start |
+| 8 | Projektschlüssel: fortlaufend oder sprechend (`SIM-26`) | Ihre Vorgabe | gering, im Prototyp sprechend |
+| 9 | Microsoft Entra ID als Anmeldeweg ab wann | Ihre IT-Planung | gering, Architektur hält es offen |
