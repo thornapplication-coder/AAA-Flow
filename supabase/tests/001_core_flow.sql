@@ -71,13 +71,20 @@ insert into test_users (key) values ('sa'), ('dt'), ('sales1'), ('sales2'), ('sa
 
 select public.enable_internal_write();
 insert into auth.users (id, email) select id, key || '@test.invalid' from test_users;
+-- Seit dem Control Center legt ein Trigger auf auth.users bereits ein gesperrtes
+-- Profil an (Selbstregistrierung). Die Freischaltung durch den Admin ist
+-- deshalb ein Update, kein Insert.
 insert into public.users (id, name, email, department, role)
 select id, key, key || '@test.invalid',
   case when key like 'sales%' then 'sales' when key in ('ta1','ta2','ta_tl','dt','sa') then 'training_admin' else 'ato' end::public.department,
   case key when 'sa' then 'superadmin' when 'dt' then 'admin'
            when 'sales_tl' then 'teamleader' when 'ta_tl' then 'teamleader' when 'hot' then 'teamleader'
            else 'staff' end::public.user_role
-from test_users;
+from test_users
+on conflict (id) do update set
+  name = excluded.name, email = excluded.email,
+  department = excluded.department, role = excluded.role,
+  active = true, pending = false;
 
 insert into public.type_assignments (user_id, aircraft_type_id, department)
 select test.uid('sales1'), id, 'sales' from public.aircraft_types where code = 'C525';

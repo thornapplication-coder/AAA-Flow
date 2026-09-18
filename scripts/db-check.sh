@@ -24,8 +24,10 @@ for f in supabase/migrations/*.sql; do
   $PSQL -d "$DB" -f "$f"
 done
 
-echo "==> Seed"
-$PSQL -d "$DB" -f supabase/seed.sql
+for f in supabase/seed*.sql; do
+  echo "==> Seed $(basename "$f")"
+  $PSQL -d "$DB" -f "$f"
+done
 
 for f in supabase/tests/*.sql; do
   echo "==> Test $(basename "$f")"

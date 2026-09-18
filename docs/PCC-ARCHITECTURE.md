@@ -284,15 +284,15 @@ Der klickbare Prototyp im Flow-Stil zeigt Oberfläche, Abläufe und
 Informationsarchitektur. Er ist ausdrücklich **kein** Ersatz für die
 Implementierung nach Abschnitt 61.
 
-| Anforderung | Prototyp | Zielversion |
+| Anforderung | Prototyp | Stand der Umsetzung |
 |---|---|---|
-| Oberfläche, Navigation, Dashboard | vollständig | dieselbe |
-| Rollen und Sichtbarkeit | im Frontend nachgebildet | RLS in PostgreSQL |
-| Anmeldung | Rollenwahl | Supabase Auth, Freigabe durch Super Admin |
-| Persistenz | im Speicher, bis Neuladen | PostgreSQL |
-| Echtzeit, Autosave | nicht vorhanden | Supabase Realtime, Warteschlange |
-| Audit und Versionen | nachgebildet | unveränderliche Tabellen mit Triggern |
-| Export | PDF echt, Excel als Text | beides als Datei |
+| Oberfläche, Navigation, Dashboard | vollständig | Prototyp, Zielversion offen |
+| Rollen und Sichtbarkeit | im Frontend nachgebildet | **umgesetzt** als RLS in PostgreSQL (`20260918000400`) |
+| Anmeldung | Rollenwahl | **Datenbankseite umgesetzt**: Registrierungs-Trigger, Freigabe durch Super Admin; Supabase Auth folgt mit dem Projekt |
+| Persistenz | im Speicher, bis Neuladen | **Schema umgesetzt** (`20260918000100`), noch keine Cloud-Instanz |
+| Echtzeit, Autosave | nicht vorhanden | offen — braucht die Supabase-Instanz |
+| Audit und Versionen | nachgebildet | **umgesetzt**: gemeinsamer Trail mit Modulspalte, unveränderliche Versionstabellen |
+| Export | PDF echt, Excel als Text | offen — Edge Function |
 
 ---
 
@@ -301,20 +301,37 @@ Implementierung nach Abschnitt 61.
 **Entschieden am 18.09.2026: Das Control Center wird zuerst umgesetzt**,
 AAA Flow folgt danach. Die Reihenfolge unten ist entsprechend geordnet.
 
-| Schritt | Inhalt | Aufwand |
+| Schritt | Inhalt | Stand |
 |---|---|---|
 | 1 | **Diese Architektur freigeben** | Ihre Entscheidung |
-| 2 | Supabase-Projekt EU/Frankfurt, Schema `pcc`, `public.users`; Schema `flow` wird mit angelegt, aber noch nicht bespielt | 1 Tag |
-| 3 | Auth, Selbstregistrierung, Freigabe durch Super Admin, Rollen, RLS | 2–3 Tage |
-| 4 | Control Center Kern: Projekte, Workstreams, Tasks, Subtasks, Meilensteine | 3–4 Tage |
-| 5 | Risiken, Issues, Decisions, RACI | 2–3 Tage |
-| 6 | Dashboard, Timeline, Suche, Filter | 2–3 Tage |
-| 7 | Kommentare, Benachrichtigungen, Dokumente mit Upload, Activity, Audit | 3–4 Tage |
-| 8 | Versionierung, Autosave, Echtzeit, Konfliktbehandlung | 3 Tage |
-| 9 | Export Excel und PDF, Dashboard-Bericht | 2 Tage |
-| 10 | PWA, Offline, Auto-Update | 1–2 Tage |
-| 11 | Tests nach Abschnitt 59, Sicherheitsdurchsicht, Bereitstellung | 3 Tage |
-| 12 | **Danach:** AAA Flow auf dieselbe Grundlage heben — Schema und Tests liegen fertig vor | 3–4 Tage |
+| 2 | Datenmodell `pcc`, gemeinsame Tabellen mit Flow | **fertig** — `supabase/migrations/20260918000100`, lokal geprüft |
+| 3 | Registrierung, Freigabe durch Super Admin, Rollen, RLS | **fertig** — `…000200` bis `…000400`, 84 Prüfungen |
+| 4 | Kern: Projekte, Workstreams, Aufgaben, Teilaufgaben, Meilensteine | **Datenbank fertig**, Oberfläche offen |
+| 5 | Risiken, Issues, Decisions, RACI | **Datenbank fertig**, Oberfläche offen |
+| 6 | Dashboard, Timeline, Suche, Filter | Sichten fertig (`…000500`), Oberfläche offen |
+| 7 | Kommentare, Benachrichtigungen, Dokumente mit Upload, Activity, Audit | **Datenbank fertig**; Storage-Bucket und Virenprüfung brauchen die Instanz |
+| 8 | Versionierung, Autosave, Echtzeit, Konfliktbehandlung | Versionierung fertig; Echtzeit braucht die Instanz |
+| 9 | Export Excel und PDF, Dashboard-Bericht | offen, 2 Tage |
+| 10 | PWA, Offline, Auto-Update | offen, 1–2 Tage |
+| 11 | Tests nach Abschnitt 59, Sicherheitsdurchsicht, Bereitstellung | SQL-Tests laufen, Oberflächentests offen |
+| 12 | **Danach:** AAA Flow auf dieselbe Grundlage heben | Schema und Tests liegen fertig vor, 3–4 Tage |
+
+### Warum das Supabase-Projekt kein Hindernis war
+
+Sie hatten entschieden: „das Supabase-Projekt machen wir später". Mit der
+Umkehr der Reihenfolge stellte sich die Frage neu — Abschnitt 61 des
+Entwicklungsauftrags verlangt ausdrücklich eine echte Umsetzung und keinen
+Mockup.
+
+Gewählter Weg: **die Datenbank wird vollständig gebaut, geprüft und im
+Repository versioniert, nur eben noch nicht in der Cloud betrieben.** Die
+Migrationen laufen gegen ein lokales PostgreSQL 15 durch, Policies und Trigger
+werden dort unter echten Nutzerkontexten getestet. Sobald das Supabase-Projekt
+besteht, ist das Einspielen ein einziger Befehl (`supabase db push`), und die
+Tests laufen unverändert gegen die Instanz.
+
+Das heißt auch: die Oberfläche bleibt bis dahin der Prototyp. Sie an eine
+Datenbank anzuschließen, die es noch nicht gibt, wäre Arbeit auf Verdacht.
 
 Zusammen rund **vier bis fünf Wochen** für die in Abschnitt 60 aufgeführte
 Definition of Done, plus knapp eine Woche für Flow im Anschluss.
@@ -340,9 +357,6 @@ Definition of Done, plus knapp eine Woche für Flow im Anschluss.
 | 2 | Sichtbarkeit von Projekten | jeder freigegebene Nutzer liest alle nicht archivierten Projekte |
 | 3 | Auslöser für eine neue Version | nur fachlich bedeutsame Ereignisse, Liste in Abschnitt 6 |
 | 4 | Dokumente | Upload in die Anwendung, Folgen in Abschnitt 7a |
-
-### Noch offen
-
 | 5 | Aufbewahrung von Dokumenten, Projektdaten und Audit | unbegrenzt, Löschweg nach DSGVO in Abschnitt 7b |
 | 6 | Umsetzungsreihenfolge | Control Center zuerst, Flow danach |
 
@@ -353,3 +367,4 @@ Definition of Done, plus knapp eine Woche für Flow im Anschluss.
 | 7 | Aufbewahrungsfrist für **Trainingsnachweise in Flow** | Bestätigung durch den Compliance Manager gegen die geltende Regelfassung — hier wird bewusst keine Zahl geraten | vor dem Flow-Start |
 | 8 | Projektschlüssel: fortlaufend oder sprechend (`SIM-26`) | Ihre Vorgabe | gering, im Prototyp sprechend |
 | 9 | Microsoft Entra ID als Anmeldeweg ab wann | Ihre IT-Planung | gering, Architektur hält es offen |
+| 10 | Supabase-Projekt anlegen (EU/Frankfurt, Pro-Tarif) | Ihre Freigabe und ein Konto — rund 25 USD im Monat | **hoch**: Migrationen, Rechte und Tests liegen fertig vor und warten nur auf die Instanz |

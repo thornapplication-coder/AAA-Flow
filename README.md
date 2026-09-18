@@ -88,7 +88,7 @@ npm run build
 ```
 
 Datenbank prüfen, ohne Supabase-Projekt (legt die Datenbank `aaa_flow_check`
-an, spielt Migrationen, Seed und Tests ein):
+an, spielt Migrationen, beide Seeds und beide Testdateien ein — 207 Prüfungen):
 
 ```bash
 PGHOST=localhost PGUSER=postgres PGPASSWORD=... npm run db:check
@@ -101,11 +101,17 @@ Mit Supabase CLI und Docker geht alternativ `supabase start` und
 
 1. Projekt in der Organisation anlegen, Region **EU (Frankfurt)**.
 2. `supabase link --project-ref <ref>` und `supabase db push`, anschließend
-   `supabase/seed.sql` im SQL-Editor ausführen.
+   `supabase/seed.sql` und `supabase/seed_pcc.sql` im SQL-Editor ausführen.
+   Die Migrationen legen beide Module an: AAA Flow in `public`, das Project
+   Control Center in `pcc`. Gemeinsam genutzt werden `public.users` (ein Konto,
+   getrennte Rollen je Modul) und `public.audit_log` (ein Trail, Spalte
+   `module`).
 3. Ersten Auth-Nutzer im Dashboard anlegen (Authentication → Users), dann
    `scripts/bootstrap_superadmin.sql` mit dessen UUID im SQL-Editor ausführen.
-   Selbstregistrierung bleibt deaktiviert; alle weiteren Nutzer legt der
-   Superadmin an.
+   Für Flow bleibt die Selbstregistrierung ausgeschlossen; alle weiteren
+   Flow-Nutzer legt der Superadmin an. Im Control Center ist sie erlaubt: Die
+   Anmeldung erzeugt ein gesperrtes Profil ohne Rolle, das der Super Admin über
+   `pcc.approve_user()` freigibt.
 4. Funktionsträger und Eskalationsstufen in `settings` eintragen
    (`function_holders`, `escalation`), Musterzuordnungen in `type_assignments`.
 5. Tagesjob: `pg_cron` im Dashboard aktivieren (die Migration richtet den Job

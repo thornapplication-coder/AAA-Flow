@@ -3,6 +3,49 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `changelog` geführt und im Superadmin-Bereich angezeigt.
 
+## 2.1.0 — 2026-09-18
+
+Das Control Center hat eine echte Datenbank. Nicht mehr nachgebildet, sondern
+mit erzwungenen Regeln — und lokal gegen PostgreSQL geprüft.
+
+- **Schema `pcc`** mit 19 Tabellen: Projekte, Projektteam, Workstreams,
+  Aufgaben mit Teilaufgaben, Meilensteine, Risiken, Issues, Entscheidungen,
+  RACI, Dokumente, Kommentare, Erwähnungen, Benachrichtigungen, Versionen,
+  Versionsänderungen, Vorlagen, Referenzzähler, Einstellungen, Versionsauslöser.
+- **Ein Konto, zwei Module.** `public.users` trägt jetzt `role` (Flow) und
+  `pcc_role` (Control Center) getrennt, beide dürfen leer sein. Eine leere
+  Rolle sperrt das jeweilige Modul vollständig — geprüft in beide Richtungen.
+- **Selbstregistrierung** nach Abschnitt 4: ein Trigger auf `auth.users` legt
+  ein gesperrtes Profil ohne Rolle an. Ohne Freigabe durch den Super Admin
+  greift keine einzige Policy. Ein eigener Guard verhindert, dass sich jemand
+  die eigene Rolle setzt.
+- **Row Level Security** auf allen Tabellen des Schemas. Der Contributor
+  bearbeitet, was ihm zugewiesen ist; der Viewer liest und exportiert; die
+  Projektleitung führt ihr Projekt; archivierte Projekte sind schreibgeschützt.
+- **Risk Score** als generierte Spalte — von Hand nicht setzbar.
+- **Versionierung** nach Abschnitt 6: eine neue Version entsteht nur bei
+  Statuswechsel, verschobenem oder erreichtem Meilenstein, Zieltermin­änderung,
+  Risiko ab Score 15 oder abgeschlossenem Workstream. Die Liste steht als
+  Konfiguration in `pcc.version_triggers`. Versionen sind unveränderlich.
+- **Gesamtlage und Fortschritt** werden gerechnet, nie gespeichert. Rot bleibt
+  selten: verzögert, überfälliger Meilenstein oder zwei kritische Risiken.
+- **Dokumente** nach Abschnitt 7a: Quarantäne bis zur Virenprüfung, 50 MB je
+  Datei, Datei oder Verweis — nie beides, und eine neue Fassung löst die alte
+  über `supersedes_id` ab, statt sie zu überschreiben.
+- **Löschweg nach Artikel 17 DSGVO** als Funktion: `pcc.anonymise_user()`
+  pseudonymisiert das Konto, die fachliche Zuordnung bleibt über die ID
+  bestehen, der Audit-Trail bleibt.
+- **Elf Sichten** für Dashboard, Aufgaben, Meilensteine, Risiken, Risk Matrix,
+  Issues, überfällige Aufgaben, anstehende Meilensteine, Aktivität,
+  Benachrichtigungen und offene Freigaben — alle mit `security_invoker`.
+- **Tageslauf** `pcc.run_daily_jobs()`: verzögerte Meilensteine, Vorlauf­hinweise
+  und Überfälligkeitsmeldungen an Zuständige und Projektleitung.
+- **84 zusätzliche SQL-Prüfungen** in `supabase/tests/002_pcc_core.sql`,
+  zusammen mit Flow jetzt 207. `scripts/db-check.sh` spielt Migrationen, beide
+  Seeds und beide Testdateien ein.
+- Flow unverändert in der Sache: die einzige Anpassung ist, dass ein aktives
+  Konto allein keinen Flow-Zugang mehr bedeutet — es braucht eine Flow-Rolle.
+
 ## 2.0.1 — 2026-09-18
 
 Vier Architekturentscheidungen festgehalten und eingearbeitet
