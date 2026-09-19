@@ -1,7 +1,7 @@
 {
   "name": "project-control-center",
   "private": true,
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Project Control Center — Projektsteuerung der Aviation Academy Austria",
   "type": "module",
   "scripts": {
@@ -13,7 +13,8 @@
     "check:sandbox": "node scripts/check-sandbox.mjs",
     "check:app": "node scripts/check-app.mjs",
     "check:logic": "node scripts/check-logic.mjs",
-    "verify": "npm run typecheck && npm run check:logic && npm run check:sandbox && npm run check:app",
+    "check:layout": "node scripts/check-layout.mjs",
+    "verify": "npm run typecheck && npm run check:logic && npm run check:sandbox && npm run check:layout && npm run check:app",
     "verify:db": "npm run verify && npm run db:check"
   },
   "dependencies": {

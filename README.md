@@ -134,6 +134,7 @@ npm run typecheck
 npm run build
 npm run check:logic             # Rechenregeln, Ausgaben, Wortschatz, Versionsstand
 npm run check:sandbox           # drei Bildschirmbreiten, beide Sprachen
+npm run check:layout            # elf Geräteklassen: Überlagerung, Überlauf, Ränder
 npm run check:app               # jeder Knopf, Dialog und Export, beide Zugänge
 npm run verify                  # alles davon, in dieser Reihenfolge
 ```

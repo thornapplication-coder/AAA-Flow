@@ -110,5 +110,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'Rollout audit for team use: edit, close, discard and archive in every area, backup, automated checks before every release.'),
   ('1.6.0', date '2026-09-19',
    'Excel-Ausgabe als echte .xlsx-Datei mit einem Blatt je Abschnitt; Einführungsseite für das Team.',
-   'Excel export as a real .xlsx file with one sheet per section; onboarding page for the team.')
+   'Excel export as a real .xlsx file with one sheet per section; onboarding page for the team.'),
+  ('1.6.1', date '2026-09-19',
+   'Überlagerte Beschriftungen auf Tablet und Telefon behoben; Darstellungsprüfung über elf Geräteklassen.',
+   'Fixed overlapping labels on tablet and phone; layout check across eleven device classes.')
 on conflict (version) do nothing;

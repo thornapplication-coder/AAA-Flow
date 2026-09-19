@@ -240,7 +240,11 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .sandbar button:hover{background:#3B3316}
 .sandbar button.reset{color:#CDBA7A}
 .sandbar .saved{color:#9CCFA8;font-size:11.5px;white-space:nowrap}
-.topbar .userchip{display:flex;align-items:center;gap:9px;color:#C6D8E8;font-size:12.5px;white-space:nowrap;min-width:0}
+/* min-width:0 allein lässt die Box schrumpfen, nicht ihren Inhalt: Name und
+   Knöpfe liefen aus dem Feld heraus und legten sich über den Sprachumschalter.
+   Schrumpfen darf hier nur der Name — mit Auslassungspunkten. */
+.topbar .userchip{display:flex;align-items:center;gap:9px;color:#C6D8E8;font-size:12.5px;white-space:nowrap;min-width:0;flex:0 1 auto}
+.topbar .userchip>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:0 1 auto}
 .topbar .userchip b{color:#fff;font-weight:600}
 .topbar .userchip .sw{border:1px solid #24405F;border-radius:var(--r);color:#9DB4CC;padding:5px 10px;
   font-size:12px;white-space:nowrap;flex:0 0 auto}
@@ -259,9 +263,13 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
 @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
 .pcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:16px}
-.pcard>header{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--surface-2)}
-.pcard>header h2{font-size:14px;font-weight:600;flex:1;min-width:0}
-.pcard>header .co{font-size:12px}
+/* Der Kopf trägt Titel, Erklärung und Knöpfe. Mit flex:1 und min-width:0 fiel
+   der Titel auf schmalen Schirmen auf null Breite zusammen und sein Text lief
+   quer über die Erklärung. Jetzt behält jeder Teil mindestens seine
+   Mindestbreite, und was nicht mehr passt, rutscht in die nächste Zeile. */
+.pcard>header{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.pcard>header h2{font-size:14px;font-weight:600;flex:1 1 auto;min-width:min-content}
+.pcard>header .co{font-size:12px;flex:1 1 240px;min-width:min-content}
 .pcard .inner{padding:14px 15px}
 .plist{list-style:none}
 .plist li{display:flex;gap:12px;align-items:flex-start;padding:10px 15px;border-bottom:1px solid #F0F4F8}
@@ -487,9 +495,19 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 
 /* ---------- Tablet ---------- */
 @media(max-width:1100px){
+  /* Sobald die Seitenleiste weicht, wird auch die Kopfzeile eng: der
+     Personenwechsel trägt ab hier die Initialen statt der Beschriftung. */
+  .topbar .userchip .sw .lbl{display:none}
+  .topbar .userchip .sw .ini2{display:inline}
   .app{grid-template-columns:minmax(0,1fr)}
   .side{display:none}
-  .mobnav{display:flex;grid-column:1}
+  /* Die Leiste scrollt waagerecht. Ohne Hinweis sieht ein abgeschnittener
+     Eintrag am Rand nach einem Fehler aus — der Verlauf zeigt, dass es
+     weitergeht. */
+  .mobnav{display:flex;grid-column:1;position:relative;
+    -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);
+    mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}
+  .mobnav.ende{-webkit-mask-image:none;mask-image:none}
   .workspace{grid-column:1}
   .main{padding:16px 16px 96px}
 }
@@ -1989,6 +2007,7 @@ function renderSandbar() {
   document.getElementById("sbReset").onclick = () =>
     confirmDialog(t("sb_reset"), t("sb_reset_q"), t("sb_reset"), () => { storeClear(); location.reload(); });
 }
+let NAV_MARK = null;
 function renderNav() {
   const n = pccNavItems(), u = M();
   const btn = ([k,lb,c,alert,hint]) =>
@@ -2000,6 +2019,7 @@ function renderNav() {
     `<div class="grp">${t("grp_org")}</div>` + n.org.map(btn).join("") +
     `<div class="who"><b>${esc(u.name)}</b>${t("pr_" + pRole())}${u.fn ? "<br>" + esc(u.fn) : ""}</div>`;
   document.getElementById("mobnav").innerHTML = n.work.concat(n.org).map(btn).join("");
+  if (NAV_MARK) NAV_MARK();
 }
 
 /* ---------- Render: Views ---------- */
@@ -2047,6 +2067,14 @@ document.querySelectorAll(".topbar .lang button").forEach(b => b.onclick = () =>
     }
   });
 }
+/* Der Verlauf am rechten Rand verschwindet, sobald die Leiste am Ende steht. */
+(() => {
+  const nav = document.getElementById("mobnav");
+  const mark = () => nav.classList.toggle("ende", nav.scrollLeft + nav.clientWidth >= nav.scrollWidth - 2);
+  nav.addEventListener("scroll", mark, { passive:true });
+  window.addEventListener("resize", mark);
+  NAV_MARK = mark;
+})();
 ["side","mobnav"].forEach(id => document.getElementById(id).addEventListener("click", e => {
   const b = e.target.closest("[data-v]"); if (!b) return;
   pv = b.dataset.v; pProject = null;
@@ -2510,7 +2538,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
-const APP_VERSION = "1.6.0";
+const APP_VERSION = "1.6.1";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert

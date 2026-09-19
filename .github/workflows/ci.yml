@@ -36,6 +36,10 @@ jobs:
       # Rechenregeln, Wortschatz und Versionsstand — schnell und ohne Klicken.
       - run: npm run check:logic
       - run: npm run check:sandbox
+      # Elf Geräteklassen vom großen Schirm bis zum schmalsten Telefon, in
+      # beiden Sprachen: läuft Text aus seinem Feld, überlagern sich zwei
+      # Beschriftungen, ragt etwas über den Rand?
+      - run: npm run check:layout
       # Der Funktionsdurchlauf: jeder Knopf, jeder Dialog, jede Ausgabe, beide
       # Zugänge, Speicherung und Rechte. Läuft vor jeder Weitergabe ans Team.
       - run: npm run check:app

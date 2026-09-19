@@ -3,6 +3,44 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.6.1 — 2026-09-19
+
+### Überlagerte Beschriftungen behoben
+
+Auf dem Telefon lag die Überschrift „Kritische Risiken" quer über dem
+Erklärungstext daneben. Die Ursache war in beiden Fällen dieselbe und lehrreich:
+`min-width: 0` erlaubt einem Feld, auf null Breite zusammenzufallen — sein Text
+verschwindet damit nicht, er läuft heraus und legt sich über den Nachbarn.
+
+- **Kartenkopf.** Titel und Erklärung behalten ihre Mindestbreite; was nicht
+  mehr nebeneinander passt, rutscht in die nächste Zeile. Der Fehler begann
+  nicht erst auf dem Telefon, sondern bereits ab 1280 px Breite.
+- **Kopfzeile.** Der Personenchip ließ Name und Knöpfe über den
+  Sprachumschalter laufen — sichtbar ab 834 px. Jetzt schrumpft dort nur der
+  Name, mit Auslassungspunkten; ab 1100 px trägt der Personenwechsel die
+  Initialen statt der Beschriftung.
+- **Reiterleiste auf dem Telefon.** Sie scrollt waagerecht; ein am Rand
+  abgeschnittener Eintrag sah nach einem Fehler aus. Ein Verlauf am rechten
+  Rand zeigt jetzt, dass es weitergeht, und verschwindet am Ende der Leiste.
+
+### Darstellungsprüfung über elf Geräteklassen
+
+`npm run check:layout` misst die Geometrie jedes sichtbaren Textes — auf elf
+Breiten von 1920 bis 360 Pixeln, in beiden Sprachen, über alle Ansichten und
+alle Reiter der Projektakte: **1.584 Prüfungen**.
+
+| Gefragt wird | Was auffällt |
+|---|---|
+| Läuft Text aus seinem Feld? | ein Feld, das schmaler ist als sein Inhalt — auch eines, das auf null Breite zusammengefallen ist |
+| Liegen zwei Texte übereinander? | Überlagerung in beiden Achsen über 3 px und über einem Fünftel der kleineren Fläche |
+| Ragt etwas über den rechten Rand? | alles außerhalb des sichtbaren Bereichs, ausgenommen bewusst scrollbare Leisten und Tabellen |
+| Läuft die Seite waagerecht über? | wie bisher |
+
+Rechtecke werden dabei an allen abschneidenden Vorfahren beschnitten, sonst
+meldet ein Bereich, der intern scrollt, Kollisionen, die niemand sieht. Die
+Prüfung wurde gegen beide Fehler gegengeprüft: mit zurückgedrehter Korrektur
+findet sie sie, mit Korrektur meldet sie nichts.
+
 ## 1.6.0 — 2026-09-19
 
 ### Excel ist jetzt Excel
