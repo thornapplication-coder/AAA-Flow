@@ -3,6 +3,66 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.1.0 — 2026-09-19
+
+Vier Festlegungen des Auftraggebers, die das Rechtemodell vereinfachen und die
+Arbeit mit Dateien und Ausgaben verbindlich machen.
+
+### Zwei Zugänge statt fünf Rollen
+
+- **`pcc.user_role` kennt nur noch `team` und `viewer`.** Der Teamzugang darf
+  alles, der Lesezugang sieht alles und ändert nichts. Beide werden gemeinsam
+  benutzt. Ein partieller Unique-Index lässt keinen dritten Zugang zu.
+- **Personen und Zugänge sind getrennt.** `public.users` ist das
+  Personenverzeichnis — Zuständigkeit, Verantwortung und RACI zeigen darauf;
+  nur zwei Zeilen tragen eine Anmeldung (`auth_user_id`). Das Verzeichnis
+  pflegt der Teamzugang, Rolle und Anmeldung hält ein Guard fest.
+- **Kein Freigabeverfahren mehr.** `approve_user()`, `set_role()` und
+  `bootstrap_super_admin()` sind entfallen; an ihre Stelle tritt
+  `pcc.prepare_account()`, das die beiden Zugänge einrichtet. Sie verbinden
+  sich selbst, sobald in Supabase ein Anmeldekonto mit derselben Adresse
+  entsteht. Selbstregistrierung ist abgeschaltet.
+- **Der Trail hält zweierlei auseinander:** `audit_log.user_id` den Zugang
+  (beweiskräftig), `audit_log.actor_id` die Person, zu der sich die Oberfläche
+  bekannt hat (Angabe, kein Nachweis). Eine erfundene Kennung fällt auf den
+  Zugang zurück. Was ein gemeinsamer Zugang an Beweiskraft kostet, steht offen
+  in Abschnitt 4 der Architektur.
+- Policies, Sichten und Funktionen folgen: `can_read()` heißt jetzt
+  „angemeldet", `can_edit()` „Teamzugang und nicht archiviert". Neu sind
+  `pcc.v_people`; `v_pending_users` ist entfallen, `v_my_notifications` wurde
+  zu `v_notifications`.
+
+### Dateien an Aufgaben
+
+- Ein Dokument hängt am Projekt oder an einem Gegenstand darin — in aller Regel
+  an einer Aufgabe. Der Trigger `pcc.tg_documents_subject()` weist einen
+  Verweis ins Leere oder in ein fremdes Projekt ab.
+- Der Ablagepfad lautet `<projekt-id>/<aufgaben-id>/<datei>`; die Storage-Policy
+  stützt sich weiterhin auf die erste Ebene.
+- Im Prototyp lassen sich Dateien wirklich anhängen: PDF, Word, Excel,
+  PowerPoint, CSV, Text und Bilder bis 50 MB, je Aufgabe sichtbar und wieder zu
+  öffnen. Der Inhalt liegt in IndexedDB und übersteht das Neuladen.
+
+### Sofort speichern
+
+- Es gibt kein „Speichern" mehr. Jede Änderung geht durch `commit()`: sie wird
+  im selben Augenblick abgelegt, gezählt und in jeder offenen Ausgabe
+  nachgezogen. Die Sandbox-Leiste zeigt den Zeitpunkt; kann das Fenster nicht
+  speichern (privates Fenster, gesperrte Vorschau), sagt sie das.
+- In der Anwendung gilt derselbe Ansatz: jeder Vorgang schreibt sofort, und das
+  optimistische Sperren über `updated_at` verhindert, dass ein überholter Stand
+  einen neueren still überschreibt.
+
+### Exporte immer auf dem letzten Stand
+
+- Jede Ausgabe entsteht im Augenblick des Klicks aus dem Live-Zustand und trägt
+  ihren Stand im Kopf: Datum, Uhrzeit und die laufende Nummer der letzten
+  Änderung. Ein ausgedrucktes Blatt lässt sich damit einem Datenstand zuordnen.
+- Eine offene Druck- oder Excel-Ansicht wird nach jeder Änderung neu aufgebaut,
+  statt einen überholten Stand stehen zu lassen.
+- Aufgabenlisten und der Projektbericht führen die Anhänge mit, der
+  Dokumentenabschnitt nennt zu jeder Datei den Gegenstand.
+
 ## 1.0.0 — 2026-09-18
 
 Erste Fassung des Project Control Centers: Datenmodell, Rechte und

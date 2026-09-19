@@ -1,5 +1,5 @@
 // Prüft den Prototyp im Browser: Laufzeitfehler, waagerechter Überlauf und
-// erreichbare Ansichten — bei drei Bildschirmbreiten und in drei Rollen.
+// erreichbare Ansichten — bei drei Bildschirmbreiten und in beiden Zugängen.
 //
 //   node scripts/check-sandbox.mjs [pfad/zur/sandbox.html]
 //
@@ -29,7 +29,7 @@ function findChromium() {
 const browser = await chromium.launch({ executablePath: findChromium() })
 const findings = []
 
-async function run(width, height, label, userIndex, lang) {
+async function run(width, height, label, access, lang) {
   const page = await browser.newPage({ viewport: { width, height } })
   page.on('pageerror', (e) => findings.push(`[${label}] Laufzeitfehler: ${e.message}`))
   page.on('console', (m) => {
@@ -39,10 +39,17 @@ async function run(width, height, label, userIndex, lang) {
   await page.goto(file)
   await page.waitForTimeout(300)
 
-  const logins = await page.$$('[data-login]')
-  if (!logins.length) findings.push(`[${label}] Anmeldung zeigt keine Rollen`)
-  await logins[userIndex % logins.length].click()
+  // Anmeldung in zwei Schritten: Zugang, dann beim Teamzugang eine Person.
+  const acc = await page.$(`[data-access="${access}"]`)
+  if (!acc) { findings.push(`[${label}] Anmeldung zeigt den Zugang ${access} nicht`); await page.close(); return }
+  await acc.click()
   await page.waitForTimeout(300)
+  if (access === 'team') {
+    const people = await page.$$('[data-login]')
+    if (!people.length) findings.push(`[${label}] Teamzugang bietet keine Person zur Auswahl`)
+    else await people[0].click()
+    await page.waitForTimeout(300)
+  }
 
   if (lang) {
     const sw = await page.$(`[data-l="${lang}"]:visible`)
@@ -102,10 +109,10 @@ async function run(width, height, label, userIndex, lang) {
   await page.close()
 }
 
-await run(1440, 900, 'Desktop', 0)
-await run(1024, 768, 'Tablet', 2)
-await run(390, 844, 'Telefon', 5)
-await run(1440, 900, 'Desktop EN', 0, 'en')
+await run(1440, 900, 'Desktop Team', 'team')
+await run(1024, 768, 'Tablet Team', 'team')
+await run(390, 844, 'Telefon Lesezugang', 'viewer')
+await run(1440, 900, 'Desktop EN', 'team', 'en')
 await browser.close()
 
 if (findings.length) {

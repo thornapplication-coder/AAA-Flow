@@ -19,8 +19,8 @@
     "password": "Password",
     "signup": "No access yet? After registering, the super admin approves the account.",
     "failed": "Sign-in failed.",
-    "pending": "Your account is waiting for approval by the super admin. You will be notified once it is done.",
-    "noProfile": "No profile exists for this account. Please contact the super admin."
+    "pending": "This account is deactivated. Please contact the project team.",
+    "noProfile": "This sign-in has no access. There are exactly two: the team account and the read-only account."
   },
   "common": {
     "loading": "Loading …",
@@ -31,11 +31,8 @@
     "updateAvailable": "A new version is available. Load it now?"
   },
   "role": {
-    "super_admin": "Super Admin",
-    "admin": "Admin",
-    "pm": "Project Manager",
-    "contributor": "Contributor",
-    "viewer": "Viewer"
+    "team": "Team",
+    "viewer": "Read-only"
   },
   "status": {
     "not_started": "Not started",

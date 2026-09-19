@@ -2,7 +2,9 @@
 // den Migrationen in supabase/migrations abgeglichen. Kann später durch
 // `supabase gen types typescript` ersetzt werden.
 
-export type UserRole = 'super_admin' | 'admin' | 'pm' | 'contributor' | 'viewer'
+// Zwei Zugänge, entschieden am 19.09.2026: 'team' darf alles, 'viewer' liest.
+// Personen ohne eigene Anmeldung tragen role = null.
+export type UserRole = 'team' | 'viewer'
 export type UiLanguage = 'de' | 'en'
 export type ProjectStatus =
   | 'not_started' | 'started' | 'on_track' | 'at_risk' | 'delayed' | 'cancelled' | 'completed'
@@ -34,9 +36,10 @@ type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
 type View<Row> = { Row: Row; Relationships: [] }
 
 export type User = {
-  id: string; name: string; email: string; role: UserRole | null
-  active: boolean; pending: boolean; language: UiLanguage
-  approved_at: string | null; approved_by: string | null; registered_at: string | null
+  id: string; auth_user_id: string | null
+  name: string; email: string; job_title: string | null
+  role: UserRole | null
+  active: boolean; language: UiLanguage
   created_at: string; updated_at: string
 }
 

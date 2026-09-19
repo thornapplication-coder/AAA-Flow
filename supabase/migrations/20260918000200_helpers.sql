@@ -1,5 +1,5 @@
 -- =============================================================================
--- Project Control Center — Migration 2/5: Hilfsfunktionen
+-- Project Control Center — Migration 2/6: Hilfsfunktionen
 -- Identität, Rollen, Sichtbarkeit, Referenznummern, Fortschritt, Gesamtlage
 -- Alle Sichtbarkeitsfunktionen sind SECURITY DEFINER, damit RLS-Policies sie
 -- ohne Rekursion und ohne Rechteschleife nutzen können. Die rechnenden
@@ -9,11 +9,11 @@
 
 -- -----------------------------------------------------------------------------
 -- Identität und Rollen
+-- Es gibt genau zwei Zugänge: 'team' darf alles, 'viewer' liest und gibt aus.
+-- Beide werden gemeinsam benutzt. Die Rolle steckt in jeder Policy und lief
+-- bisher je Zeile gegen public.users; der Wert ändert sich innerhalb einer
+-- Anfrage nicht, also wird er transaktionslokal gemerkt.
 -- -----------------------------------------------------------------------------
--- Diese Funktion steckt in jeder Policy und lief bisher je Zeile gegen
--- public.users. Der Wert ändert sich innerhalb einer Anfrage nicht, also wird
--- er transaktionslokal gemerkt. Ein leerer Eintrag bedeutet „kein Zugang" und
--- wird als Sonderwert abgelegt, damit auch er nur einmal kostet.
 create or replace function pcc.my_role()
 returns pcc.user_role
 language plpgsql stable security definer set search_path = public, pcc as $$
@@ -22,22 +22,31 @@ declare
   v_cache text := nullif(current_setting('app.pcc_role', true), '');
   v_role  text;
 begin
-  -- Der Merker trägt die Kennung mit: wechselt der angemeldete Nutzer
+  -- Der Merker trägt die Kennung mit: wechselt der angemeldete Zugang
   -- innerhalb derselben Transaktion, verfällt er von selbst.
   if v_cache is not null and split_part(v_cache, '|', 1) = v_key then
     return nullif(split_part(v_cache, '|', 2), '-')::pcc.user_role;
   end if;
   select role::text into v_role from public.users
-   where id = auth.uid() and active and not pending;
+   where auth_user_id = auth.uid() and active;
   perform set_config('app.pcc_role', v_key || '|' || coalesce(v_role, '-'), true);
   return v_role::pcc.user_role;
 end $$;
 
--- Nach jeder Änderung an Rolle oder Freigabe muss der Merker fallen.
+-- Nach jeder Änderung an Rolle oder Zugang muss der Merker fallen.
 create or replace function pcc.forget_role()
 returns void
 language sql volatile as $$
   select set_config('app.pcc_role', '', true);
+$$;
+
+-- Die Personenzeile des angemeldeten Zugangs. Sie steht im Audit-Trail als
+-- beweiskräftige Herkunft — wer konkret am gemeinsamen Zugang gearbeitet hat,
+-- sagt daneben actor_id (Angabe der Oberfläche).
+create or replace function pcc.me()
+returns uuid
+language sql stable security definer set search_path = public, pcc as $$
+  select id from public.users where auth_user_id = auth.uid();
 $$;
 
 create or replace function pcc.is_user()
@@ -45,73 +54,87 @@ returns boolean
 language sql stable security definer set search_path = public, pcc as $$
   select pcc.my_role() is not null;
 $$;
-comment on function pcc.is_user() is 'Zugang zum Control Center: aktives, freigegebenes Konto mit Rolle. Ohne das greift keine einzige Policy.';
+comment on function pcc.is_user() is 'Angemeldet an einem der beiden Zugänge. Ohne das greift keine einzige Policy.';
 
-create or replace function pcc.is_super_admin()
+create or replace function pcc.is_team()
 returns boolean
 language sql stable security definer set search_path = public, pcc as $$
-  select coalesce(pcc.my_role() = 'super_admin', false);
+  select coalesce(pcc.my_role() = 'team', false);
+$$;
+comment on function pcc.is_team() is 'Der Zugang, der alles darf. Der zweite Zugang liest ausschließlich.';
+
+-- Eine Person ist ansprechbar, wenn sie im Verzeichnis steht und aktiv ist.
+-- Rechte hängen nicht daran: die haben nur die beiden Zugänge.
+create or replace function pcc.is_person(p_user_id uuid)
+returns boolean
+language sql stable security definer set search_path = public, pcc as $$
+  select exists (select 1 from public.users u where u.id = p_user_id and u.active);
 $$;
 
-create or replace function pcc.is_admin()
-returns boolean
+-- -----------------------------------------------------------------------------
+-- Wer arbeitet gerade?
+-- Beide Zugänge werden gemeinsam benutzt. Damit Zuständigkeit und Trail nicht
+-- bei „Teamzugang" enden, bekennt sich die Oberfläche beim Anmelden zu einer
+-- Person aus dem Verzeichnis und schickt sie bei jedem Schreibvorgang mit.
+-- Das ist eine Angabe, kein Nachweis — der Nachweis bleibt der Zugang. Ohne
+-- brauchbare Angabe fällt alles auf die Personenzeile des Zugangs zurück.
+-- -----------------------------------------------------------------------------
+create or replace function pcc.set_actor(p_user_id uuid)
+returns void
+language plpgsql security definer set search_path = public, pcc as $$
+begin
+  if p_user_id is not null and not pcc.is_person(p_user_id) then
+    raise exception 'PCC_STATE: Diese Person steht nicht im Verzeichnis' using errcode = 'P0001';
+  end if;
+  -- Transaktionslokal: der Wert darf nicht in die nächste Anfrage überlaufen,
+  -- die über dieselbe Verbindung aus dem Bestand kommt.
+  perform set_config('app.pcc_actor', coalesce(p_user_id::text, ''), true);
+end $$;
+
+create or replace function pcc.actor()
+returns uuid
 language sql stable security definer set search_path = public, pcc as $$
-  select coalesce(pcc.my_role() in ('super_admin', 'admin'), false);
+  select coalesce(nullif(current_setting('app.pcc_actor', true), '')::uuid, pcc.me());
+$$;
+
+-- Der von der Oberfläche benannte Mensch, sofern er im Verzeichnis steht;
+-- sonst der angemeldete Zugang. Eine erfundene Kennung verfängt nicht.
+create or replace function pcc.actor_or(p_claim uuid)
+returns uuid
+language sql stable security definer set search_path = public, pcc as $$
+  select case when p_claim is not null and pcc.is_person(p_claim)
+              then p_claim else pcc.actor() end;
 $$;
 
 -- -----------------------------------------------------------------------------
 -- Sichtbarkeit und Schreibrecht
--- Abschnitt 4: Jeder freigegebene Nutzer liest alle nicht archivierten
--- Projekte. Geändert wird nur nach Rolle.
+-- Mit zwei Zugängen ist die Frage einfach: lesen dürfen beide alles, ändern
+-- darf nur der Teamzugang — und auch der nicht in einem archivierten Projekt.
+-- Die Projektmitgliedschaft steuert seitdem keine Rechte mehr, sie sagt nur
+-- noch, wer fachlich zum Projekt gehört.
 -- -----------------------------------------------------------------------------
 create or replace function pcc.can_read(p_project_id uuid)
 returns boolean
 language sql stable security definer set search_path = public, pcc as $$
-  select pcc.is_user() and (
-    pcc.is_admin()
-    or exists (select 1 from pcc.projects p where p.id = p_project_id and p.archived_at is null)
-    or exists (select 1 from pcc.project_members m where m.project_id = p_project_id and m.user_id = auth.uid())
-  );
+  select pcc.is_user();
 $$;
-comment on function pcc.can_read(uuid) is 'Archivierte Projekte sehen nur Mitglieder und die Admin-Ebene.';
-
--- Dieselbe Frage für eine andere Person: Darf sie dieses Projekt lesen? Wird
--- gebraucht, bevor eine Erwähnung den Anfang eines Kommentars mitschickt.
-create or replace function pcc.can_read_as(p_project_id uuid, p_user_id uuid)
-returns boolean
-language sql stable security definer set search_path = public, pcc as $$
-  select exists (select 1 from public.users u
-                 where u.id = p_user_id and u.active and not u.pending and u.role is not null)
-     and (exists (select 1 from public.users u
-                  where u.id = p_user_id and u.role in ('super_admin', 'admin'))
-          or exists (select 1 from pcc.projects p
-                     where p.id = p_project_id and p.archived_at is null)
-          or exists (select 1 from pcc.project_members m
-                     where m.project_id = p_project_id and m.user_id = p_user_id));
-$$;
+comment on function pcc.can_read(uuid) is 'Beide Zugänge lesen jedes Projekt, auch ein archiviertes.';
 
 create or replace function pcc.can_edit(p_project_id uuid)
 returns boolean
 language sql stable security definer set search_path = public, pcc as $$
-  select pcc.is_user() and (
-    pcc.is_admin()
-    or exists (select 1 from pcc.projects p
-               where p.id = p_project_id and p.pm_user_id = auth.uid() and p.archived_at is null)
-  );
+  select pcc.is_team()
+     and exists (select 1 from pcc.projects p
+                 where p.id = p_project_id and p.archived_at is null);
 $$;
-comment on function pcc.can_edit(uuid) is 'Vollzugriff auf ein Projekt: dessen Projektleitung, Admin oder Super Admin. Archivierte Projekte sind schreibgeschützt.';
+comment on function pcc.can_edit(uuid) is 'Ändern darf allein der Teamzugang. Archivierte Projekte sind auch für ihn schreibgeschützt.';
 
--- Contributor: darf in Projekten mit Mitgliedschaft die ihm zugewiesenen
--- Einträge bearbeiten, Issues melden und kommentieren (Abschnitt 5).
+-- Gleichbedeutend mit can_edit — der Name bleibt, weil Policies und
+-- Storage-Regeln ihn tragen und „beitragen" dort das Gemeinte besser trifft.
 create or replace function pcc.can_contribute(p_project_id uuid)
 returns boolean
 language sql stable security definer set search_path = public, pcc as $$
-  select pcc.can_edit(p_project_id)
-      or (coalesce(pcc.my_role() = 'contributor', false)
-          and exists (select 1 from pcc.project_members m
-                      where m.project_id = p_project_id and m.user_id = auth.uid())
-          and exists (select 1 from pcc.projects p
-                      where p.id = p_project_id and p.archived_at is null));
+  select pcc.can_edit(p_project_id);
 $$;
 
 -- -----------------------------------------------------------------------------

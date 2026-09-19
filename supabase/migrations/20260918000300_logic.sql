@@ -1,5 +1,5 @@
 -- =============================================================================
--- Project Control Center — Migration 3/5: Geschäftslogik
+-- Project Control Center — Migration 3/6: Geschäftslogik
 -- Audit, Registrierung und Freigabe, Projekte, Referenznummern, Versionierung,
 -- Benachrichtigungen, Kommentare, Löschweg nach DSGVO, Tagesläufe
 --
@@ -21,9 +21,14 @@ begin
   if tg_op = 'UPDATE' and v_old = v_new then
     return null;
   end if;
-  insert into public.audit_log (user_id, project_id, entity, entity_id, action,
+  insert into public.audit_log (user_id, actor_id, project_id, entity, entity_id, action,
                                 old_value, new_value, reason)
-  values (auth.uid(),
+  values (pcc.me(),
+          -- Der handelnde Mensch steht in der Zeile selbst; fehlt er dort,
+          -- bleibt der Zugang die einzige Auskunft.
+          coalesce(nullif(v_row ->> 'updated_by', '')::uuid,
+                   nullif(v_row ->> 'created_by', '')::uuid,
+                   pcc.actor()),
           nullif(coalesce(v_row ->> 'project_id', case when tg_table_name = 'projects' then v_row ->> 'id' end), '')::uuid,
           'pcc.' || tg_table_name,
           coalesce(v_row ->> 'id', concat_ws(':', v_row ->> 'project_id', v_row ->> 'user_id',
@@ -55,7 +60,7 @@ end $$;
 -- -----------------------------------------------------------------------------
 -- Unveränderlichkeit
 -- Der Audit-Trail kennt keine Ausnahme. Versionen schon: das endgültige Löschen
--- eines Projekts durch den Super Admin nimmt sie mit und hinterlässt selbst
+-- eines Projekts durch den Teamzugang nimmt sie mit und hinterlässt selbst
 -- einen Eintrag im Trail.
 -- -----------------------------------------------------------------------------
 create or replace function pcc.tg_immutable()
@@ -304,13 +309,15 @@ end $$;
 -- -----------------------------------------------------------------------------
 -- Herkunftsspalten setzen und schützen
 -- -----------------------------------------------------------------------------
--- „Angelegt von" wird gesetzt, nicht mitgeliefert. Sonst ließe sich eine
--- Meldung unter fremdem Namen einstellen.
+-- „Angelegt von" darf die Oberfläche benennen — aber nur mit einer Person, die
+-- im Verzeichnis steht und aktiv ist. Eine erfundene Kennung fällt auf den
+-- angemeldeten Zugang zurück. Das ist die Folge gemeinsam benutzter Zugänge:
+-- die Angabe ist fachlich brauchbar, beweiskräftig ist allein der Zugang.
 create or replace function pcc.tg_created_by()
 returns trigger
 language plpgsql as $$
 begin
-  new.created_by := coalesce(auth.uid(), new.created_by);
+  new.created_by := pcc.actor_or(new.created_by);
   new.updated_by := new.created_by;
   return new;
 end $$;
@@ -370,7 +377,7 @@ begin
   perform public.disable_internal_write();
 
   insert into pcc.project_versions (project_id, version, trigger_code, summary, created_by)
-  values (p_project_id, v_version, p_trigger_code, p_summary, auth.uid())
+  values (p_project_id, v_version, p_trigger_code, p_summary, pcc.actor())
   returning id into v_id;
 
   for v_change in select * from jsonb_array_elements(coalesce(p_changes, '[]'::jsonb))
@@ -479,7 +486,7 @@ returns void
 language plpgsql security definer set search_path = public, pcc as $$
 begin
   -- Sich selbst benachrichtigt niemand.
-  if p_user_id is null or p_user_id = auth.uid() then return; end if;
+  if p_user_id is null or p_user_id = pcc.actor() then return; end if;
   insert into pcc.notifications (user_id, project_id, kind, entity_type, entity_id, title, body)
   values (p_user_id, p_project_id, p_kind, p_entity_type, p_entity_id, p_title, p_body);
 end $$;
@@ -524,7 +531,7 @@ declare v_count integer;
 begin
   update pcc.notifications
      set read_at = now()
-   where user_id = auth.uid() and read_at is null
+   where user_id = pcc.actor() and read_at is null
      and (p_ids is null or id = any(p_ids));
   get diagnostics v_count = row_count;
   return v_count;
@@ -533,130 +540,96 @@ end $$;
 -- -----------------------------------------------------------------------------
 -- Registrierung und Freigabe (Abschnitt 4)
 -- Selbstregistrierung legt ein Konto ohne jede Rolle an. Ohne Freigabe durch
--- den Super Admin greift keine einzige Policy — der Nutzer sieht nichts.
+-- eine Rolle greift keine einzige Policy — der Zugang sieht nichts.
 -- -----------------------------------------------------------------------------
-create or replace function public.tg_auth_user_registered()
+create or replace function public.tg_auth_user_link()
 returns trigger
 language plpgsql security definer set search_path = public as $$
 declare v_was_on boolean := public.internal_write_enabled();
 begin
-  -- Das Profil entsteht ohne Rolle und gesperrt. Es ist kein Anlegen durch
-  -- einen Admin, deshalb der interne Schreibmodus um den Rollen-Guard herum.
+  -- Es gibt keine Selbstregistrierung mehr. Ein neues Anmeldekonto bekommt nur
+  -- dann Zugang, wenn im Verzeichnis eine Zeile mit derselben Adresse und einer
+  -- Rolle wartet und noch keinen Zugang trägt. Jede andere Anmeldung läuft ins
+  -- Leere: ohne Rolle greift keine einzige Policy.
   if not v_was_on then perform public.enable_internal_write(); end if;
-  insert into public.users (id, name, email, active, pending, registered_at)
-  values (new.id,
-          coalesce(nullif(trim(new.email), ''), 'Neues Konto'),
-          new.email, false, true, now())
-  on conflict (id) do nothing;
+  update public.users
+     set auth_user_id = new.id
+   where lower(email) = lower(trim(new.email))
+     and role is not null
+     and auth_user_id is null;
   if not v_was_on then perform public.disable_internal_write(); end if;
   return new;
 end $$;
-comment on function public.tg_auth_user_registered() is
-  'Selbstregistrierung: erzeugt ein Profil ohne Rolle, gesperrt bis zur Freigabe. Von Admins angelegte Konten überschreibt es nicht.';
+comment on function public.tg_auth_user_link() is
+  'Verbindet ein neues Anmeldekonto mit dem vorbereiteten Zugang gleicher Adresse. Legt selbst niemanden an.';
 
-create trigger auth_user_registered after insert on auth.users
-  for each row execute function public.tg_auth_user_registered();
+create trigger auth_user_linked after insert on auth.users
+  for each row execute function public.tg_auth_user_link();
 
--- Rolle, Freigabe und Aktivstatus gehören nicht zu den Feldern, die jemand an
--- sich selbst ändern darf — sonst wäre die Selbstregistrierung ein Weg zum
--- Super Admin. Name und Sprache darf jeder an sich selbst pflegen.
-create or replace function pcc.tg_users_role_guard()
+-- Das Verzeichnis pflegt der Teamzugang: Namen, Adressen, Funktionen, aktiv
+-- oder nicht. Was er nicht anfassen darf, ist die Rolle und die Verbindung zum
+-- Anmeldekonto — sonst wäre aus dem Lesezugang in zwei Zügen ein Vollzugang.
+create or replace function pcc.tg_users_guard()
 returns trigger
 language plpgsql security definer set search_path = public, pcc as $$
 begin
-  if public.internal_write_enabled() or pcc.is_super_admin() then
+  if public.internal_write_enabled() then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    if new.role is not null or new.auth_user_id is not null then
+      raise exception 'PCC_AUTH: Zugänge entstehen nicht über die Anwendung' using errcode = 'P0001';
+    end if;
     return new;
   end if;
   if new.role is distinct from old.role
-     or new.active is distinct from old.active
-     or new.pending is distinct from old.pending
-     or new.email is distinct from old.email
-     or new.approved_at is distinct from old.approved_at
-     or new.approved_by is distinct from old.approved_by then
-    raise exception 'PCC_AUTH: Rolle, Freigabe und Zugang vergibt nur der Super Admin' using errcode = 'P0001';
+     or new.auth_user_id is distinct from old.auth_user_id then
+    raise exception 'PCC_AUTH: Rolle und Zugang sind über die Anwendung unveränderlich' using errcode = 'P0001';
+  end if;
+  -- Die Adresse eines Zugangskontos ist der Anmeldename. Wer sie ändert,
+  -- sperrt sich selbst aus.
+  if old.role is not null and new.email is distinct from old.email then
+    raise exception 'PCC_AUTH: Die Adresse eines Zugangs ändert nur der Betreiber' using errcode = 'P0001';
   end if;
   return new;
 end $$;
-create trigger users_pcc_role_guard before update on public.users
-  for each row execute function pcc.tg_users_role_guard();
+create trigger users_guard before insert or update on public.users
+  for each row execute function pcc.tg_users_guard();
 
-create or replace function pcc.approve_user(
-  p_user_id uuid,
-  p_role    pcc.user_role,
-  p_name    text default null
-)
+-- Die beiden Zugänge werden einmal eingerichtet, nicht über die API. Die
+-- Funktion legt die Personenzeile mit Rolle an oder richtet eine vorhandene
+-- Person dazu her; verbunden wird sie, sobald das Anmeldekonto entsteht.
+-- Ein dritter Zugang scheitert am Riegel users_one_account_per_role.
+create or replace function pcc.prepare_account(p_email text, p_role pcc.user_role, p_name text default null)
 returns public.users
 language plpgsql security definer set search_path = public, pcc as $$
 declare v_user public.users;
 begin
-  if not pcc.is_super_admin() then
-    raise exception 'PCC_AUTH: Nur der Super Admin gibt Konten frei' using errcode = 'P0001';
-  end if;
   perform public.enable_internal_write();
   update public.users
-     set role    = p_role,
-         name        = coalesce(nullif(trim(p_name), ''), name),
-         active      = true,
-         pending     = false,
-         approved_at = now(),
-         approved_by = auth.uid()
-   where id = p_user_id
-  returning * into v_user;
-  perform public.disable_internal_write();
-  if v_user.id is null then
-    raise exception 'PCC_STATE: Konto nicht gefunden' using errcode = 'P0001';
-  end if;
-  perform pcc.forget_role();
-  perform pcc.notify(p_user_id, null, 'approval', null, null,
-    'Ihr Zugang zum Project Control Center ist freigegeben', 'Rolle: ' || p_role::text);
-  return v_user;
-end $$;
-
--- Das erste Konto. Ohne Super Admin gibt es niemanden, der freigeben könnte —
--- und der Guard oben lässt auch im SQL-Editor keine Rollenvergabe durch, weil
--- dort niemand angemeldet ist. Deshalb ein eigener Weg, der genau einmal
--- funktioniert: Sobald ein aktiver Super Admin existiert, verweigert er sich.
--- Aufrufbar nur mit direktem Datenbankzugang, nicht über die API.
-create or replace function pcc.bootstrap_super_admin(p_email text)
-returns public.users
-language plpgsql security definer set search_path = public, pcc as $$
-declare v_user public.users;
-begin
-  if exists (select 1 from public.users where role = 'super_admin' and active) then
-    raise exception 'PCC_STATE: Es gibt bereits einen Super Admin. Weitere Konten gibt dieser über pcc.approve_user() frei'
-      using errcode = 'P0001';
-  end if;
-  perform public.enable_internal_write();
-  update public.users
-     set role = 'super_admin', active = true, pending = false, approved_at = now()
+     set role = p_role,
+         name = coalesce(nullif(trim(p_name), ''), name)
    where lower(email) = lower(trim(p_email))
   returning * into v_user;
-  perform public.disable_internal_write();
   if v_user.id is null then
-    raise exception 'PCC_STATE: Kein Konto mit der Adresse %. Erst anmelden, dann freischalten', p_email
-      using errcode = 'P0001';
+    insert into public.users (name, email, role)
+    values (coalesce(nullif(trim(p_name), ''), trim(p_email)), lower(trim(p_email)), p_role)
+    returning * into v_user;
   end if;
+  -- Ein bereits angelegtes Anmeldekonto wird gleich mitgenommen. Trifft das
+  -- Update nichts, bleibt der vorbereitete Zugang stehen und wartet auf das
+  -- Konto — deshalb wird die Zeile danach frisch gelesen, nicht überschrieben.
+  update public.users u
+     set auth_user_id = a.id
+    from auth.users a
+   where u.id = v_user.id and u.auth_user_id is null
+     and lower(a.email) = lower(u.email);
+  select * into v_user from public.users where id = v_user.id;
+  perform public.disable_internal_write();
   perform pcc.forget_role();
   insert into public.audit_log (user_id, entity, entity_id, action, reason)
-  values (v_user.id, 'public.users', v_user.id::text, 'bootstrap', 'Erster Super Admin bei der Inbetriebnahme');
-  return v_user;
-end $$;
-
-create or replace function pcc.set_role(p_user_id uuid, p_role pcc.user_role)
-returns public.users
-language plpgsql security definer set search_path = public, pcc as $$
-declare v_user public.users;
-begin
-  if not pcc.is_super_admin() then
-    raise exception 'PCC_AUTH: Rollen vergibt nur der Super Admin' using errcode = 'P0001';
-  end if;
-  if p_user_id = auth.uid() and p_role is distinct from 'super_admin' then
-    raise exception 'PCC_STATE: Der Super Admin kann sich nicht selbst herabstufen' using errcode = 'P0001';
-  end if;
-  perform public.enable_internal_write();
-  update public.users set role = p_role where id = p_user_id returning * into v_user;
-  perform public.disable_internal_write();
-  perform pcc.forget_role();
+  values (v_user.id, 'public.users', v_user.id::text, 'account',
+          'Zugang eingerichtet: ' || p_role::text);
   return v_user;
 end $$;
 
@@ -667,8 +640,8 @@ returns void
 language plpgsql security definer set search_path = public, pcc as $$
 declare v_seq bigint;
 begin
-  if not pcc.is_super_admin() then
-    raise exception 'PCC_AUTH: Nur der Super Admin führt ein Löschverlangen aus' using errcode = 'P0001';
+  if not pcc.is_team() then
+    raise exception 'PCC_AUTH: Ein Löschverlangen führt der Teamzugang aus' using errcode = 'P0001';
   end if;
   if coalesce(trim(p_reason), '') = '' then
     raise exception 'PCC_STATE: Für ein Löschverlangen ist eine Grundlage anzugeben' using errcode = 'P0001';
@@ -679,14 +652,12 @@ begin
   update public.users
      set name       = 'Ehemaliger Mitarbeiter (' || v_seq || ')',
          email      = 'geloescht+' || p_user_id::text || '@invalid',
-         active     = false,
-         pending    = false,
-         role       = null
+         active     = false
    where id = p_user_id;
   perform public.disable_internal_write();
   perform pcc.forget_role();
   insert into public.audit_log (user_id, entity, entity_id, action, reason)
-  values (auth.uid(), 'public.users', p_user_id::text, 'anonymise', p_reason);
+  values (pcc.me(), 'public.users', p_user_id::text, 'anonymise', p_reason);
   perform set_config('app.audit_reason', '', true);
 end $$;
 
@@ -708,26 +679,28 @@ returns pcc.projects
 language plpgsql security definer set search_path = public, pcc as $$
 declare
   v_project pcc.projects;
-  v_pm      uuid := coalesce(p_pm_user_id, auth.uid());
+  v_pm      uuid := coalesce(p_pm_user_id, pcc.actor());
   v_item    jsonb;
   v_ws_id   uuid;
   v_ws_map  jsonb := '{}'::jsonb;
 begin
-  if not (pcc.is_admin() or pcc.my_role() = 'pm') then
-    raise exception 'PCC_AUTH: Projekte legen Projektleitung, Admin oder Super Admin an' using errcode = 'P0001';
+  if not pcc.is_team() then
+    raise exception 'PCC_AUTH: Projekte legt der Teamzugang an' using errcode = 'P0001';
   end if;
-  if not exists (select 1 from public.users where id = v_pm and active and role is not null) then
-    raise exception 'PCC_STATE: Die Projektleitung muss ein freigegebenes Konto im Control Center sein' using errcode = 'P0001';
+  -- Die Projektleitung ist eine Person aus dem Verzeichnis, kein Zugang: sie
+  -- meldet sich nicht zwingend selbst an, verantwortet das Projekt aber.
+  if not pcc.is_person(v_pm) then
+    raise exception 'PCC_STATE: Die Projektleitung muss eine aktive Person im Verzeichnis sein' using errcode = 'P0001';
   end if;
 
   insert into pcc.projects (key, name, description, objectives, scope, pm_user_id,
                             start_date, target_end_date, template_id, created_by, updated_by)
   values (upper(trim(p_key)), trim(p_name), p_description, p_objectives, p_scope, v_pm,
-          p_start_date, p_end_date, p_template_id, auth.uid(), auth.uid())
+          p_start_date, p_end_date, p_template_id, pcc.actor(), pcc.actor())
   returning * into v_project;
 
   insert into pcc.project_members (project_id, user_id, project_role, responsibilities, created_by)
-  values (v_project.id, v_pm, 'Project Manager', 'Gesamtsteuerung', auth.uid())
+  values (v_project.id, v_pm, 'Project Manager', 'Gesamtsteuerung', pcc.actor())
   on conflict do nothing;
 
   perform pcc.new_version(v_project.id, 'project_created', 'Projekt angelegt', '[]'::jsonb);
@@ -739,7 +712,7 @@ begin
     loop
       insert into pcc.workstreams (project_id, name, description, sort_order, created_by, updated_by)
       values (v_project.id, v_item ->> 'name', v_item ->> 'description',
-              coalesce((v_item ->> 'sort_order')::smallint, 0), auth.uid(), auth.uid())
+              coalesce((v_item ->> 'sort_order')::smallint, 0), pcc.actor(), pcc.actor())
       returning id into v_ws_id;
       v_ws_map := v_ws_map || jsonb_build_object(v_item ->> 'name', v_ws_id::text);
     end loop;
@@ -755,7 +728,7 @@ begin
               coalesce((v_item ->> 'priority')::pcc.priority, 'medium'),
               case when v_item ? 'due_offset_days' and p_start_date is not null
                    then p_start_date + (v_item ->> 'due_offset_days')::integer end,
-              auth.uid(), auth.uid());
+              pcc.actor(), pcc.actor());
     end loop;
 
     for v_item in select * from jsonb_array_elements(
@@ -766,7 +739,7 @@ begin
               nullif(v_ws_map ->> (v_item ->> 'workstream'), '')::uuid,
               v_item ->> 'name', v_item ->> 'description',
               coalesce(p_start_date, current_date) + coalesce((v_item ->> 'due_offset_days')::integer, 30),
-              auth.uid(), auth.uid());
+              pcc.actor(), pcc.actor());
     end loop;
   end if;
 
@@ -782,11 +755,11 @@ begin
   if not pcc.can_edit(p_project_id) then
     raise exception 'PCC_AUTH: Das Projektteam pflegt die Projektleitung oder ein Admin' using errcode = 'P0001';
   end if;
-  if not exists (select 1 from public.users where id = p_user_id and active and role is not null) then
+  if not pcc.is_person(p_user_id) then
     raise exception 'PCC_STATE: Nur freigegebene Konten können Projektmitglied sein' using errcode = 'P0001';
   end if;
   insert into pcc.project_members (project_id, user_id, project_role, responsibilities, created_by)
-  values (p_project_id, p_user_id, p_role, p_responsibilities, auth.uid())
+  values (p_project_id, p_user_id, p_role, p_responsibilities, pcc.actor())
   on conflict (project_id, user_id)
     do update set project_role = excluded.project_role,
                   responsibilities = excluded.responsibilities;
@@ -808,7 +781,7 @@ begin
   perform set_config('app.audit_reason', p_reason, true);
   perform public.enable_internal_write();
   update pcc.projects
-     set archived_at = now(), archived_by = auth.uid()
+     set archived_at = now(), archived_by = pcc.actor()
    where id = p_project_id and archived_at is null
   returning * into v_project;
   perform public.disable_internal_write();
@@ -824,7 +797,7 @@ returns pcc.projects
 language plpgsql security definer set search_path = public, pcc as $$
 declare v_project pcc.projects;
 begin
-  if not pcc.is_admin() then
+  if not pcc.is_team() then
     raise exception 'PCC_AUTH: Aus dem Archiv holt ein Admin zurück' using errcode = 'P0001';
   end if;
   perform public.enable_internal_write();
@@ -834,15 +807,15 @@ begin
   return v_project;
 end $$;
 
--- Endgültiges Löschen: ausschließlich Super Admin, nur mit Grund, mit Eintrag
+-- Endgültiges Löschen: nur der Teamzugang, nur mit Grund, mit Eintrag
 -- im Trail. Der Trail selbst bleibt (Abschnitt 7b).
 create or replace function pcc.delete_project(p_project_id uuid, p_reason text)
 returns void
 language plpgsql security definer set search_path = public, pcc as $$
 declare v_key text;
 begin
-  if not pcc.is_super_admin() then
-    raise exception 'PCC_AUTH: Endgültiges Löschen ist dem Super Admin vorbehalten' using errcode = 'P0001';
+  if not pcc.is_team() then
+    raise exception 'PCC_AUTH: Endgültiges Löschen ist dem Teamzugang vorbehalten' using errcode = 'P0001';
   end if;
   if coalesce(trim(p_reason), '') = '' then
     raise exception 'PCC_STATE: Für das Löschen ist ein Grund anzugeben' using errcode = 'P0001';
@@ -857,7 +830,7 @@ begin
   perform set_config('app.audit_reason', '', true);
   perform public.disable_internal_write();
   insert into public.audit_log (user_id, project_id, entity, entity_id, action, reason)
-  values (auth.uid(), p_project_id, 'pcc.projects', v_key, 'purge', p_reason);
+  values (pcc.me(), p_project_id, 'pcc.projects', v_key, 'purge', p_reason);
 end $$;
 
 -- -----------------------------------------------------------------------------
@@ -898,8 +871,8 @@ returns integer
 language plpgsql security definer set search_path = public, pcc as $$
 declare v_count integer;
 begin
-  if not pcc.is_super_admin() then
-    raise exception 'PCC_AUTH: Schwärzen darf nur der Super Admin' using errcode = 'P0001';
+  if not pcc.is_team() then
+    raise exception 'PCC_AUTH: Schwärzen darf nur der Teamzugang' using errcode = 'P0001';
   end if;
   perform public.enable_internal_write();
   update public.audit_log
@@ -912,7 +885,7 @@ begin
   get diagnostics v_count = row_count;
   perform public.disable_internal_write();
   insert into public.audit_log (user_id, entity, entity_id, action, reason)
-  values (auth.uid(), p_entity, p_entity_id, 'redact', p_reason);
+  values (pcc.me(), p_entity, p_entity_id, 'redact', p_reason);
   return v_count;
 end $$;
 
@@ -936,14 +909,14 @@ begin
     raise exception 'PCC_STATE: Ein leerer Kommentar wird nicht gespeichert' using errcode = 'P0001';
   end if;
   insert into pcc.comments (project_id, entity_type, entity_id, user_id, body)
-  values (p_project_id, p_entity_type, p_entity_id, auth.uid(), trim(p_body))
+  values (p_project_id, p_entity_type, p_entity_id, pcc.actor(), trim(p_body))
   returning * into v_comment;
 
   foreach v_user in array coalesce(p_mentions, '{}')
   loop
     -- Eine Erwähnung trägt den Anfang des Kommentars mit. Sie geht deshalb nur
     -- an Personen, die das Projekt ohnehin lesen dürfen.
-    if pcc.can_read_as(p_project_id, v_user) then
+    if pcc.is_person(v_user) then
       insert into pcc.mentions (comment_id, user_id) values (v_comment.id, v_user)
       on conflict do nothing;
       perform pcc.notify(v_user, p_project_id, 'mention', p_entity_type, p_entity_id,
@@ -957,8 +930,8 @@ create or replace function pcc.delete_comment(p_comment_id uuid, p_reason text)
 returns void
 language plpgsql security definer set search_path = public, pcc as $$
 begin
-  if not pcc.is_super_admin() then
-    raise exception 'PCC_AUTH: Kommentare löscht auf Antrag nur der Super Admin' using errcode = 'P0001';
+  if not pcc.is_team() then
+    raise exception 'PCC_AUTH: Kommentare löscht auf Antrag nur der Teamzugang' using errcode = 'P0001';
   end if;
   if coalesce(trim(p_reason), '') = '' then
     raise exception 'PCC_STATE: Für die Löschung ist eine Grundlage anzugeben' using errcode = 'P0001';
@@ -967,7 +940,7 @@ begin
   perform public.enable_internal_write();
   update pcc.comments
      set body = '(auf Antrag gelöscht)', deleted_at = now(),
-         deleted_by = auth.uid(), deleted_reason = p_reason
+         deleted_by = pcc.actor(), deleted_reason = p_reason
    where id = p_comment_id;
   -- Der Trail hält den Wortlaut fest. Bei einem Löschverlangen nach Artikel 17
   -- wäre er dort weiter lesbar — also wird genau dieses Feld geschwärzt, der
@@ -1006,7 +979,7 @@ begin
           coalesce(nullif(trim(p_title), ''), v_old.title), v_old.description, p_kind,
           p_storage_path, p_external_url, p_mime_type, p_size_bytes,
           case when p_kind = 'file' then 'pending' else 'clean' end::pcc.scan_state,
-          v_old.version + 1, v_old.id, auth.uid(), auth.uid(), auth.uid())
+          v_old.version + 1, v_old.id, pcc.actor(), pcc.actor(), pcc.actor())
   returning * into v_new;
   perform public.disable_internal_write();
   return v_new;
@@ -1042,6 +1015,46 @@ begin
   end if;
   return new;
 end $$;
+-- Ein Dokument hängt am Projekt und darf zusätzlich an einem Gegenstand darin
+-- hängen — in aller Regel an einer Aufgabe. Zeigt der Verweis ins Leere oder in
+-- ein fremdes Projekt, liegt die Datei an einer Aufgabe, die es hier nicht gibt.
+create or replace function pcc.tg_documents_subject()
+returns trigger
+language plpgsql as $$
+declare v_ok boolean;
+begin
+  if new.entity_type = 'project' then
+    -- Am Projekt selbst: entity_id bleibt leer oder zeigt auf das Projekt.
+    if new.entity_id is not null and new.entity_id <> new.project_id then
+      raise exception 'PCC_STATE: Der Gegenstand gehört nicht zu diesem Projekt' using errcode = 'P0001';
+    end if;
+    return new;
+  end if;
+  if new.entity_id is null then
+    raise exception 'PCC_STATE: Zu dieser Art Ablage gehört ein Gegenstand' using errcode = 'P0001';
+  end if;
+  v_ok := case new.entity_type
+    when 'workstream' then exists (select 1 from pcc.workstreams w
+                                   where w.id = new.entity_id and w.project_id = new.project_id)
+    when 'task'       then exists (select 1 from pcc.tasks t
+                                   where t.id = new.entity_id and t.project_id = new.project_id)
+    when 'milestone'  then exists (select 1 from pcc.milestones m
+                                   where m.id = new.entity_id and m.project_id = new.project_id)
+    when 'risk'       then exists (select 1 from pcc.risks r
+                                   where r.id = new.entity_id and r.project_id = new.project_id)
+    when 'issue'      then exists (select 1 from pcc.issues i
+                                   where i.id = new.entity_id and i.project_id = new.project_id)
+    when 'decision'   then exists (select 1 from pcc.decisions d
+                                   where d.id = new.entity_id and d.project_id = new.project_id)
+    else false end;
+  if not v_ok then
+    raise exception 'PCC_STATE: Der Gegenstand gehört nicht zu diesem Projekt' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+create trigger documents_subject before insert or update on pcc.documents
+  for each row execute function pcc.tg_documents_subject();
+
 create trigger documents_guard before insert or update on pcc.documents
   for each row execute function pcc.tg_documents_guard();
 
@@ -1115,7 +1128,7 @@ create trigger tasks_depth before insert or update on pcc.tasks
 -- -----------------------------------------------------------------------------
 -- Löschen ist kein gewöhnliches Ändern
 -- Kommentare und Dokumente enthalten personenbezogene Daten. Entfernt werden
--- sie nur auf Antrag und nur durch den Super Admin, mit Grundlage im Trail
+-- sie nur auf Antrag und nur durch den Teamzugang, mit Grundlage im Trail
 -- (Abschnitt 7b). Ohne diesen Riegel könnte der Eigentümer eines Dokuments es
 -- über die gewöhnliche Schreibberechtigung stillschweigend verschwinden lassen.
 -- -----------------------------------------------------------------------------
@@ -1162,8 +1175,8 @@ returns void
 language plpgsql security definer set search_path = public, pcc as $$
 declare v_field text;
 begin
-  if not pcc.is_super_admin() then
-    raise exception 'PCC_AUTH: Dokumente löscht auf Antrag nur der Super Admin' using errcode = 'P0001';
+  if not pcc.is_team() then
+    raise exception 'PCC_AUTH: Dokumente löscht auf Antrag nur der Teamzugang' using errcode = 'P0001';
   end if;
   if coalesce(trim(p_reason), '') = '' then
     raise exception 'PCC_STATE: Für die Löschung ist eine Grundlage anzugeben' using errcode = 'P0001';
@@ -1171,7 +1184,7 @@ begin
   perform set_config('app.audit_reason', p_reason, true);
   perform public.enable_internal_write();
   update pcc.documents
-     set deleted_at = now(), deleted_by = auth.uid(), deleted_reason = p_reason
+     set deleted_at = now(), deleted_by = pcc.actor(), deleted_reason = p_reason
    where id = p_document_id;
   foreach v_field in array array['title', 'description', 'storage_path', 'external_url'] loop
     perform pcc.redact_audit('pcc.documents', p_document_id::text, v_field, p_reason);

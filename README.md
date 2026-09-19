@@ -27,10 +27,18 @@ Rest. Was die Oberfläche nicht anbietet, gibt auch die API nicht heraus.
 
 ## Was in der Datenbank steckt
 
-- **Rollen:** Super Admin, Admin, Project Manager, Contributor, Viewer. Wer
-  keine Rolle hat, sieht nichts — auch nicht mit gültigem Token.
-- **Selbstregistrierung mit Freigabe:** Die Anmeldung erzeugt ein gesperrtes
-  Profil; erst der Super Admin schaltet es frei.
+- **Zwei Zugänge (19.09.2026):** der **Teamzugang** darf alles, der
+  **Lesezugang** sieht alles und ändert nichts. Beide werden gemeinsam benutzt.
+  Wer keine Rolle hat, sieht nichts — auch nicht mit gültigem Token; ein
+  dritter Zugang scheitert an einem Riegel im Schema.
+- **Personen sind keine Zugänge:** `public.users` ist das Personenverzeichnis,
+  auf das Zuständigkeit, Verantwortung und RACI zeigen. Nur zwei dieser Zeilen
+  tragen eine Anmeldung. Beim Anmelden am Teamzugang wählt man sich aus dem
+  Verzeichnis; diese Angabe steht an jeder Änderung und im Verlauf. Was sie
+  nicht leistet, steht in Abschnitt 4 der Architektur: einen Nachweis, welcher
+  Mensch gehandelt hat, kann ein gemeinsamer Zugang nicht erbringen.
+- **Dateien an Aufgaben:** PDF, Word, Excel, PowerPoint, CSV, Text und Bilder
+  hängen wahlweise am Projekt oder an einer einzelnen Aufgabe.
 - **Gerechnet statt gepflegt:** Fortschritt, Gesamtlage und Risk Score kommen
   aus der Datenbank. Der Score ist eine generierte Spalte und von Hand nicht
   setzbar.
@@ -126,17 +134,22 @@ Mit Supabase CLI und Docker geht alternativ `supabase start` und
    `supabase/seed.sql` im SQL-Editor ausführen. Nutzerkonto und Audit-Trail
    liegen in `public`, alles Fachliche in `pcc`; beide Schemas sind in
    `supabase/config.toml` für die API freigegeben.
-3. Ersten Nutzer über die Anmeldung registrieren — das Profil entsteht gesperrt
-   und ohne Rolle. Dann im SQL-Editor:
+3. Die beiden Zugänge: der Seed bereitet sie unter
+   `team@aviationacademy.at` und `viewer@aviationacademy.at` vor. Andere
+   Adressen vorher im Seed ändern oder danach im SQL-Editor setzen:
    ```sql
-   select pcc.bootstrap_super_admin('<ihre-adresse>');
+   select pcc.prepare_account('projekt@ihre-domain.at', 'team',   'Projektteam');
+   select pcc.prepare_account('lesen@ihre-domain.at',   'viewer', 'Lesezugang');
    ```
-   Die Funktion verweigert sich, sobald ein aktiver Super Admin existiert; ein
-   gewöhnliches `update` auf `public.users` weist der Guard ab. Alle weiteren
-   Konten gibt dieser Super Admin über `pcc.approve_user()` frei.
+   Danach in Supabase Auth je ein Anmeldekonto mit **genau diesen Adressen**
+   anlegen — die Verknüpfung entsteht von selbst. Eine Anmeldung ohne
+   vorbereiteten Zugang läuft ins Leere. Rolle und Verknüpfung lassen sich über
+   die Anwendung nicht ändern; das hält der Guard auf `public.users` auf.
+   Selbstregistrierung ist in `supabase/config.toml` abgeschaltet.
 4. Storage: den privaten Bucket `project-docs` samt Policies legt die Migration
    `20260918000600_storage.sql` selbst an. Zugriff ausschließlich über signierte
-   URLs; ein Objekt heißt `<projekt-id>/<datei>`, und ladbar ist es erst, wenn
+   URLs; ein Objekt heißt `<projekt-id>/<datei>` beziehungsweise
+   `<projekt-id>/<aufgaben-id>/<datei>`, und ladbar ist es erst, wenn
    die Virenprüfung über `pcc.set_scan_state()` `clean` gemeldet hat
    (Abschnitt 7a der Architektur).
 5. Tagesjob: `pg_cron` **vor** `supabase db push` im Dashboard aktivieren — dann

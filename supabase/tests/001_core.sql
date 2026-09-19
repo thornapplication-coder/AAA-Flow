@@ -10,7 +10,10 @@ begin;
 
 create schema test;
 grant usage on schema test to authenticated;
-create table test_users (key text primary key, id uuid not null default gen_random_uuid());
+-- auth_id ist der Zugang (nur die beiden Zugangszeilen haben einen),
+-- id ist die Person im Verzeichnis. Die Tests sprechen über test.uid() immer
+-- von der Person — Zuständigkeiten hängen an ihr, nicht am Zugang.
+create table test_users (key text primary key, id uuid, auth_id uuid);
 create table test_ids (key text primary key, id uuid not null);
 grant select on test_users, test_ids to authenticated;
 grant insert on test_ids to authenticated;
@@ -18,7 +21,10 @@ grant insert on test_ids to authenticated;
 create function test.login(p_key text) returns void language plpgsql as $$
 declare v_id uuid;
 begin
-  select id into v_id from test_users where key = p_key;
+  select auth_id into v_id from test_users where key = p_key;
+  if v_id is null then
+    raise exception 'TEST FEHLER: % hat keinen Zugang — es gibt nur team und viewer', p_key;
+  end if;
   execute 'reset role';
   perform set_config('request.jwt.claims', json_build_object('sub', v_id, 'role', 'authenticated')::text, true);
   execute 'set role authenticated';
@@ -61,82 +67,85 @@ grant execute on all functions in schema test to authenticated;
 -- -----------------------------------------------------------------------------
 select test.ok((select count(*) from pcc.version_triggers where active) = 8, 'Acht Versionsauslöser konfiguriert');
 select test.ok((select count(*) from pcc.settings) >= 5, 'Einstellungen vorhanden');
+select test.ok((select count(*) from pcc.changelog) = 2, 'Der Changelog führt beide Fassungen');
 select test.ok((select value ->> 'mode' from pcc.settings where key = 'retention') = 'unlimited',
                'Aufbewahrung steht auf unbegrenzt (Entscheidung vom 18.09.2026)');
 select test.ok((select count(*) from pcc.templates where active) = 1, 'Eine Projektvorlage im Seed');
 
 -- -----------------------------------------------------------------------------
--- 2. Selbstregistrierung: Konto ohne Rolle sieht nichts (Abschnitt 4)
+-- 2. Zwei Zugänge, viele Personen (Abschnitt 4, Fassung vom 19.09.2026)
 -- -----------------------------------------------------------------------------
-insert into test_users (key) values
-  ('psa'), ('padmin'), ('ppm'), ('ppm2'), ('pcon'), ('pview'), ('pnew');
-insert into auth.users (id, email) select id, key || '@test.invalid' from test_users;
+-- Der Seed hat die beiden Zugangszeilen angelegt. Die Tests hängen je ein
+-- Anmeldekonto daran und tragen daneben Personen ohne eigene Anmeldung ein.
+select test.ok((select count(*) from public.users where role is not null) = 2,
+               'Der Seed richtet genau zwei Zugänge ein');
 
-select test.ok((select count(*) from public.users where pending and not active) = 7,
-               'Jede Registrierung erzeugt ein gesperrtes Profil');
-select test.ok((select role is null and not active and pending
-                from public.users where id = test.uid('pnew')),
-               'Ein frisch registriertes Konto hat keine Rolle und keinen Zugang');
+insert into test_users (key, id)
+select k, u.id from (values ('team'), ('viewer')) v(k)
+join public.users u on u.role::text = case v.k when 'team' then 'team' else 'viewer' end;
+update test_users set auth_id = gen_random_uuid() where key in ('team', 'viewer');
+insert into auth.users (id, email)
+select t.auth_id, u.email from test_users t join public.users u on u.id = t.id
+ where t.auth_id is not null;
 
--- Freischalten von Hand (im Betrieb: Super Admin über die Oberfläche)
+select test.ok((select count(*) from public.users where auth_user_id is not null) = 2,
+               'Das Anmeldekonto findet den vorbereiteten Zugang über die Adresse');
+
+-- Personen ohne eigene Anmeldung: sie tragen Aufgaben, Risiken und
+-- Verantwortung, melden sich aber nie selbst an.
 select public.enable_internal_write();
-update public.users set name = key, active = true, pending = false,
-  role = case key when 'psa' then 'super_admin' when 'padmin' then 'admin'
-                      when 'ppm' then 'pm' when 'ppm2' then 'pm'
-                      when 'pcon' then 'contributor' when 'pview' then 'viewer' end::pcc.user_role
-from test_users t where public.users.id = t.id and t.key <> 'pnew';
+insert into public.users (name, email, job_title)
+values ('Marion Kern',    'ppm@test.invalid',   'Training Admin'),
+       ('Christian Wies', 'ppm2@test.invalid',  'Head of Training'),
+       ('Lena Ostheim',   'pcon@test.invalid',  'Training Admin'),
+       ('Robert Zach',    'pext@test.invalid',  'Course Supervisor');
 select public.disable_internal_write();
+insert into test_users (key, id)
+select k, (select id from public.users where email = k || '@test.invalid')
+from (values ('ppm'), ('ppm2'), ('pcon'), ('pext')) v(k);
 
-select test.login('pnew');
-select test.ok(pcc.is_user() = false, 'Ohne Freigabe kein Zugang zur Anwendung');
-select test.ok((select count(*) from pcc.projects) = 0, 'Ein gesperrtes Konto sieht keine Projekte');
-select test.logout();
+select test.ok((select role is null and auth_user_id is null and active
+                from public.users where id = test.uid('ppm')),
+               'Eine Person im Verzeichnis hat weder Rolle noch Anmeldung');
 
-select test.login('pview');
-select test.ok(pcc.is_user() = true, 'Der freigegebene Nutzer ist angemeldet');
-select test.logout();
+-- Ein drittes Konto gibt es nicht: der Riegel liegt im Schema.
+select test.fails('select pcc.prepare_account(''dritter@test.invalid'', ''team'', ''Zuviel'')',
+                  'users_one_account_per_role', 'Ein dritter Zugang entsteht nicht');
 
--- Inbetriebnahme: das erste Konto bekommt die Rolle über einen eigenen Weg,
--- und dieser Weg schließt sich danach wieder.
-select test.logout();
-select test.fails(format('select pcc.bootstrap_super_admin(%L)', 'psa@test.invalid'),
-                  'bereits einen Super Admin', 'Der Bootstrap funktioniert genau einmal');
-select test.fails('select pcc.bootstrap_super_admin(''niemand@test.invalid'')',
-                  'bereits einen Super Admin', 'Er verweigert sich auch bei unbekannter Adresse');
+-- Eine Anmeldung ohne vorbereiteten Zugang läuft ins Leere.
+insert into auth.users (id, email) values (gen_random_uuid(), 'fremd@test.invalid');
+select test.ok((select count(*) from public.users where email = 'fremd@test.invalid') = 0,
+               'Eine fremde Anmeldung legt keine Person an');
 
--- Freigabe ist dem Super Admin vorbehalten
-select test.login('padmin');
-select test.fails(format('select pcc.approve_user(%L, ''viewer'')', test.uid('pnew')),
-                  'PCC_AUTH', 'Ein Admin gibt keine Konten frei');
+select test.login('viewer');
+select test.ok(pcc.is_user() = true, 'Der Lesezugang ist angemeldet');
+select test.ok(pcc.is_team() = false, 'Der Lesezugang ist nicht der Teamzugang');
 select test.logout();
-select test.login('psa');
-select pcc.approve_user(test.uid('pnew'), 'viewer', 'Neue Kollegin');
-select test.ok((select active and not pending and role = 'viewer' and approved_at is not null
-                from public.users where id = test.uid('pnew')),
-               'Der Super Admin gibt das Konto mit Rolle frei');
-select test.logout();
-select test.login('pnew');
-select test.ok((select count(*) from pcc.notifications
-                where user_id = test.uid('pnew') and kind = 'approval') = 1,
-               'Die Freigabe wird dem Konto mitgeteilt');
+select test.login('team');
+select test.ok(pcc.is_team() = true, 'Der Teamzugang darf alles');
 select test.logout();
 
 -- -----------------------------------------------------------------------------
 -- 3. Projekte anlegen
 -- -----------------------------------------------------------------------------
-select test.login('pview');
+select test.login('viewer');
 select test.fails('select pcc.create_project(''VIE-26'', ''Unerlaubt'')',
                   'PCC_AUTH', 'Ein Viewer legt kein Projekt an');
 select test.logout();
 
-select test.login('ppm');
+select test.login('team');
 insert into test_ids (key, id)
 select 'p1', (pcc.create_project('SIM-26', 'CL650 Full Flight Simulator Introduction',
-  null, 'Einführung des CL650 FFS am Standort Wien.',
+  test.uid('ppm'), 'Einführung des CL650 FFS am Standort Wien.',
   'FSTD-Qualifikation Level D bis Jahresende.', 'In Scope: Abnahme und Qualifikation.',
   current_date - 120, current_date + 75)).id;
 select test.ok((select pm_user_id from pcc.projects where id = test.pid('p1')) = test.uid('ppm'),
-               'Wer anlegt, ist ohne weitere Angabe die Projektleitung');
+               'Die Projektleitung kommt aus dem Personenverzeichnis');
+-- Eine Leitung, die es nicht gibt, wird abgewiesen: sonst stünde ein Projekt
+-- unter der Verantwortung einer Kennung, hinter der niemand steht.
+select test.fails('select pcc.create_project(''VIE-26'', ''Unbekannte Leitung'',
+                   ''00000000-0000-0000-0000-000000000009'')',
+                  'PCC_STATE', 'Die Projektleitung muss im Verzeichnis stehen');
 select test.ok((select count(*) from pcc.project_members where project_id = test.pid('p1')) = 1,
                'Die Projektleitung ist automatisch Mitglied');
 select test.ok((select version from pcc.project_versions where project_id = test.pid('p1')) = '1.0',
@@ -150,7 +159,7 @@ select test.logout();
 -- -----------------------------------------------------------------------------
 -- 4. Referenznummern, generierte Spalten, Statusfelder
 -- -----------------------------------------------------------------------------
-select test.login('ppm');
+select test.login('team');
 insert into pcc.workstreams (project_id, name, owner_user_id, sort_order)
 values (test.pid('p1'), 'Qualifikation', test.uid('ppm'), 1);
 insert into test_ids (key, id)
@@ -188,44 +197,56 @@ select test.ok((select completed_at is null from pcc.tasks where id = test.pid('
 select test.logout();
 
 -- -----------------------------------------------------------------------------
--- 5. Rechte in einem Projekt (Abschnitt 5)
+-- 5. Was die beiden Zugänge dürfen (Abschnitt 5, Fassung vom 19.09.2026)
 -- -----------------------------------------------------------------------------
-select test.login('ppm');
+select test.login('team');
 select pcc.add_member(test.pid('p1'), test.uid('pcon'), 'Course Supervisor', 'Kursunterlagen');
-select pcc.add_member(test.pid('p1'), test.uid('pview'), 'Sponsor', 'Freigaben');
+select pcc.add_member(test.pid('p1'), test.uid('pext'), 'Sponsor', 'Freigaben');
+select test.ok((select count(*) from pcc.project_members where project_id = test.pid('p1')) = 3,
+               'Personen ohne eigene Anmeldung gehören ins Projektteam');
 select test.logout();
 
-select test.login('pview');
+-- Der Lesezugang: sieht alles, ändert nichts. Ein fehlendes Recht heißt unter
+-- Row Level Security nicht „Fehler", sondern „keine Zeile getroffen" — deshalb
+-- wird gezählt, nicht auf eine Meldung gewartet.
+select test.login('viewer');
 select test.ok((select count(*) from pcc.projects where id = test.pid('p1')) = 1,
-               'Jeder freigegebene Nutzer liest jedes nicht archivierte Projekt');
-select test.ok(pcc.can_edit(test.pid('p1')) = false, 'Der Viewer hat kein Schreibrecht');
+               'Der Lesezugang liest jedes Projekt');
+select test.ok(pcc.can_edit(test.pid('p1')) = false, 'Der Lesezugang hat kein Schreibrecht');
 with u as (update pcc.tasks set title = 'Heimlich geändert' where id = test.pid('t1') returning 1)
-select test.ok((select count(*) from u) = 0, 'Ein Viewer ändert keine Aufgabe');
+select test.ok((select count(*) from u) = 0, 'Der Lesezugang ändert keine Aufgabe');
+with u as (update pcc.projects set status = 'completed' where id = test.pid('p1') returning 1)
+select test.ok((select count(*) from u) = 0, 'Der Lesezugang schließt kein Projekt ab');
+select test.fails(format('insert into pcc.tasks (project_id, title) values (%L, ''Vom Lesezugang'')', test.pid('p1')),
+                  'row-level security', 'Der Lesezugang legt nichts an');
+select test.fails(format('insert into pcc.documents (project_id, title, kind, external_url)
+                          values (%L, ''Vom Lesezugang'', ''link'', ''https://x'')', test.pid('p1')),
+                  'row-level security', 'Der Lesezugang hängt keine Datei an');
+select test.fails(format('select pcc.post_comment(%L, ''task'', %L, ''Kein Recht'')',
+                         test.pid('p1'), test.pid('t1')),
+                  'PCC_AUTH', 'Der Lesezugang kommentiert nicht');
+select test.ok((select count(*) from pcc.v_people) >= 6, 'Der Lesezugang sieht das Personenverzeichnis');
 select test.logout();
 
-select test.login('pcon');
-select test.ok(pcc.can_contribute(test.pid('p1')) = true, 'Der Contributor ist Mitglied und darf beitragen');
+-- Der Teamzugang: alles, in jedem Projekt.
+select test.login('team');
+select test.ok(pcc.can_edit(test.pid('p1')) = true, 'Der Teamzugang ändert jedes Projekt');
 update pcc.tasks set progress = 60 where id = test.pid('t1');
 select test.ok((select progress from pcc.tasks where id = test.pid('t1')) = 60,
-               'Der Contributor pflegt die ihm zugewiesene Aufgabe');
-select test.fails(format('insert into pcc.tasks (project_id, title) values (%L, ''Eigenmächtig angelegt'')', test.pid('p1')),
-                  'row-level security', 'Neue Aufgaben legt nur die Projektleitung an');
+               'Der Teamzugang pflegt jede Aufgabe');
+insert into pcc.tasks (project_id, title) values (test.pid('p1'), 'Vom Teamzugang angelegt');
+select test.ok((select count(*) from pcc.tasks where title = 'Vom Teamzugang angelegt') = 1,
+               'Der Teamzugang legt Aufgaben an');
 insert into pcc.issues (project_id, title, owner_user_id)
 values (test.pid('p1'), 'Lieferung der Instruktorenstation verzögert', test.uid('pcon'));
 select test.ok((select count(*) from pcc.issues where project_id = test.pid('p1')) = 1,
-               'Issues darf jedes Projektmitglied melden');
-select test.logout();
-
--- Ein zweiter Projektleiter hat in fremden Projekten nur Leserecht
-select test.login('ppm2');
-select test.ok(pcc.can_read(test.pid('p1')) = true, 'Fremde Projekte sind lesbar');
-select test.ok(pcc.can_edit(test.pid('p1')) = false, 'Fremde Projekte sind nicht änderbar');
+               'Ein Problem lässt sich einer Person ohne Anmeldung zuordnen');
 select test.logout();
 
 -- -----------------------------------------------------------------------------
 -- 6. Versionierung (Abschnitt 6)
 -- -----------------------------------------------------------------------------
-select test.login('ppm');
+select test.login('team');
 update pcc.projects set status = 'on_track' where id = test.pid('p1');
 select test.ok((select count(*) from pcc.project_versions where project_id = test.pid('p1')) = 2,
                'Ein Statuswechsel erzeugt eine Version');
@@ -262,22 +283,26 @@ select test.fails(format('update pcc.project_versions set summary = ''x'' where 
 select test.logout();
 
 -- Benachrichtigung über das kritische Risiko geht an die Projektleitung
-select test.login('ppm2');
+select test.login('team');
 insert into test_ids (key, id)
 select 'p2', (pcc.create_project('OMB-26', 'Operations Manual Part B Revision', test.uid('ppm2'))).id;
 insert into pcc.risks (project_id, title, probability, impact, status)
 values (test.pid('p2'), 'Behördliche Rückfragen', 5, 5, 'open');
 select test.logout();
-select test.login('ppm');
+select test.login('team');
 select test.ok((select count(*) from pcc.notifications
-                where user_id = test.uid('ppm') and kind = 'risk_critical') = 0,
+                where user_id = test.uid('ppm2') and kind = 'risk_critical'
+                  and project_id = test.pid('p2')) = 1,
+               'Ein kritisches Risiko meldet sich bei der Projektleitung');
+select test.ok((select count(*) from pcc.notifications
+                where user_id = test.uid('ppm') and project_id = test.pid('p2')) = 0,
                'Die Meldung geht an die zuständige Projektleitung, nicht an alle');
 select test.logout();
 
 -- -----------------------------------------------------------------------------
 -- 7. Fortschritt und Gesamtlage
 -- -----------------------------------------------------------------------------
-select test.login('ppm');
+select test.login('team');
 insert into pcc.tasks (project_id, parent_task_id, title, status)
 values (test.pid('p1'), test.pid('t1'), 'Prüfprotokoll vorbereiten', 'completed'),
        (test.pid('p1'), test.pid('t1'), 'Testflüge abnehmen', 'not_started');
@@ -303,10 +328,10 @@ select test.logout();
 -- -----------------------------------------------------------------------------
 -- 8. RACI, Dokumente, Kommentare
 -- -----------------------------------------------------------------------------
-select test.login('ppm');
+select test.login('team');
 insert into pcc.raci (project_id, subject_type, subject_id, user_id, letter)
 values (test.pid('p1'), 'task', test.pid('t1'), test.uid('pcon'), 'A'),
-       (test.pid('p1'), 'task', test.pid('t1'), test.uid('pview'), 'C');
+       (test.pid('p1'), 'task', test.pid('t1'), test.uid('pext'), 'C');
 select test.fails(format('insert into pcc.raci (project_id, subject_type, subject_id, user_id, letter)
                           values (%L, ''task'', %L, %L, ''A'')',
                          test.pid('p1'), test.pid('t1'), test.uid('ppm')),
@@ -341,46 +366,72 @@ select test.ok((select version = 2 and supersedes_id = test.pid('d1')
                'Eine neue Fassung löst die alte ab, statt sie zu überschreiben');
 select test.ok((select count(*) from pcc.documents where project_id = test.pid('p1')) = 2,
                'Die abgelöste Fassung bleibt erhalten');
+
+-- Dateien hängen an der Aufgabe, nicht bloß am Projekt (Auftrag vom 19.09.2026)
+with ins as (
+  insert into pcc.documents (project_id, entity_type, entity_id, title, kind,
+                             storage_path, mime_type, size_bytes, owner_user_id)
+  values (test.pid('p1'), 'task', test.pid('t1'), 'FAT-Protokoll', 'file',
+          test.pid('p1') || '/' || test.pid('t1') || '/fat-protokoll.xlsx',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          180000, test.uid('ppm'))
+  returning id)
+insert into test_ids (key, id) select 'd3', id from ins;
+select test.ok((select entity_type = 'task' and entity_id = test.pid('t1')
+                from pcc.documents where id = test.pid('d3')),
+               'Eine Datei lässt sich an eine Aufgabe hängen');
+select test.fails(format('insert into pcc.documents (project_id, entity_type, entity_id, title, kind,
+                            storage_path, size_bytes)
+                          values (%L, ''task'', %L, ''Fremde Aufgabe'', ''file'', %L, 1000)',
+                         test.pid('p1'), test.pid('p2'), test.pid('p1') || '/x.pdf'),
+                  'PCC_STATE', 'Eine Datei hängt nicht an einer Aufgabe aus einem anderen Projekt');
+select test.fails(format('insert into pcc.documents (project_id, entity_type, entity_id, title, kind,
+                            storage_path, size_bytes)
+                          values (%L, ''task'', null, ''Ohne Bezug'', ''file'', %L, 1000)',
+                         test.pid('p1'), test.pid('p1') || '/y.pdf'),
+                  'PCC_STATE', 'Zu einer Ablage an der Aufgabe gehört die Aufgabe');
 select test.logout();
 
-select test.login('pcon');
+select test.login('team');
 insert into test_ids (key, id)
 select 'c1', (pcc.post_comment(test.pid('p1'), 'task', test.pid('t1'),
                                'Der Termin ist knapp, ich brauche eine Entscheidung.',
                                array[test.uid('ppm')])).id;
 select test.logout();
-select test.login('ppm');
+select test.login('team');
 select test.ok((select count(*) from pcc.notifications
                 where user_id = test.uid('ppm') and kind = 'mention') = 1,
                'Eine Erwähnung erreicht die genannte Person');
 select test.logout();
 
-select test.login('pview');
+select test.login('viewer');
 select test.fails(format('select pcc.post_comment(%L, ''task'', %L, ''Kein Recht'')',
                          test.pid('p1'), test.pid('t1')),
                   'PCC_AUTH', 'Ein Viewer kommentiert nicht');
 select test.logout();
 
 -- Löschen ist kein gewöhnliches Ändern (Abschnitt 7b)
-select test.login('ppm');
+select test.login('team');
 select test.fails(format('update pcc.documents set deleted_at = now() where id = %L', test.pid('d2')),
-                  'PCC_AUTH', 'Auch der Eigentümer löscht ein Dokument nicht im Vorbeigehen');
+                  'PCC_AUTH', 'Auch der Teamzugang löscht ein Dokument nicht im Vorbeigehen');
 select test.logout();
-select test.login('psa');
+select test.login('team');
 select test.fails(format('select pcc.delete_document(%L, '''')', test.pid('d2')),
                   'PCC_STATE', 'Ohne Grundlage keine Dokumentlöschung');
 select pcc.delete_document(test.pid('d2'), 'Antrag nach Artikel 17 DSGVO vom 02.09.2026');
 select test.ok((select deleted_at is not null and deleted_reason is not null
                 from pcc.documents where id = test.pid('d2')),
-               'Der Super Admin löscht auf Antrag, mit Grundlage');
+               'Der Teamzugang löscht auf Antrag, mit Grundlage');
+select test.ok((select count(*) from pcc.documents where id = test.pid('d2')) = 1,
+               'Für den Teamzugang bleibt das gelöschte Dokument sichtbar');
 select test.logout();
-select test.login('ppm');
+select test.login('viewer');
 select test.ok((select count(*) from pcc.documents where id = test.pid('d2')) = 0,
-               'Gelöschte Dokumente sind für alle außer dem Super Admin verschwunden');
+               'Für den Lesezugang ist es verschwunden');
 with u as (update pcc.comments set body = 'nachtraeglich geaendert' where id = test.pid('c1') returning 1)
-select test.ok((select count(*) from u) = 0, 'Fremde Kommentare bleiben unangetastet');
+select test.ok((select count(*) from u) = 0, 'Der Lesezugang ändert keinen Kommentar');
 select test.logout();
-select test.login('pcon');
+select test.login('team');
 update pcc.comments set body = 'Der Termin ist knapp — bitte um Entscheidung bis Freitag.' where id = test.pid('c1');
 select test.ok((select edited_at is not null from pcc.comments where id = test.pid('c1')),
                'Ein bearbeiteter Kommentar sagt, dass er bearbeitet wurde');
@@ -389,19 +440,23 @@ select test.logout();
 -- -----------------------------------------------------------------------------
 -- 9. Archiv und endgültiges Löschen (Abschnitt 41)
 -- -----------------------------------------------------------------------------
-select test.login('ppm2');
+select test.login('team');
 select test.fails(format('select pcc.archive_project(%L, '''')', test.pid('p2')),
                   'PCC_STATE', 'Archivieren verlangt einen Grund');
 select pcc.archive_project(test.pid('p2'), 'Revision in die Linienorganisation überführt');
 select test.fails(format('insert into pcc.tasks (project_id, title) values (%L, ''Nachtrag'')', test.pid('p2')),
                   'PCC_ARCHIVED', 'Ein archiviertes Projekt ist schreibgeschützt');
-select test.fails(format('select pcc.delete_project(%L, ''Versehen'')', test.pid('p2')),
-                  'PCC_AUTH', 'Endgültiges Löschen ist dem Super Admin vorbehalten');
 select test.logout();
 
-select test.login('psa');
+-- Endgültiges Löschen bleibt dem Teamzugang vorbehalten.
+select test.login('viewer');
+select test.fails(format('select pcc.delete_project(%L, ''Versehen'')', test.pid('p2')),
+                  'PCC_AUTH', 'Der Lesezugang löscht kein Projekt');
+select test.logout();
+
+select test.login('team');
 select test.fails(format('select pcc.delete_project(%L, ''  '')', test.pid('p2')),
-                  'PCC_STATE', 'Auch der Super Admin nennt einen Grund');
+                  'PCC_STATE', 'Auch der Teamzugang nennt einen Grund');
 select pcc.delete_project(test.pid('p2'), 'Doppelt angelegt, Inhalt in SIM-26 überführt');
 select test.ok((select count(*) from pcc.projects where id = test.pid('p2')) = 0, 'Das Projekt ist gelöscht');
 select test.ok((select count(*) from public.audit_log
@@ -412,17 +467,17 @@ select test.logout();
 -- -----------------------------------------------------------------------------
 -- 10. Löschverlangen nach Artikel 17 DSGVO (Abschnitt 7b)
 -- -----------------------------------------------------------------------------
-select test.login('padmin');
+select test.login('viewer');
 select test.fails(format('select pcc.anonymise_user(%L, ''Antrag vom 01.09.2026'')', test.uid('pcon')),
-                  'PCC_AUTH', 'Ein Löschverlangen führt nur der Super Admin aus');
+                  'PCC_AUTH', 'Ein Löschverlangen führt nur der Teamzugang aus');
 select test.logout();
-select test.login('psa');
+select test.login('team');
 select test.fails(format('select pcc.anonymise_user(%L, '''')', test.uid('pcon')),
                   'PCC_STATE', 'Ohne Grundlage keine Pseudonymisierung');
 select pcc.anonymise_user(test.uid('pcon'), 'Antrag nach Artikel 17 DSGVO vom 01.09.2026');
-select test.ok((select name like 'Ehemaliger Mitarbeiter%' and not active and role is null
+select test.ok((select name like 'Ehemaliger Mitarbeiter%' and not active
                 from public.users where id = test.uid('pcon')),
-               'Das Konto ist pseudonymisiert und gesperrt');
+               'Die Person ist pseudonymisiert und stillgelegt');
 select test.ok((select count(*) from pcc.tasks where assignee_user_id = test.uid('pcon')) >= 1,
                'Die fachliche Zuordnung bleibt über die ID bestehen');
 select test.ok((select count(*) from public.audit_log
@@ -434,7 +489,7 @@ select test.logout();
 -- -----------------------------------------------------------------------------
 -- 11. Sichten und Tageslauf
 -- -----------------------------------------------------------------------------
-select test.login('ppm');
+select test.login('team');
 select test.ok((select projects_total from pcc.v_dashboard) = 1, 'Das Dashboard zählt die sichtbaren Projekte');
 select test.ok((select critical_risks from pcc.v_projects where id = test.pid('p1')) = 2,
                'Die Projektsicht weist die kritischen Risiken aus');
@@ -442,11 +497,13 @@ select test.ok((select count(*) from pcc.v_activity where project_id = test.pid(
                'Die Aktivität speist sich aus dem gemeinsamen Audit-Trail');
 select test.logout();
 
-select test.login('pview');
+select test.login('viewer');
 select test.ok((select count(*) from pcc.v_activity where project_id = test.pid('p1')) > 0,
-               'Die Aktivität des eigenen Projekts ist für jeden Leser sichtbar');
-select test.ok((select count(*) from pcc.v_activity where entity = 'public.users') = 0,
-               'Einträge ohne Projektbezug bleiben der Admin-Ebene vorbehalten');
+               'Die Aktivität eines Projekts ist für beide Zugänge sichtbar');
+-- Mit zwei gemeinsam benutzten Zugängen wäre eine feinere Abstufung des Trails
+-- nur Zierde: wer den Lesezugang hat, hat ihn für alles.
+select test.ok((select count(*) from pcc.v_activity where entity = 'public.users') > 0,
+               'Auch Einträge ohne Projektbezug liegen offen');
 select test.logout();
 
 select test.logout();
@@ -462,7 +519,7 @@ select test.ok((select count(*) from pcc.run_daily_jobs()) = 3, 'Der Tageslauf h
 -- -----------------------------------------------------------------------------
 -- 12. Vorlage ausrollen (Abschnitt 30)
 -- -----------------------------------------------------------------------------
-select test.login('padmin');
+select test.login('team');
 insert into test_ids (key, id)
 select 'p3', (pcc.create_project('EBT-27', 'Evidence Based Training Einführung',
   test.uid('ppm2'), null, null, null, current_date, current_date + 200,
@@ -481,23 +538,32 @@ select test.logout();
 -- -----------------------------------------------------------------------------
 -- 13. Angriffe, die funktionieren müssten, wenn die Riegel fehlten
 -- -----------------------------------------------------------------------------
-select test.login('pview');
+select test.login('viewer');
 select test.fails('select public.enable_internal_write()',
                   'permission denied', 'Den internen Schreibmodus legt niemand von außen um');
-select test.fails(format('update public.users set role = ''super_admin'' where id = %L', test.uid('pview')),
-                  'PCC_AUTH', 'Niemand befördert sich selbst');
+with u as (update public.users set role = 'team' where role = 'viewer' returning 1)
+select test.ok((select count(*) from u) = 0, 'Der Lesezugang befördert sich nicht selbst');
 select test.fails(format('select pcc.next_ref(%L, ''HACK'')', test.pid('p1')),
                   'permission denied', 'Referenznummern vergibt der Trigger, nicht der Nutzer');
-select test.ok((select count(*) from pcc.v_pending_users) = 0,
-               'Offene Registrierungen sieht nur der Super Admin');
+with u as (update public.users set active = false where role = 'team' returning 1)
+select test.ok((select count(*) from u) = 0, 'Der Lesezugang legt den Teamzugang nicht still');
 select test.logout();
 
-select test.login('psa');
-select test.ok((select count(*) from pcc.v_pending_users) >= 0,
-               'Der Super Admin sieht die Freigabeliste');
-select test.logout();
+-- Auch der Teamzugang kommt an Rolle und Anmeldung nicht heran: sonst wäre aus
+-- dem Lesezugang in zwei Zügen ein zweiter Vollzugang geworden.
+select test.login('team');
+select test.fails('update public.users set role = ''team'' where role = ''viewer''',
+                  'PCC_AUTH', 'Auch der Teamzugang vergibt keine Rollen');
+select test.fails('insert into public.users (name, email, role) values (''Dritter'', ''d@test.invalid'', ''team'')',
+                  'PCC_AUTH', 'Über die Anwendung entsteht kein weiterer Zugang');
+select test.fails(format('update public.users set auth_user_id = %L where role = ''viewer''',
+                         '00000000-0000-0000-0000-000000000009'),
+                  'PCC_AUTH', 'Die Anmeldung lässt sich nicht umhängen');
+-- Personen darf der Teamzugang anlegen — das ist der Alltag.
+insert into public.users (name, email, job_title) values ('Neue Kollegin', 'neu@test.invalid', 'Sales');
+select test.ok((select count(*) from public.users where email = 'neu@test.invalid') = 1,
+               'Personen pflegt der Teamzugang selbst');
 
-select test.login('ppm');
 -- Der Prüfstand eines Dokuments kommt von der Virenprüfung
 select test.fails(format('update pcc.documents set scan_state = ''clean'' where id = %L', test.pid('d1')),
                   'PCC_GUARD', 'Ein Upload erklärt sich nicht selbst für geprüft');
@@ -517,11 +583,21 @@ select test.fails(format('update pcc.tasks set parent_task_id = id where id = %L
 select test.fails(format('update pcc.tasks set title = ''veraltet'', updated_at = %L where id = %L',
                          '2020-01-01 00:00:00+00', test.pid('t1')),
                   'PCC_CONFLICT', 'Ein überholter Stand überschreibt nichts still');
--- Herkunft ist kein Client-Wert
+-- Herkunft bei gemeinsam benutztem Zugang: die Oberfläche darf den Menschen
+-- benennen, aber nur einen aus dem Verzeichnis. Eine erfundene Kennung
+-- verfängt nicht — sie fällt auf den angemeldeten Zugang zurück.
 insert into pcc.issues (project_id, title, created_by)
-values (test.pid('p1'), 'Angeblich vom Super Admin', test.uid('psa'));
-select test.ok((select created_by from pcc.issues where title = 'Angeblich vom Super Admin') = test.uid('ppm'),
-               'Angelegt von wird gesetzt, nicht mitgeliefert');
+values (test.pid('p1'), 'Von Christian gemeldet', test.uid('ppm2'));
+select test.ok((select created_by from pcc.issues where title = 'Von Christian gemeldet') = test.uid('ppm2'),
+               'Die benannte Person wird als Herkunft übernommen');
+insert into pcc.issues (project_id, title, created_by)
+values (test.pid('p1'), 'Erfundene Herkunft', '00000000-0000-0000-0000-000000000009');
+select test.ok((select created_by from pcc.issues where title = 'Erfundene Herkunft') = test.uid('team'),
+               'Eine erfundene Kennung fällt auf den angemeldeten Zugang zurück');
+select test.ok((select actor_id from public.audit_log
+                where entity = 'pcc.issues' and action = 'insert'
+                order by id desc limit 1) = test.uid('team'),
+               'Der Trail hält Zugang und benannte Person getrennt fest');
 insert into pcc.issues (project_id, title, ref) values (test.pid('p1'), 'Frei gewählte Referenz', 'T-1');
 select test.ok((select ref from pcc.issues where title = 'Frei gewählte Referenz') like 'I-%',
                'Die Referenznummer kommt aus dem Zähler');
@@ -535,12 +611,12 @@ select test.ok((select count(*) from public.audit_log where entity = 'public.use
 -- -----------------------------------------------------------------------------
 -- 14. Freigabe eines Stands, Abhängigkeiten, Schwärzung
 -- -----------------------------------------------------------------------------
-select test.login('pview');
+select test.login('viewer');
 select test.fails(format('select pcc.release_version(%L, ''Stand zum Lenkungskreis'')', test.pid('p1')),
                   'PCC_AUTH', 'Einen Stand gibt nicht jeder frei');
 select test.logout();
 
-select test.login('ppm');
+select test.login('team');
 select test.fails(format('select pcc.release_version(%L, ''   '')', test.pid('p1')),
                   'PCC_STATE', 'Zu einer Freigabe gehört eine Zusammenfassung');
 select test.ok(pcc.release_version(test.pid('p1'), 'Stand zum Lenkungskreis 09/2026') is not null,
@@ -564,14 +640,14 @@ select test.fails(format('insert into pcc.raci (project_id, subject_type, subjec
 select test.logout();
 
 -- Schwärzen nach Artikel 17: der Wortlaut geht, der Vorgang bleibt
-select test.login('ppm');
+select test.login('viewer');
 select test.fails(format('select pcc.redact_audit(''pcc.comments'', %L, ''body'', ''Antrag'')', test.pid('c1')::text),
-                  'PCC_AUTH', 'Schwärzen darf nur der Super Admin');
+                  'PCC_AUTH', 'Schwärzen darf nur der Teamzugang');
 select test.logout();
-select test.login('psa');
+select test.login('team');
 select test.ok(pcc.redact_audit('pcc.comments', test.pid('c1')::text, 'body',
                                 'Antrag nach Artikel 17 DSGVO vom 03.09.2026') > 0,
-               'Der Super Admin schwärzt ein benanntes Feld');
+               'Der Teamzugang schwärzt ein benanntes Feld');
 select test.ok((select count(*) from public.audit_log
                 where entity = 'pcc.comments' and entity_id = test.pid('c1')::text
                   and (new_value ->> 'body') = 'Der Termin ist knapp — bitte um Entscheidung bis Freitag.') = 0,
@@ -585,7 +661,7 @@ select test.ok((select count(*) from public.audit_log
                'Die Schwärzung selbst ist protokolliert');
 -- Zwei Riegel liegen übereinander: das fehlende Recht und der Trigger.
 select test.fails('update public.audit_log set reason = ''nachtraeglich'' where id = (select min(id) from public.audit_log)',
-                  'permission denied', 'Am Trail selbst ändert auch der Super Admin nichts');
+                  'permission denied', 'Am Trail selbst ändert auch der Teamzugang nichts');
 select test.fails('delete from public.audit_log where id = (select min(id) from public.audit_log)',
                   'permission denied', 'Und löschen lässt er sich erst recht nicht');
 select test.logout();

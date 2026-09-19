@@ -1,5 +1,5 @@
 -- =============================================================================
--- Project Control Center — Migration 5/5: Sichten
+-- Project Control Center — Migration 5/6: Sichten
 -- Alle Sichten mit security_invoker: sie zeigen genau das, was der anfragende
 -- Nutzer auch direkt sehen dürfte. Eine Sicht ist kein Schlupfloch.
 -- =============================================================================
@@ -173,26 +173,32 @@ left join pcc.version_triggers t on t.code = v.trigger_code
 left join public.users u on u.id = v.created_by
 order by v.project_id, version_major desc, version_minor desc;
 
-create view pcc.v_my_notifications with (security_invoker = true) as
-select n.*, p.key as project_key, p.name as project_name
+-- Benachrichtigungen gehören Personen, nicht Zugängen. Die Sicht zeigt alle
+-- mit Namen; wen es angeht, entscheidet die Oberfläche anhand der Person, als
+-- die man sich angemeldet hat.
+create view pcc.v_notifications with (security_invoker = true) as
+select n.*, u.name as user_name, p.key as project_key, p.name as project_name
 from pcc.notifications n
-left join pcc.projects p on p.id = n.project_id
-where n.user_id = auth.uid();
+left join public.users u on u.id = n.user_id
+left join pcc.projects p on p.id = n.project_id;
 
 -- -----------------------------------------------------------------------------
--- Offene Freigaben für den Super Admin (Abschnitt 4)
+-- Personenverzeichnis (Abschnitt 4)
 -- -----------------------------------------------------------------------------
--- Offene Registrierungen samt E-Mail sieht nur, wer sie freigeben kann.
-create view pcc.v_pending_users with (security_invoker = true) as
-select id, name, email, registered_at, pending, active
-from public.users
-where pending and not active and pcc.is_super_admin();
+-- Wer steht zur Verfügung, und welche der beiden Zeilen trägt einen Zugang?
+create view pcc.v_people with (security_invoker = true) as
+select id, name, email, job_title, active, role,
+       (auth_user_id is not null) as has_account,
+       (select count(*) from pcc.tasks t
+         where t.assignee_user_id = u.id and t.status not in ('completed', 'cancelled')) as open_tasks
+from public.users u
+order by name;
 
 grant select on all tables in schema pcc to authenticated;
 revoke all on pcc.v_projects, pcc.v_tasks, pcc.v_milestones, pcc.v_risks,
   pcc.v_issues, pcc.v_dashboard, pcc.v_overdue_tasks, pcc.v_upcoming_milestones,
-  pcc.v_risk_matrix, pcc.v_activity, pcc.v_versions, pcc.v_my_notifications,
-  pcc.v_pending_users from anon;
+  pcc.v_risk_matrix, pcc.v_activity, pcc.v_versions, pcc.v_notifications,
+  pcc.v_people from anon;
 
 -- -----------------------------------------------------------------------------
 -- Tageslauf einplanen. Auf Supabase steht pg_cron zur Verfügung, lokal in der

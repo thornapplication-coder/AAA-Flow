@@ -219,6 +219,7 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .sandbar button{border:1px solid #5A4A18;color:#E3B341;border-radius:5px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap;background:transparent}
 .sandbar button:hover{background:#3B3316}
 .sandbar button.reset{color:#CDBA7A}
+.sandbar .saved{color:#9CCFA8;font-size:11.5px;white-space:nowrap}
 .topbar .userchip{display:flex;align-items:center;gap:9px;color:#C6D8E8;font-size:12.5px;white-space:nowrap;min-width:0}
 .topbar .userchip b{color:#fff;font-weight:600}
 .topbar .userchip .sw{border:1px solid #24405F;border-radius:var(--r);color:#9DB4CC;padding:5px 10px;font-size:12px}
@@ -456,6 +457,37 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- i18n ---------- */
 const I = {
 de:{
+  doc_at:"Gehört zu",
+  doc_add:"Anhängen",
+  doc_att:"Anhänge",
+  doc_gone:"Der Inhalt dieser Datei liegt nicht mehr vor. Angaben und Verlauf bleiben erhalten.",
+  doc_link_h:"Statt einer Datei: Verweis auf eine Ablage, etwa für sehr große Dateien.",
+  doc_nostore:"Dieses Fenster kann Dateien nicht dauerhaft ablegen — der Inhalt gilt nur für diese Sitzung.",
+  doc_open:"Öffnen",
+  doc_types:"PDF, Word, Excel, PowerPoint, CSV, Text oder Bild. Höchstens 50 MB.",
+  doc_up_p:"Die Datei gehört zum Projekt.",
+  doc_up_s:"Die Datei gehört zu: {x}",
+  e_docboth:"Entweder eine Datei oder ein Verweis — nicht beides.",
+  e_docnone:"Bitte eine Datei wählen oder einen Verweis angeben.",
+  e_docsize:"Über 50 MB nimmt die Anwendung keine Datei an. Bitte verlinken.",
+  e_doctitle:"Bitte einen Titel angeben.",
+  e_doctype:"Dieses Dateiformat ist nicht vorgesehen.",
+  ev_docnew:"Datei angehängt: {x}",
+  t_docnew:"{n} angehängt und gespeichert.",
+  exp_rev:"Änderung Nr. {n}",
+  exp_state:"Stand",
+  sb_autosave:"Änderungen werden sofort gespeichert",
+  sb_nosave:"Dieses Fenster speichert nicht — Änderungen gelten nur für diese Sitzung",
+  sb_saved:"Gespeichert {t}",
+  ac_pick:"Wer arbeitet gerade?",
+  ac_pick_s:"Beide Zugänge werden gemeinsam benutzt. Die Angabe steht an jeder Änderung und im Verlauf — sie lässt sich jederzeit wechseln.",
+  ac_team:"Teamzugang",
+  ac_team_s:"Darf alles: anlegen, ändern, freigeben, ausgeben.",
+  ac_viewer:"Lesezugang",
+  ac_viewer_s:"Sieht alles und gibt aus, ändert nichts.",
+  ac_who:"Angemeldet als",
+  ac_back:"Anderer Zugang",
+  ac_chg:"Person wechseln",
   e_pend:"Ein Zieltermin gehört dazu.",
   e_pkeyfmt:"Der Schlüssel folgt dem Muster XLS-27: Kürzel, Bindestrich, Jahr.",
   e_pstart:"Ein Beginn gehört dazu.",
@@ -499,8 +531,6 @@ de:{
   h_amber_h:"Etwas läuft aus dem Plan — siehe Begründung daneben.",
   h_green_h:"Keine überfälligen Termine, kein kritisches Risiko.",
   h_red_h:"Handlungsbedarf auf Leitungsebene.",
-  lg_sandboxhint:"In der Sandbox genügt die Rollenwahl unten.",
-  lg_unknown2:"Zu dieser Adresse besteht noch kein Zugang. Registrieren Sie sich; freigegeben wird das Konto vom Super Admin.",
   mx_imp:"Auswirkung",
   mx_prob:"Eintrittswahrscheinlichkeit",
   p_nohits:"Keine Einträge zu diesem Filter.",
@@ -526,8 +556,8 @@ de:{
   prio_High:"hoch",
   prio_Low:"gering",
   prio_Medium:"mittel",
-  rh_contrib:"Sie können Probleme melden, Dokumente ablegen und Ihre eigenen Aufgaben pflegen. Termine, Risiken und Zuteilung ändert die Projektleitung ({pm}).",
-  rh_read:"Sie lesen dieses Projekt mit und können es exportieren.",
+  rh_arch:"Dieses Projekt ist archiviert und damit schreibgeschützt.",
+  rh_read:"Der Lesezugang sieht dieses Projekt und gibt es aus, ändert aber nichts.",
   rl_crit:"kritisch",
   why_ms:"{n} überfällige Meilensteine",
   why_ok:"Alles im Rahmen.",
@@ -564,10 +594,9 @@ de:{
   create:"Anlegen",
   days:"Tage",
   doc_file:"Datei",
-  doc_h:"Dokumente liegen in der Anwendung. Eine neue Fassung löst die alte ab, statt sie zu überschreiben — der Stand zum Zeitpunkt eines Audits bleibt damit rekonstruierbar. Sehr große Dateien lassen sich stattdessen verlinken.",
+  doc_h:"Dokumente liegen in der Anwendung und hängen am Projekt oder an einer Aufgabe. Eine neue Fassung löst die alte ab, statt sie zu überschreiben — der Stand zum Zeitpunkt eines Audits bleibt rekonstruierbar. Sehr große Dateien lassen sich stattdessen verlinken.",
   doc_link:"Verweis",
   doc_size:"Größe",
-  doc_soon:"Dateien lassen sich ab dem Produktivbetrieb ablegen. Bis dahin bitte den Speicherort als Verweis eintragen.",
   doc_super:"abgelöst",
   doc_up:"Dokument hochladen",
   done:"Erledigt",
@@ -629,17 +658,10 @@ de:{
   k_total:"Projekte gesamt",
   k_ums:"Meilensteine (30 Tage)",
   late:"Überfällig",
-  lg_as:"SANDBOX: ANMELDEN ALS",
+  lg_as:"SANDBOX: ZUGANG WÄHLEN",
   lg_claim:"Projektsteuerung der Aviation Academy Austria.",
-  lg_code:"In der Sandbox genügt die Rollenwahl unten.",
-  lg_demo:"In der Sandbox wird keine E-Mail versandt. Bitte unten eine Rolle wählen.",
-  lg_email:"E-Mail-Adresse",
   lg_hello:"Willkommen bei",
-  lg_inactive:"Dieses Konto ist gesperrt. Bitte an den Super Admin wenden.",
   lg_ok:"Angemeldet als {n}.",
-  lg_reg:"Noch kein Zugang? Nach der Registrierung gibt der Super Admin das Konto frei.",
-  lg_signin:"Anmelden",
-  lg_unknown:"Zu dieser Adresse besteht noch kein Zugang. Registrieren Sie sich; freigegeben wird das Konto vom Super Admin.",
   ms_completed:"Erreicht",
   ms_delayed:"Verzögert",
   ms_in_progress:"In Arbeit",
@@ -662,7 +684,7 @@ de:{
   p_noproj_s:"Passen Sie die Filter an oder legen Sie ein Projekt an.",
   p_score_h:"Risikowert = Eintrittswahrscheinlichkeit × Auswirkung. Ab 15 gilt ein Risiko als kritisch.",
   p_search:"Projekt, Aufgabe, Risiko, Problem …",
-  pcc_note:"Prototyp mit Demodaten. Anmeldung, Datenbank, Echtzeit und automatisches Speichern folgen im Produktivbetrieb.",
+  pcc_note:"Prototyp mit Demodaten. Änderungen werden sofort auf diesem Gerät gespeichert; Anmeldung, Datenbank und Echtzeit folgen im Produktivbetrieb.",
   pd_s:"Wo stehen wir? Bestand, Kritisches, Termine und Verantwortung auf einen Blick.",
   pd_t:"Dashboard",
   pi_s:"Aktuelle Probleme und Blockaden.",
@@ -679,13 +701,11 @@ de:{
   pn_timeline:"Projektverlauf",
   pp_s:"Alle Projekte im Rahmen Ihrer Berechtigung.",
   pp_t:"Projekte",
-  pr_admin:"Admin",
-  pr_contributor:"Contributor",
-  pr_pm:"Project Manager",
+  pr_team:"Teamzugang",
   pr_s:"Offene und beobachtete Risiken, nach Risk Score.",
-  pr_super_admin:"Super Admin",
+
   pr_t:"Risiken",
-  pr_viewer:"Viewer",
+  pr_viewer:"Lesezugang",
   prep_s:"Exporte für Management und Projektdokumentation.",
   prep_t:"Berichte",
   ps_at_risk:"Gefährdet",
@@ -746,6 +766,37 @@ de:{
   ver_t:"Versionsverlauf"
 },
 en:{
+  doc_at:"Belongs to",
+  doc_add:"Attach",
+  doc_att:"Attachments",
+  doc_gone:"The content of this file is no longer available. Details and history remain.",
+  doc_link_h:"Instead of a file: a link to where it is stored, e.g. for very large files.",
+  doc_nostore:"This window cannot store files permanently — the content lasts for this session only.",
+  doc_open:"Open",
+  doc_types:"PDF, Word, Excel, PowerPoint, CSV, text or image. 50 MB at most.",
+  doc_up_p:"The file belongs to the project.",
+  doc_up_s:"The file belongs to: {x}",
+  e_docboth:"Either a file or a link — not both.",
+  e_docnone:"Please pick a file or give a link.",
+  e_docsize:"Files above 50 MB are not accepted. Please link instead.",
+  e_doctitle:"Please give a title.",
+  e_doctype:"This file format is not supported.",
+  ev_docnew:"File attached: {x}",
+  t_docnew:"{n} attached and saved.",
+  exp_rev:"change no. {n}",
+  exp_state:"As of",
+  sb_autosave:"Changes are saved as you make them",
+  sb_nosave:"This window cannot save — changes last for this session only",
+  sb_saved:"Saved {t}",
+  ac_pick:"Who is working right now?",
+  ac_pick_s:"Both accounts are shared. The name is attached to every change and shows in the history — it can be switched at any time.",
+  ac_team:"Team account",
+  ac_team_s:"May do everything: create, change, release, export.",
+  ac_viewer:"Read-only account",
+  ac_viewer_s:"Sees everything and exports, changes nothing.",
+  ac_who:"Working as",
+  ac_back:"Other account",
+  ac_chg:"Switch person",
   e_pend:"A target date is required.",
   e_pkeyfmt:"The key follows the pattern XLS-27: code, hyphen, year.",
   e_pstart:"A start date is required.",
@@ -789,8 +840,6 @@ en:{
   h_amber_h:"Something is drifting — see the reason next to it.",
   h_green_h:"No overdue dates, no critical risk.",
   h_red_h:"Needs a decision at management level.",
-  lg_sandboxhint:"In the sandbox, picking a role below is enough.",
-  lg_unknown2:"There is no access for this address yet. Register; the super admin approves the account.",
   mx_imp:"Impact",
   mx_prob:"Probability",
   p_nohits:"No entries for this filter.",
@@ -816,8 +865,8 @@ en:{
   prio_High:"high",
   prio_Low:"low",
   prio_Medium:"medium",
-  rh_contrib:"You can report problems, add documents and keep your own tasks up to date. Dates, risks and assignment are set by the project manager ({pm}).",
-  rh_read:"You read this project and can export it.",
+  rh_arch:"This project is archived and therefore read-only.",
+  rh_read:"The read-only account sees this project and exports it, but changes nothing.",
   rl_crit:"critical",
   why_ms:"{n} overdue milestones",
   why_ok:"All within plan.",
@@ -854,10 +903,9 @@ en:{
   create:"Create",
   days:"days",
   doc_file:"File",
-  doc_h:"Documents live inside the application. A new version supersedes the old one instead of overwriting it, so the state at the time of an audit stays reconstructable. Very large files can be linked instead.",
+  doc_h:"Documents live inside the application, attached to the project or to a task. A new version supersedes the old one instead of overwriting it, so the state at the time of an audit stays reconstructable. Very large files can be linked instead.",
   doc_link:"Link",
   doc_size:"Size",
-  doc_soon:"Files can be stored once the system goes live. Until then please add the location as a link.",
   doc_super:"superseded",
   doc_up:"Upload document",
   done:"Done",
@@ -919,17 +967,10 @@ en:{
   k_total:"Total projects",
   k_ums:"Milestones (30 days)",
   late:"Overdue",
-  lg_as:"SANDBOX: SIGN IN AS",
+  lg_as:"SANDBOX: PICK AN ACCOUNT",
   lg_claim:"Project control for Aviation Academy Austria.",
-  lg_code:"In the sandbox, picking a role below is enough.",
-  lg_demo:"No email is sent in the sandbox. Please pick a role below.",
-  lg_email:"Email address",
   lg_hello:"Welcome to",
-  lg_inactive:"This account is deactivated. Please contact the superadmin.",
   lg_ok:"Signed in as {n}.",
-  lg_reg:"No access yet? After registering, the super admin approves the account.",
-  lg_signin:"Sign in",
-  lg_unknown:"There is no access for this address yet. Register; the super admin approves the account.",
   ms_completed:"Completed",
   ms_delayed:"Delayed",
   ms_in_progress:"In progress",
@@ -952,7 +993,7 @@ en:{
   p_noproj_s:"Adjust the filters or create a project.",
   p_score_h:"Score = probability × impact. From 15 upwards a risk counts as critical.",
   p_search:"Project, task, risk, issue …",
-  pcc_note:"Prototype with demo data. Sign-in, database, real-time and autosave follow once the system goes live.",
+  pcc_note:"Prototype with demo data. Changes are saved on this device right away; sign-in, database and real-time follow once the system goes live.",
   pd_s:"Where do we stand? Volume, critical items, deadlines and ownership at a glance.",
   pd_t:"Dashboard",
   pi_s:"Current issues and blockers.",
@@ -969,13 +1010,11 @@ en:{
   pn_timeline:"Timeline",
   pp_s:"All projects within your permissions.",
   pp_t:"Projects",
-  pr_admin:"Admin",
-  pr_contributor:"Contributor",
-  pr_pm:"Project Manager",
+  pr_team:"Team account",
   pr_s:"Open and monitored risks, by risk score.",
-  pr_super_admin:"Super Admin",
+
   pr_t:"Risks",
-  pr_viewer:"Viewer",
+  pr_viewer:"Read-only",
   prep_s:"Exports for management and project documentation.",
   prep_t:"Reports",
   ps_at_risk:"At risk",
@@ -1037,6 +1076,9 @@ en:{
 }};
 let L = "de";
 const t = (k, v) => { let s = I[L][k] || k; if (v) for (const n in v) s = s.replace("{" + n + "}", v[n]); return s; };
+const fmtSize = n => n == null ? "—"
+  : n >= 1048576 ? (n / 1048576).toFixed(1).replace(".", L === "de" ? "," : ".") + " MB"
+  : Math.max(1, Math.round(n / 1024)) + " KB";
 const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 
 /* ---------- Nutzer ---------- */
@@ -1048,31 +1090,36 @@ const mailFor = n => n.toLowerCase()
 /* Rollen nach Abschnitt 4 der Architektur. „fn" ist die fachliche Funktion im
    Haus — sie steuert keine Rechte, sie erklärt nur, wer da vor einem steht. */
 const USERS = [
-  { id:"u1",  name:"Patrick Thorn",  pcc:"super_admin",  fn:"Director Training" },
-  { id:"u2",  name:"Christian Wies", pcc:"admin",        fn:"Head of Training" },
-  { id:"u3",  name:"Marion Kern",    pcc:"pm",           fn:"Training Admin" },
-  { id:"u6",  name:"Nina Hartl",     pcc:"pm",           fn:"Sales" },
-  { id:"u4",  name:"Lena Ostheim",   pcc:"contributor",  fn:"Training Admin" },
-  { id:"u5",  name:"Tobias Reindl",  pcc:"contributor",  fn:"Training Admin" },
-  { id:"u13", name:"Iris Halanda",   pcc:"contributor",  fn:"Course Supervisor ATR" },
-  { id:"u12", name:"Robert Zach",    pcc:"viewer",       fn:"Course Supervisor CL650" },
-  { id:"u9",  name:"Bernd Winkler",  pcc:"viewer",       fn:"ATO" },
-  { id:"u10", name:"Karin Bauer",    pcc:"viewer",       fn:"ATO" },
-  { id:"u11", name:"Dieter Müller",  pcc:"viewer",       fn:"ATO" },
-  { id:"u7",  name:"David Sturm",    pcc:"viewer",       fn:"Sales" },
-  { id:"u8",  name:"Petra Lohner",   pcc:"viewer",       fn:"Sales" }
+  { id:"u1",  name:"Patrick Thorn",  fn:"Director Training" },
+  { id:"u2",  name:"Christian Wies", fn:"Head of Training" },
+  { id:"u3",  name:"Marion Kern",    fn:"Training Admin" },
+  { id:"u6",  name:"Nina Hartl",     fn:"Sales" },
+  { id:"u4",  name:"Lena Ostheim",   fn:"Training Admin" },
+  { id:"u5",  name:"Tobias Reindl",  fn:"Training Admin" },
+  { id:"u13", name:"Iris Halanda",   fn:"Course Supervisor ATR" },
+  { id:"u12", name:"Robert Zach",    fn:"Course Supervisor CL650" },
+  { id:"u9",  name:"Bernd Winkler",  fn:"ATO" },
+  { id:"u10", name:"Karin Bauer",    fn:"ATO" },
+  { id:"u11", name:"Dieter Müller",  fn:"ATO" },
+  { id:"u7",  name:"David Sturm",    fn:"Sales" },
+  { id:"u8",  name:"Petra Lohner",   fn:"Sales" },
+  /* Die beiden Zugangszeilen. Sie stehen im selben Verzeichnis wie alle
+     anderen — nur tragen sie eine Rolle. Wer den Teamzugang benutzt, ohne
+     sich zu einer Person zu bekennen, erscheint als „Projektteam". */
+  { id:"uteam", name:"Projektteam", fn:"Teamzugang", access:"team" },
+  { id:"uview", name:"Lesezugang",  fn:"Lesezugang", access:"viewer" }
 ];
-/* Die E-Mail-Adresse ist der Login. Wer sich neu registriert, landet gesperrt
-   in der Freigabeliste des Super Admins (Abschnitt 4). */
+/* Die Adresse ist der Anmeldename der beiden Zugänge; alle übrigen Zeilen sind
+   Personen ohne eigene Anmeldung (Abschnitt 4). */
 USERS.forEach(u => { u.email = mailFor(u.name); u.active = true; });
-const user = id => USERS.find(u => u.id === id) || { name:"?", pcc:"viewer" };
+/* Wer im Teamzugang zur Auswahl steht: alle aktiven Personen ohne Zugang. */
+const PEOPLE = () => USERS.filter(u => !u.access && u.active !== false);
+const user = id => USERS.find(u => u.id === id) || { name:"?" };
 const initials = n => n.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
 
 /* alphabetisch, wie für alle Listen und Dropdowns gefordert */
 const byName = (a,b) => a.name.localeCompare(b.name, L === "de" ? "de" : "en");
-/* Für die Anmeldeliste: Super Admin zuerst, dann Leitung, dann Mitarbeit */
-const ROLE_ORDER = { super_admin:0, admin:1, pm:2, contributor:3, viewer:4 };
-const byRole = (a,b) => (ROLE_ORDER[a.pcc] - ROLE_ORDER[b.pcc]) || byName(a,b);
+
 
 /* ---------- Datum und Arbeitstage ---------- */
 /* Simulierte Uhr: die Sandbox-Leiste verschiebt "heute" nach vorn, damit
@@ -1097,7 +1144,12 @@ const fmtDate = s => s ? new Date(s).toLocaleDateString(L === "de" ? "de-AT" : "
    Zeitraum auswerten lässt. Live-Einträge hängen an der simulierten Uhr. */
 const nowTs = () => today() + "T" + new Date().toTimeString().slice(0,5);
 /* ---------- State ---------- */
-let me = null;                    // angemeldeter Nutzer, null heißt Anmeldebildschirm
+/* Zwei Zugänge, entschieden am 19.09.2026: ACCESS ist der Zugang ("team" darf
+   alles, "viewer" liest), me die Person, die gerade daran arbeitet. Beide
+   Zugänge werden gemeinsam benutzt — deshalb sagt die Personenwahl, wer hinter
+   einer Änderung steht, und nicht die Anmeldung. */
+let ACCESS = null;                // null heißt Anmeldebildschirm
+let me = null;                    // Person aus dem Verzeichnis
 const M = () => user(me);
 
 /* ---------- Zeitreise und Toast ---------- */
@@ -1106,7 +1158,7 @@ const M = () => user(me);
 function travel(days) {
   const before = pOverdueCount();
   CLOCK += days;
-  render();
+  commit(); render();
   const after = pOverdueCount();
   const dt = after.tasks - before.tasks, dm = after.ms - before.ms;
   toast(t("t_travel", { d:fmtDate(today()),
@@ -1170,6 +1222,9 @@ function renderDialog(err) {
       : f.type === "select"
         ? `<select data-f="${f.name}" ${f.disabled ? "disabled" : ""} ${f.reactive ? 'data-reactive="1"' : ""}>${
             f.options.map(o => `<option value="${esc(o.v)}" ${String(o.v) === String(v) ? "selected" : ""}>${esc(o.l)}</option>`).join("")}</select>`
+      : f.type === "file"
+        ? `<input type="file" data-ff="${f.name}" ${f.accept ? `accept="${esc(f.accept)}"` : ""}>` +
+          (v && v.name ? `<div class="hint"><b>${esc(v.name)}</b> · ${fmtSize(v.size)}</div>` : "")
       : f.type === "textarea"
         ? `<textarea data-f="${f.name}" placeholder="${esc(f.placeholder || "")}">${esc(v)}</textarea>`
         : `<input type="${f.type || "text"}" data-f="${f.name}" value="${esc(v)}"
@@ -1190,6 +1245,10 @@ function renderDialog(err) {
       if (el.dataset.reactive) renderDialog();
     };
     el.oninput = handler; el.onchange = handler;
+  });
+  document.querySelectorAll("#mBody [data-ff]").forEach(el => el.onchange = () => {
+    dlg.values[el.dataset.ff] = el.files && el.files[0] ? el.files[0] : null;
+    renderDialog();
   });
   document.querySelectorAll("#mBody [data-fm]").forEach(el => el.onchange = () => {
     const n = el.dataset.fm;
@@ -1247,8 +1306,9 @@ function renderPrint(def) {
     <h1>${esc(def.title)}</h1>
     ${def.subtitle ? `<div class="sub">${esc(def.subtitle)}</div>` : ""}
     <div class="rule"></div>
-    ${def.meta && def.meta.length ? `<table class="kv">${def.meta.map(([k,v]) =>
-      `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")}</table>` : ""}
+    ${(() => { const meta = [[t("exp_state"), expStamp()]].concat(def.meta || []);
+      return `<table class="kv">${meta.map(([k,v]) =>
+        `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")}</table>`; })()}
     ${def.sections.map(sec => `${sec.h ? `<h2>${esc(sec.h)}</h2>` : ""}${tbl(sec)}`).join("")}
     ${def.sign ? `<div class="sign"><div>${t("exp_sign1")}</div><div>${t("exp_sign2")}</div></div>` : ""}
     <div class="foot">${t("exp_printed", { d:fmtLong(today()) + ", " +
@@ -1256,8 +1316,32 @@ function renderPrint(def) {
       n:M().name })} · ${t("exp_sandbox")}</div>
   </div>`;
 }
-function openPrint(kind) {
+/* Der Stand eines Exports: Zeitpunkt und laufende Nummer der letzten Änderung.
+   Damit lässt sich ein ausgedrucktes Blatt einem Datenstand zuordnen — und
+   erkennen, dass es nicht der neueste ist. */
+function expStamp() {
+  return fmtLong(today()) + ", " +
+    new Date().toLocaleTimeString(L === "de" ? "de-AT" : "en-GB", { hour:"2-digit", minute:"2-digit" }) +
+    " · " + t("exp_rev", { n:DATA_REV });
+}
+
+/* Welche Ausgabe gerade offen ist. Ändert sich etwas, wird sie neu gebaut —
+   ein Bericht auf dem Bildschirm darf nie einen überholten Stand zeigen. */
+let OPEN_EXPORT = null;
+function refreshOpenExport() {
+  const el = document.getElementById("print");
+  if (el && el.classList.contains("on") && OPEN_EXPORT) { openPrint(OPEN_EXPORT, true); return; }
+  // Der Excel-Auszug ist ein Textblock; er wird mit den neuen Zahlen gefüllt.
+  if (dlg && dlg.cfg && dlg.cfg.expKind) {
+    dlg.values.data = exportTsv(dlg.cfg.expKind);
+    renderDialog();
+  }
+}
+
+function openPrint(kind, keepScroll) {
+  OPEN_EXPORT = kind;
   const def = docDef(kind);
+  const keep = keepScroll ? document.getElementById("print").scrollTop : 0;
   const el = document.getElementById("print");
   el.innerHTML = `<div class="pbar">
       <span class="ttl">${esc(def.title)}</span>
@@ -1265,23 +1349,30 @@ function openPrint(kind) {
       <button id="pClose">${t("exp_close")}</button>
     </div>` + renderPrint(def);
   el.classList.add("on");
-  document.getElementById("pClose").onclick = () => el.classList.remove("on");
+  if (keep) el.scrollTop = keep;
+  document.getElementById("pClose").onclick = () => { el.classList.remove("on"); OPEN_EXPORT = null; };
   document.getElementById("pPrint").onclick = () => { try { window.print(); } catch (e) { toast(t("exp_manual"), true); } };
-  try { window.print(); } catch (e) { /* Vorschau blockiert den Druckdialog — Ansicht bleibt sichtbar */ }
+  if (!keepScroll) {
+    try { window.print(); } catch (e) { /* Vorschau blockiert den Druckdialog — Ansicht bleibt sichtbar */ }
+  }
 }
-function exportTable(kind) {
+function exportTsv(kind) {
   const def = docDef(kind);
-  const lines = [];
+  const lines = [def.title, t("exp_state") + "\t" + expStamp(), ""];
   def.sections.forEach(sec => {
     if (sec.h) lines.push(sec.h);
     lines.push(sec.cols.join("\t"));
     sec.rows.forEach(r => lines.push(r.map(v => String(v == null ? "" : v).replace(/[\t\n]/g, " ")).join("\t")));
     lines.push("");
   });
-  const tsv = lines.join("\n").trim();
+  return lines.join("\n").trim();
+}
+function exportTable(kind) {
+  const def = docDef(kind);
   openDialog({
     title:t("exp_xls_t"), text:t("exp_xls_p"), okLabel:t("exp_copy"),
-    values:{ data:tsv },
+    expKind:kind,
+    values:{ data:exportTsv(kind) },
     build: () => [{ name:"data", label:def.title, type:"textarea" }],
     validate: () => null,
     onSubmit: v => {
@@ -1309,49 +1400,68 @@ function renderTop() {
   const u = M();
   document.getElementById("userchip").innerHTML =
     `<span><b>${esc(u.name)}</b> · ${t("pr_" + pRole())}</span>
+     ${pIsAdmin() ? `<button class="sw" id="switchPerson">${t("ac_chg")}</button>` : ""}
      <button class="sw" id="switchUser">${t("switch")}</button>`;
-  document.getElementById("switchUser").onclick = () => { me = null; pProject = null; render(); };
+  if (document.getElementById("switchPerson"))
+    document.getElementById("switchPerson").onclick = () => { me = null; pProject = null; render(); };
+  document.getElementById("switchUser").onclick = () => {
+    ACCESS = null; me = null; pProject = null; commit(); render();
+  };
 }
 
-/* Anmeldung. In der Zielversion ein Einmalcode per E-Mail; in der Sandbox
-   wählt man die Rolle direkt, um die Rechte durchspielen zu können. */
+/* Anmeldung in zwei Schritten: erst der Zugang, dann — beim Teamzugang — die
+   Person. Genau so läuft es in der Anwendung: die Anmeldung gehört dem Zugang,
+   die Zuschreibung der Person. */
 function renderLogin() {
-  const av = { super_admin:"s", admin:"s", pm:"t", contributor:"a", viewer:"" };
-  document.getElementById("login").innerHTML = `<div class="box">
+  const box = h => { document.getElementById("login").innerHTML = `<div class="box">
     <div class="lang" style="align-self:center">
       <button data-l="de" class="${L === "de" ? "on" : ""}">DE</button>
       <button data-l="en" class="${L === "en" ? "on" : ""}">EN</button>
     </div>
     <div class="hello">${t("lg_hello")}</div>
     <h1>Project <em>Control Center</em></h1>
-    <div class="claim">${t("lg_claim")}</div>
-    <div class="card">
-      <label for="lgMail">${t("lg_email")}</label>
-      <input id="lgMail" type="email" autocomplete="username" placeholder="name@aviationacademy.at">
-      <button class="go" id="lgGo">${t("lg_signin")}</button>
-    </div>
-    <div class="fine">${t("lg_code")}</div>
-    <div class="pick"><h2>${t("lg_as")}</h2><div class="rows">${
-      USERS.filter(u => u.active !== false).slice().sort(byRole).map(u => `<button data-login="${u.id}">
-        <span class="ini ${av[u.pcc] || ""}">${initials(u.name)}</span>
-        <span><span class="nm">${esc(u.name)}</span><br>
-          <span class="rl">${t("pr_" + (u.pcc || "viewer"))}${u.fn ? " · " + esc(u.fn) : ""}</span></span>
-      </button>`).join("")}</div></div>
-    <div class="fine">${t("lg_reg")}</div>
-  </div>`;
-  document.querySelectorAll("[data-login]").forEach(b => b.onclick = () => {
-    me = b.dataset.login; pv = "dash"; pProject = null; render();
-  });
-  document.getElementById("lgGo").onclick = () => {
-    const v = (document.getElementById("lgMail").value || "").trim().toLowerCase();
-    if (!v) return toast(t("lg_demo"), true);
-    const u = USERS.find(x => (x.email || "").toLowerCase() === v);
-    if (!u) return toast(t("lg_unknown"), true);
-    if (u.active === false) return toast(t("lg_inactive"), true);
-    me = u.id; pv = "dash"; pProject = null; render();
-    toast(t("lg_ok", { n:u.name }));
+    <div class="claim">${t("lg_claim")}</div>${h}</div>`;
+    document.querySelectorAll("#login .lang button").forEach(b => b.onclick = () => setLang(b.dataset.l));
   };
-  document.querySelectorAll("#login .lang button").forEach(b => b.onclick = () => setLang(b.dataset.l));
+
+  if (!ACCESS) {
+    box(`<div class="pick"><h2>${t("lg_as")}</h2><div class="rows">
+      <button data-access="team">
+        <span class="ini s">PT</span>
+        <span><span class="nm">${t("ac_team")}</span><br>
+          <span class="rl">${t("ac_team_s")}</span></span></button>
+      <button data-access="viewer">
+        <span class="ini">LZ</span>
+        <span><span class="nm">${t("ac_viewer")}</span><br>
+          <span class="rl">${t("ac_viewer_s")}</span></span></button>
+    </div></div>
+    <div class="fine">${t("pcc_note")}</div>`);
+    document.querySelectorAll("[data-access]").forEach(b => b.onclick = () => {
+      ACCESS = b.dataset.access;
+      if (ACCESS === "viewer") { me = "uview"; pv = "dash"; pProject = null; commit(); render(); }
+      else renderLogin();
+    });
+    return;
+  }
+
+  // Teamzugang: wer arbeitet gerade?
+  box(`<div class="pick"><h2>${t("ac_pick")}</h2>
+    <div class="rows">${PEOPLE().slice().sort(byName).map(u => `<button data-login="${u.id}">
+      <span class="ini ${/Director|Head/.test(u.fn || "") ? "t" : "a"}">${initials(u.name)}</span>
+      <span><span class="nm">${esc(u.name)}</span><br>
+        <span class="rl">${esc(u.fn || "")}</span></span></button>`).join("")}
+      <button data-login="uteam">
+        <span class="ini s">PT</span>
+        <span><span class="nm">${t("ac_team")}</span><br>
+          <span class="rl">${t("ac_viewer_s").replace(/.*/, t("ac_team_s"))}</span></span></button>
+    </div></div>
+    <div class="fine">${t("ac_pick_s")}</div>
+    <button class="go" id="lgBack" style="background:transparent;border:1px solid #24405F">${t("ac_back")}</button>`);
+  document.querySelectorAll("[data-login]").forEach(b => b.onclick = () => {
+    me = b.dataset.login; pv = "dash"; pProject = null; commit(); render();
+    toast(t("lg_ok", { n:M().name }));
+  });
+  document.getElementById("lgBack").onclick = () => { ACCESS = null; me = null; renderLogin(); };
 }
 
 /* Sandbox-Leiste: simulierte Uhr und Zurücksetzen */
@@ -1362,12 +1472,16 @@ function renderSandbar() {
     `<span class="tag">⚗ ${t("sb_tag")}</span>
      <span class="clock">${t("sb_today")}: <b>${d}</b>${CLOCK ? ` (+${CLOCK} ${CLOCK === 1 ? t("sb_day1") : t("days")})` : ` · ${t("sb_real")}`}</span>
      <span class="sp"></span>
+     <span class="saved">${STORE_OK
+       ? (SAVED_AT ? t("sb_saved", { t:SAVED_AT.toLocaleTimeString(L === "de" ? "de-AT" : "en-GB",
+           { hour:"2-digit", minute:"2-digit" }) }) : t("sb_autosave"))
+       : t("sb_nosave")}</span>
      <button data-tr="1">+1 ${t("sb_day")}</button>
      <button data-tr="8">+8 ${t("days")}</button>
      <button data-tr="31">+31 ${t("days")}</button>
      <button class="reset" id="sbReset">↺ ${t("sb_reset")}</button>`;
   document.querySelectorAll("[data-tr]").forEach(b => b.onclick = () => travel(+b.dataset.tr));
-  document.getElementById("sbReset").onclick = () => location.reload();
+  document.getElementById("sbReset").onclick = () => { storeClear(); location.reload(); };
 }
 function renderNav() {
   const n = pccNavItems(), u = M();
@@ -1425,10 +1539,13 @@ const P_PRIO = ["Low","Medium","High","Critical"];
 let pv = "dash", pProject = null, pTab = "overview";
 let PF = { q:"", status:"", pm:"", health:"" };
 
-const pRole = () => (M().pcc || "viewer");
-const pIsAdmin = () => ["super_admin","admin"].includes(pRole());
-const pCanEdit = p => pIsAdmin() || (pRole() === "pm" && p && p.pm === me);
-const pCanContribute = p => pCanEdit(p) || (pRole() === "contributor" && p && p.team.some(m => m.user === me));
+const pRole = () => ACCESS || "viewer";
+const pIsAdmin = () => pRole() === "team";
+/* Der Teamzugang ändert jedes Projekt — außer einem archivierten. Eine
+   Abstufung nach Projektmitgliedschaft gibt es nicht mehr: sie beschriebe
+   Rechte, die es mit zwei Zugängen nicht gibt. */
+const pCanEdit = p => pIsAdmin() && !(p && p.archived);
+const pCanContribute = pCanEdit;
 
 /* ---------- Demodaten ---------- */
 let pSeq = 1000;
@@ -1757,7 +1874,9 @@ function healthWhy(p) {
    liest, er dürfe nichts, meldet auch nichts. */
 function roleHint(p) {
   if (pCanEdit(p)) return "";
-  if (pCanContribute(p)) return t("rh_contrib", { pm:pUser(p.pm) });
+  /* Zwei Gründe, warum hier nichts zu ändern ist: der Lesezugang oder ein
+     archiviertes Projekt. Beide sollen dastehen, nicht erraten werden. */
+  if (p && p.archived) return t("rh_arch");
   return t("rh_read");
 }
 
@@ -1817,6 +1936,90 @@ PROJECTS.filter(p => p.status === "at_risk" || p.status === "delayed").forEach(p
 });
 PLOG.sort((a,b) => a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0);
 const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
+
+/* ============================================================================
+   Sofort speichern (Auftrag vom 19.09.2026)
+   Es gibt kein „Speichern" mehr: jede Änderung landet im selben Augenblick im
+   Speicher des Geräts. Die Angaben liegen in localStorage, der Inhalt
+   hochgeladener Dateien in IndexedDB — der wäre für localStorage zu groß.
+   Beides kann fehlen (privates Fenster, gesperrte Vorschau); dann arbeitet der
+   Prototyp weiter und sagt es in der Sandbox-Leiste.
+   ========================================================================== */
+const STORE_KEY = "pcc.sandbox.v1";
+let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
+let SAVED_AT = null;     // wann zuletzt gespeichert wurde
+let STORE_OK = true;     // ob das Gerät überhaupt speichert
+
+/* Dateiinhalte. Ein Prototyp ohne echte Ablage wäre für die Frage „kann ich
+   Dateien anhängen?" wertlos, deshalb landen sie in IndexedDB und überleben
+   das Neuladen. */
+const FILES = (() => {
+  let db = null, broken = false;
+  const open = () => new Promise((res, rej) => {
+    if (broken || typeof indexedDB === "undefined") return rej(new Error("kein IndexedDB"));
+    if (db) return res(db);
+    let r;
+    try { r = indexedDB.open("pcc-sandbox-files", 1); }
+    catch (e) { broken = true; return rej(e); }
+    r.onupgradeneeded = () => r.result.createObjectStore("files");
+    r.onsuccess = () => { db = r.result; res(db); };
+    r.onerror = () => { broken = true; rej(r.error); };
+  });
+  const run = (mode, fn) => open().then(d => new Promise((res, rej) => {
+    const q = fn(d.transaction("files", mode).objectStore("files"));
+    q.onsuccess = () => res(q.result);
+    q.onerror = () => rej(q.error);
+  }));
+  return {
+    put: (id, blob) => run("readwrite", st => st.put(blob, id)).catch(() => null),
+    get: id => run("readonly", st => st.get(id)).catch(() => null),
+    del: id => run("readwrite", st => st.delete(id)).catch(() => null)
+  };
+})();
+
+function storeSnapshot() {
+  return { rev:DATA_REV, at:new Date().toISOString(), clock:CLOCK, access:ACCESS, me,
+           projects:PROJECTS, log:PLOG,
+           /* Nur die selbst angelegten Personen: die Demoliste steht im Code. */
+           people:USERS.filter(u => u.added) };
+}
+function storeSave() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(storeSnapshot()));
+    SAVED_AT = new Date(); STORE_OK = true;
+  } catch (e) { STORE_OK = false; }
+}
+function storeLoad() {
+  let raw = null;
+  try { raw = localStorage.getItem(STORE_KEY); } catch (e) { STORE_OK = false; return false; }
+  if (!raw) return false;
+  try {
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.projects)) return false;
+    PROJECTS.length = 0; d.projects.forEach(x => PROJECTS.push(x));
+    PLOG.length = 0; d.log.forEach(x => PLOG.push(x));
+    (d.people || []).forEach(u => { if (!USERS.some(x => x.id === u.id)) USERS.push(u); });
+    CLOCK = d.clock || 0;
+    ACCESS = d.access || null;
+    me = d.me || null;
+    DATA_REV = d.rev || 0;
+    SAVED_AT = d.at ? new Date(d.at) : null;
+    return true;
+  } catch (e) { return false; }
+}
+function storeClear() {
+  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+}
+
+/* Der eine Weg, auf dem eine Änderung wirksam wird. Wer etwas ändert, ruft
+   commit() — und damit ist es gespeichert, gezählt und in jeder offenen
+   Ausgabe nachgezogen. */
+function commit() {
+  DATA_REV++;
+  storeSave();
+  if (document.getElementById("sandbar") && ACCESS) renderSandbar();
+  refreshOpenExport();
+}
 
 /* ---------- Timeline ---------- */
 function tlWindow(ps) {
@@ -2291,7 +2494,7 @@ function pTabTasks(p) {
     <div class="tblwrap aslist"><table class="tasktree"><thead><tr>
       <th>${t("col_task")}</th><th>${t("col_ws")}</th><th>${t("col_assignee")}</th>
       <th>${t("col_status")}</th><th>${t("col_prio")}</th><th>${t("col_due")}</th>
-      <th>${t("col_progress")}</th>${may ? "<th></th>" : ""}
+      <th>${t("col_progress")}</th><th>${t("doc_att")}</th>${may ? "<th></th>" : ""}
     </tr></thead><tbody>${rows.map(({x, sub}) => {
       const ws = p.ws.find(w => w.id === x.ws);
       const mine = may && (pCanEdit(p) || x.assignee === me);
@@ -2304,16 +2507,25 @@ function pTabTasks(p) {
         <td>${prioPill(x.prio)}</td>
         <td class="co" style="${pTaskOverdue(x) ? "color:var(--late);font-weight:600" : ""}">${fmtDate(x.due)}</td>
         <td style="min-width:110px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</td>
+        <td class="acts">${docsFor(p, "task", x.id).map(d =>
+            `<button data-pdoc="${d.id}" title="${esc(d.title)}">${esc(docIcon(d))} ${esc(shortName(d))}</button>`).join("")
+          }${may ? `<button data-pup="${x.id}" title="${esc(t("doc_up"))}">+</button>` : ""}</td>
         ${may ? `<td class="acts">${mine && !pTaskDone(x)
           ? `<button data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}</td>` : ""}
-      </tr>`; }).join("") || `<tr><td colspan="${may ? 8 : 7}" class="muted">${t("p_none")}</td></tr>`}</tbody></table></div>
+      </tr>`; }).join("") || `<tr><td colspan="${may ? 9 : 8}" class="muted">${t("p_none")}</td></tr>`}</tbody></table></div>
     <div class="cards">${rows.map(({x, sub}) => `<article class="card">
       <div class="top"><span class="num">${sub ? "↳ " : ""}${x.ref}</span>${pTaskPill(x)}</div>
       <h4>${esc(x.title)}</h4>
       <div class="sub"><span>${x.assignee ? pUser(x.assignee) : t("none")}</span><span>·</span>
         <span${pTaskOverdue(x) ? ' style="color:var(--late);font-weight:600"' : ""}>${fmtDate(x.due)}</span></div>
       <div style="margin-top:8px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</div>
-      ${pCanEdit(p) && !pTaskDone(x) ? `<button class="btn-ghost" style="margin-top:8px" data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}
+      ${docsFor(p, "task", x.id).length ? `<div class="sub" style="margin-top:8px">${
+        docsFor(p, "task", x.id).map(d =>
+          `<button class="btn-ghost" data-pdoc="${d.id}">${esc(docIcon(d))} ${esc(d.title)}</button>`).join("")}</div>` : ""}
+      <div class="foot">
+        ${pCanEdit(p) && !pTaskDone(x) ? `<button class="btn-ghost" data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}
+        ${may ? `<button class="btn-ghost" data-pup="${x.id}">${t("doc_up")}</button>` : ""}
+      </div>
     </article>`).join("")}</div>`;
 }
 function pTabRisks(p) {
@@ -2380,19 +2592,28 @@ function pTabTeam(p) {
 function pTabDocs(p) {
   /* Dokumente liegen in der Anwendung (Entscheidung 18.09.2026). Ein externer
      Verweis bleibt je Dokument möglich, etwa für sehr große Dateien. */
+  /* Woran hängt die Datei? Ohne diese Spalte wäre ein Ordner mit 40 Dateien
+     wieder nur ein Ordner. */
+  const at = d => {
+    if (!d.entity || d.entity === "project") return t("tab_over");
+    const x = (p.tasks || []).find(y => y.id === d.entityId);
+    return x ? x.ref + " " + x.title : t("none");
+  };
   const row = d => `<tr class="${d.superseded ? "inactive" : ""}">
     <td><b>${esc(d.title)}</b><div class="num">${esc(d.file || d.url || "")}</div></td>
+    <td class="co">${esc(at(d))}</td>
     <td>${d.kind === "file" ? pill("p-done", t("doc_file")) : pill("p-open", t("doc_link"))}</td>
     <td class="co">${esc(d.version)}${d.superseded ? ` · ${t("doc_super")}` : ""}</td>
     <td class="co">${d.size || "—"}</td>
     <td class="co">${pUser(d.owner)}${d.at ? `<div class="num">${fmtDate(d.at)}</div>` : ""}</td>
-    <td class="co">${esc(d.description)}</td></tr>`;
+    <td class="co">${esc(d.description)}</td>
+    <td class="acts"><button data-pdoc="${d.id}">${t("doc_open")}</button></td></tr>`;
   return `<div class="notice">${t("doc_h")}</div>
     ${pCanContribute(p) ? `<div class="hdacts" style="margin-bottom:12px">
-      <button class="btn-ghost" id="pupload" title="${esc(t("doc_soon"))}">${t("doc_up")}</button></div>` : ""}
+      <button class="btn-primary" id="pupload">${t("doc_up")}</button></div>` : ""}
     ${p.docs.length ? `<div class="tblwrap aslist"><table><thead><tr>
-      <th>${t("col_title")}</th><th>${t("col_status")}</th><th>${t("f_ver")}</th>
-      <th>${t("doc_size")}</th><th>${t("col_owner")}</th><th>${t("f_desc")}</th>
+      <th>${t("col_title")}</th><th>${t("doc_at")}</th><th>${t("col_status")}</th><th>${t("f_ver")}</th>
+      <th>${t("doc_size")}</th><th>${t("col_owner")}</th><th>${t("f_desc")}</th><th></th>
     </tr></thead><tbody>${p.docs.map(row).join("")}</tbody></table></div>
     <div class="cards">${p.docs.map(d => `<article class="card">
       <div class="top">${d.kind === "file" ? pill("p-done", t("doc_file")) : pill("p-open", t("doc_link"))}
@@ -2400,6 +2621,8 @@ function pTabDocs(p) {
       <h4>${esc(d.title)}</h4>
       <div class="sub"><span>${esc(d.file || d.url || "")}</span></div>
       <div class="sub"><span>${d.size || "—"}</span><span>·</span><span>${pUser(d.owner)}</span></div>
+      <div class="sub"><span>${esc(at(d))}</span></div>
+      <div class="foot"><button class="btn-ghost" data-pdoc="${d.id}">${t("doc_open")}</button></div>
     </article>`).join("")}</div>` : `<p class="muted">${t("p_none")}</p>`}`;
 }
 function pTabActivity(p) {
@@ -2452,6 +2675,90 @@ function pccDetail(p) {
 }
 
 /* ---------- Anlegen und Ändern ---------- */
+/* ---------- Dateien ---------- */
+/* Erlaubt ist, was im Betrieb erlaubt ist (supabase/seed.sql, Einstellung
+   „documents"): Bürodateien, PDF, Bilder, Text. 50 MB je Datei. */
+const DOC_TYPES = [
+  "application/pdf", "image/png", "image/jpeg", "text/plain", "text/csv",
+  "application/msword", "application/vnd.ms-excel", "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation"];
+const DOC_EXT = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.png,.jpg,.jpeg";
+const DOC_MAX = 52428800;
+const docOk = f => DOC_TYPES.includes(f.type) || /\.(pdf|docx?|xlsx?|pptx?|csv|txt|png|jpe?g)$/i.test(f.name);
+
+/* Die Dateiart als Kürzel: sie sagt mehr als ein Symbol und druckt sich auch
+   dort sauber, wo die Schrift keine Sonderzeichen mitbringt. */
+const docIcon = d => {
+  if (d.kind === "link") return "URL";
+  const m = /\.([a-z0-9]{1,5})$/i.exec(d.file || "");
+  return m ? m[1].toUpperCase() : "DAT";
+};
+const shortName = d => (d.title || "").length > 18 ? d.title.slice(0,16) + "…" : d.title;
+
+/* Anhänge eines Gegenstands — in aller Regel einer Aufgabe. */
+const docsFor = (p, kind, id) =>
+  (p.docs || []).filter(d => d.entity === kind && d.entityId === id && !d.deleted);
+
+/* Herunterladen: der Inhalt liegt in IndexedDB, nicht im Dokumentsatz. */
+function docOpen(d) {
+  if (d.kind === "link") { try { window.open(d.url, "_blank", "noopener"); } catch (e) {} return; }
+  FILES.get(d.id).then(blob => {
+    if (!blob) return toast(t("doc_gone"), true);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = d.file || "datei";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  });
+}
+
+/* Datei an einen Gegenstand hängen. entity/entityId sind leer, wenn sie am
+   Projekt selbst hängt. */
+function pDialogUpload(p, entity, entityId, label) {
+  if (!pCanContribute(p)) return toast(t("p_noedit"), true);
+  openDialog({
+    title:t("doc_up"), text:label ? t("doc_up_s", { x:label }) : t("doc_up_p"), okLabel:t("doc_add"),
+    values:{ title:"", file:null, url:"", description:"" },
+    build: v => [
+      { name:"title", label:t("col_title"), type:"text", req:true,
+        placeholder:v.file ? v.file.name : "z. B. Abnahmeprotokoll" },
+      { name:"file", label:t("doc_file"), type:"file", accept:DOC_EXT, hint:t("doc_types") },
+      { name:"url", label:t("doc_link"), type:"text", hint:t("doc_link_h") },
+      { name:"description", label:t("f_desc"), type:"textarea" }
+    ],
+    validate: v => {
+      const e = [];
+      const title = (v.title || "").trim() || (v.file ? v.file.name : "");
+      if (!title) e.push({ f:"title", m:t("e_doctitle") });
+      if (!v.file && !(v.url || "").trim()) e.push({ f:"file", m:t("e_docnone") });
+      if (v.file && (v.url || "").trim()) e.push({ f:"url", m:t("e_docboth") });
+      if (v.file && v.file.size > DOC_MAX) e.push({ f:"file", m:t("e_docsize") });
+      if (v.file && !docOk(v.file)) e.push({ f:"file", m:t("e_doctype") });
+      return e;
+    },
+    onSubmit: v => {
+      const id = pid();
+      const d = { id, title:(v.title || "").trim() || v.file.name,
+        kind:v.file ? "file" : "link",
+        file:v.file ? v.file.name : null, url:v.file ? null : (v.url || "").trim(),
+        size:v.file ? fmtSize(v.file.size) : null, bytes:v.file ? v.file.size : null,
+        mime:v.file ? v.file.type : null,
+        version:"1.0", owner:me, at:today(),
+        entity:entity || "project", entityId:entityId || null,
+        description:(v.description || "").trim() };
+      p.docs.push(d);
+      plg(p, me, { k:"ev_docnew", x:d.title });
+      if (v.file) FILES.put(id, v.file).then(ok => {
+        if (ok === null) toast(t("doc_nostore"), true);
+      });
+      toast(t("t_docnew", { n:d.title }));
+      commit(); render();
+    }
+  });
+}
+
 function pDialogNewProject() {
   if (!(pIsAdmin() || pRole() === "pm")) return toast(t("p_noedit"), true);
   openDialog({
@@ -2463,7 +2770,7 @@ function pDialogNewProject() {
       { name:"key", label:t("f_key"), type:"text", req:true, half:true, placeholder:"XLS-27",
         hint:t("h_pkey") },
       { name:"pm", label:t("col_pm"), type:"select", req:true, half:true, options:
-        USERS.filter(u => ["super_admin","admin","pm"].includes(u.pcc)).sort(byName).map(u => ({ v:u.id, l:u.name })) },
+        PEOPLE().slice().sort(byName).map(u => ({ v:u.id, l:u.name })) },
       { name:"description", label:t("f_desc"), type:"textarea" },
       { name:"objectives", label:t("f_obj"), type:"textarea" },
       { name:"scope", label:t("f_scope"), type:"textarea" },
@@ -2494,7 +2801,7 @@ function pDialogNewProject() {
       pver(p, { k:"ev_pcreated" }, []);
       plg(p, me, { k:"ev_pcreated_x", x:p.name });
       toast(t("t_pnew", { n:p.key }));
-      pProject = p.id; pTab = "overview"; render();
+      pProject = p.id; pTab = "overview"; commit(); render();
     }
   });
 }
@@ -2508,7 +2815,7 @@ function pDialogEditProject(p) {
       { name:"status", label:t("col_status"), type:"select", half:true, options:
         P_STATUS.map(s => ({ v:s, l:t("ps_" + s) })) },
       { name:"pm", label:t("col_pm"), type:"select", half:true, disabled:!pIsAdmin(), options:
-        USERS.filter(u => ["super_admin","admin","pm"].includes(u.pcc)).sort(byName).map(u => ({ v:u.id, l:u.name })) },
+        PEOPLE().slice().sort(byName).map(u => ({ v:u.id, l:u.name })) },
       { name:"description", label:t("f_desc"), type:"textarea" },
       { name:"objectives", label:t("f_obj"), type:"textarea" },
       { name:"scope", label:t("f_scope"), type:"textarea" },
@@ -2532,7 +2839,7 @@ function pDialogEditProject(p) {
         pver(p, { k:"ev_pupdated" }, ch);
         ch.forEach(c => plg(p, me, `${c.f}: ${c.o} → ${c.n}`));
       }
-      toast(ch.length ? t("t_pstatus") : t("t_psaved")); render();
+      toast(ch.length ? t("t_pstatus") : t("t_psaved")); commit(); render();
     }
   });
 }
@@ -2555,7 +2862,7 @@ function pDialogNewTask(p) {
       const x = mkTask(p, { title:v.title.trim(), ws:v.ws, assignee:v.assignee, prio:v.prio,
         due:v.due, description:v.description, status:"not_started", start:today() });
       plg(p, me, { k:"ev_tasknew", x:x.title });
-      toast(t("t_ptask")); render();
+      toast(t("t_ptask")); commit(); render();
     }
   });
 }
@@ -2585,7 +2892,7 @@ function pDialogNewRisk(p) {
       plg(p, me, { k:"ev_risknew", x:r.ref + " " + r.title });
       if (rScore(r) >= 15) pver(p, { k:"ev_critrisk", x:r.title },
         [{ e:r.ref, f:t("col_score"), o:"—", n:String(rScore(r)) }]);
-      toast(t("t_psaved")); render();
+      toast(t("t_psaved")); commit(); render();
     }
   });
 }
@@ -2606,7 +2913,7 @@ function pDialogNewIssue(p) {
       p.issues.push({ id:pid(), ref:"I-" + (p.issues.length + 1), title:v.title.trim(),
         description:v.description, owner:v.owner, prio:v.prio, status:"open", due:v.due, resolution:"" });
       plg(p, me, { k:"ev_issuenew", x:v.title.trim() });
-      toast(t("t_psaved")); render();
+      toast(t("t_psaved")); commit(); render();
     }
   });
 }
@@ -2665,7 +2972,7 @@ function wirePcc() {
   if (q("pnewtask")) q("pnewtask").onclick = () => pDialogNewTask(pById(pProject));
   if (q("pnewrisk")) q("pnewrisk").onclick = () => pDialogNewRisk(pById(pProject));
   if (q("pnewissue")) q("pnewissue").onclick = () => pDialogNewIssue(pById(pProject));
-  if (q("pupload")) q("pupload").onclick = () => toast(t("doc_soon"));
+  if (q("pupload")) q("pupload").onclick = () => pDialogUpload(pById(pProject));
   if (q("pq")) {
     q("pq").oninput = e => { PF.q = e.target.value; renderMain();
       const el = q("pq"); el.focus(); el.setSelectionRange(PF.q.length, PF.q.length); };
@@ -2682,6 +2989,17 @@ function wirePcc() {
     if (e.target.closest("button") && !e.target.closest("[data-pp]").isSameNode(e.target.closest("button"))) return;
     pProject = el.dataset.pp; pTab = "overview"; render();
   });
+  /* Datei an eine Aufgabe hängen und wieder öffnen */
+  document.querySelectorAll("[data-pup]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const p = pById(pProject), x = p.tasks.find(y => y.id === b.dataset.pup);
+    pDialogUpload(p, "task", x.id, x.ref + " " + x.title);
+  });
+  document.querySelectorAll("[data-pdoc]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const p = pById(pProject), d = (p.docs || []).find(y => y.id === b.dataset.pdoc);
+    if (d) docOpen(d);
+  });
   document.querySelectorAll("[data-ptdone]").forEach(b => b.onclick = e => {
     e.stopPropagation();
     const p = pById(pProject), x = p.tasks.find(y => y.id === b.dataset.ptdone);
@@ -2693,8 +3011,8 @@ function wirePcc() {
     toast(t("t_pdone", { r:x.ref, n:x.title }), false, {
       label:t("undo"), fn:() => { Object.assign(x, prev);
         plg(p, me, { k:"ev_undone", x:x.title });
-        render(); } });
-    render();
+        commit(); render(); } });
+    commit(); render();
   });
   document.querySelectorAll("[data-prep]").forEach(b => b.onclick = e => {
     e.stopPropagation();
@@ -2729,9 +3047,10 @@ function pccDoc(kind) {
     [t("f_health"), t("h_" + pHealth(p))]];
   const taskRows = list => list.map(({p,x}) => [x.ref, x.title, p.key,
     (p.ws.find(w => w.id === x.ws) || {}).name || "", x.assignee ? pUser(x.assignee) : "",
-    t("ts_" + x.status), x.prio, fmtLong(x.due), (pTaskDone(x) ? 100 : x.progress || 0) + "%"]);
+    t("ts_" + x.status), x.prio, fmtLong(x.due), (pTaskDone(x) ? 100 : x.progress || 0) + "%",
+    docsFor(p, "task", x.id).map(d => d.title).join("; ")]);
   const TASK_COLS = [t("f_ref"), t("col_task"), t("col_project"), t("col_ws"), t("col_assignee"),
-    t("col_status"), t("col_prio"), t("col_due"), t("col_progress")];
+    t("col_status"), t("col_prio"), t("col_due"), t("col_progress"), t("doc_att")];
   const riskRows = list => list.map(({p,r}) => [r.ref, r.title, p.key, r.cat, r.prob, r.imp,
     rScore(r), pUser(r.owner), t("rs_" + r.status), fmtLong(r.due), r.mitigation]);
   const RISK_COLS = [t("f_ref"), t("col_title"), t("col_project"), t("col_cat"), t("col_prob"),
@@ -2810,8 +3129,13 @@ function pccDoc(kind) {
         rows:p.decisions.map(d => [fmtLong(d.date), d.topic, d.decision, pUser(d.maker)]) },
       { h:t("tab_team"), cols:[t("usr_name"), t("f_prole"), t("f_resp")],
         rows:p.team.map(m => [pUser(m.user), m.role, m.resp]) },
-      { h:t("tab_docs"), cols:[t("col_title"), t("col_status"), t("f_ver"), t("doc_size"), t("col_owner"), t("f_desc")],
-        rows:p.docs.map(d => [d.title, d.kind === "file" ? t("doc_file") : t("doc_link"),
+      { h:t("tab_docs"), cols:[t("col_title"), t("doc_at"), t("col_status"), t("f_ver"),
+          t("doc_size"), t("col_owner"), t("f_desc")],
+        rows:p.docs.map(d => [d.title,
+          !d.entity || d.entity === "project" ? t("tab_over")
+            : ((p.tasks.find(x => x.id === d.entityId) || {}).ref || "") + " " +
+              ((p.tasks.find(x => x.id === d.entityId) || {}).title || ""),
+          d.kind === "file" ? t("doc_file") : t("doc_link"),
           d.version + (d.superseded ? " (" + t("doc_super") + ")" : ""), d.size || "—",
           pUser(d.owner), d.description]) },
       { h:t("tab_act"), cols:[t("exp_when"), t("exp_who"), t("exp_what")],
@@ -2822,12 +3146,15 @@ function pccDoc(kind) {
 }
 
 function render() {
-  const inApp = !!me;
+  const inApp = !!(ACCESS && me);
   document.getElementById("login").classList.toggle("on", !inApp);
   document.getElementById("app").style.display = inApp ? "" : "none";
   renderSandbar();
   if (!inApp) { pProject = null; renderLogin(); return; }
   renderTop(); renderNav(); renderMain();
 }
+/* Gespeicherten Stand übernehmen, bevor zum ersten Mal gezeichnet wird. Liegt
+   keiner vor, bleibt es bei den Demodaten. */
+storeLoad();
 render();
 </script>

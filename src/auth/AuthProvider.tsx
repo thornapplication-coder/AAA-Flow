@@ -42,7 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void supabase
       .from('users')
       .select('*')
-      .eq('id', session.user.id)
+      // Der Zugang hängt an auth_user_id; die Personenzeile hat eine eigene
+      // Kennung, weil im Verzeichnis auch Menschen ohne Anmeldung stehen.
+      .eq('auth_user_id', session.user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (cancelled) return

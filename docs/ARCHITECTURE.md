@@ -116,7 +116,8 @@ public.audit_log user_id, project_id, entity, entity_id, action,
    Abschnitt 21 will den Elternfortschritt optional aus Subtasks ableiten —
    „optional" heißt: je Aufgabe entscheidbar, nicht global.
 3. **Verwerfen statt Löschen** — `archived_at` (Abschnitt 41). Endgültiges
-   Löschen ausschließlich Super Admin, über eine Funktion mit Audit-Eintrag.
+   Löschen ausschließlich über den Teamzugang, mit einer Funktion und
+   Audit-Eintrag.
 4. **Referenznummern** (`T-1042`, `R-14`) je Projekt aus einer Sequenz, damit
    Menschen im Gespräch darauf zeigen können.
 5. **RACI als eigene Tabelle**, nicht als Feld an der Aufgabe: eine Aufgabe
@@ -129,47 +130,76 @@ public.audit_log user_id, project_id, entity, entity_id, action,
 Serverseitig durch Row Level Security. Kein einziger Rechtecheck verlässt
 sich auf das Frontend (Abschnitt 43).
 
-| Rolle | Projekte | Aufgaben, Risiken, Issues | Nutzer | System |
-|---|---|---|---|---|
-| **Super Admin** | alle, anlegen, archivieren, endgültig löschen | alle | freigeben, sperren, Rollen vergeben | Einstellungen, Versionen, Audit |
-| **Admin** | alle, anlegen, archivieren | alle | einsehen, keine Rollenvergabe | Exporte |
-| **Project Manager** | eigene Projekte vollständig | in eigenen Projekten alles | Projektteam der eigenen Projekte | — |
-| **Contributor** | alle nicht archivierten lesen | in Projekten mit Mitgliedschaft: zugewiesene bearbeiten, Risiken und Issues melden, kommentieren, Dokumente ablegen | — | — |
-| **Viewer** | alle nicht archivierten lesen | lesen, exportieren | — | — |
+> **Entschieden am 19.09.2026:** Es gibt **zwei Zugänge**, und beide werden
+> gemeinsam benutzt. Der frühere Aufbau mit fünf Rollen und einem
+> Freigabeverfahren je Person ist damit hinfällig.
+
+| Zugang | Darf |
+|---|---|
+| **Teamzugang** (`team`) | alles: Projekte anlegen, ändern, archivieren, endgültig löschen, Dateien ablegen, Personen pflegen, Einstellungen, Versionen freigeben, Schwärzung nach Artikel 17 |
+| **Lesezugang** (`viewer`) | alles sehen und ausgeben — und sonst nichts |
 
 Umsetzung je Tabelle über drei Hilfsfunktionen:
 
 ```sql
-pcc.can_read(project_id)         -- jeder freigegebene Nutzer, Archiv nur für Mitglieder
-pcc.can_contribute(project_id)   -- Contributor mit Mitgliedschaft, oder can_edit
-pcc.can_edit(project_id)         -- PM des Projekts, Admin oder Super Admin
+pcc.can_read(project_id)         -- beide Zugänge, auch archivierte Projekte
+pcc.can_edit(project_id)         -- nur der Teamzugang, nicht im Archiv
+pcc.can_contribute(project_id)   -- gleichbedeutend; der Name bleibt für Policies und Storage
 ```
 
-**Registrierung und Freigabe (Abschnitt 4):** Selbstregistrierung ist erlaubt,
-erzeugt aber `active = false, pending = true`. Ohne Freigabe durch den Super
-Admin greift keine einzige RLS-Policy — der Nutzer sieht nichts. Die Freigabe
-läuft über `pcc.approve_user()`; das allererste Konto bekommt seine Rolle über
-`pcc.bootstrap_super_admin()`, die sich verweigert, sobald es einen Super Admin
-gibt.
+### Personen und Zugänge sind zweierlei
 
-> **Entschieden am 18.09.2026:** Selbstregistrierung ist erlaubt. Ein Trigger
-> auf `auth.users` legt das Profil gesperrt und ohne Rolle an; erst die Freigabe
-> durch den Super Admin über `pcc.approve_user()` schaltet es frei. Ein eigener
-> Guard verhindert, dass jemand Rolle, Freigabe oder Aktivstatus an sich selbst
-> ändert — sonst wäre die Registrierung ein Weg zum Super Admin.
+Ein Projektsteuerungswerkzeug ohne Zuständigkeiten wäre wertlos. Weil aber nur
+zwei Anmeldungen existieren, trennt das Modell beides:
+
+- **`public.users` ist das Personenverzeichnis.** Zuständigkeit, Verantwortung,
+  RACI, Eigentum an Dokumenten und Erwähnungen zeigen darauf. Die meisten
+  dieser Zeilen haben **keine** Anmeldung.
+- **Genau zwei Zeilen tragen einen Zugang** (`auth_user_id` und `role`). Ein
+  partieller Unique-Index (`users_one_account_per_role`) lässt keinen dritten
+  zu — auch nicht bei einem direkten Eingriff in der Datenbank.
+- Die Zugänge werden mit `pcc.prepare_account(adresse, rolle)` vorbereitet und
+  verbinden sich selbst, sobald der Betreiber in Supabase ein Anmeldekonto mit
+  derselben Adresse anlegt. Eine Anmeldung ohne vorbereiteten Zugang läuft ins
+  Leere: ohne Rolle greift keine einzige Policy.
+- Ein Guard hält Rolle und `auth_user_id` über die Anwendung unveränderlich.
+  Sonst wäre aus dem Lesezugang in zwei Zügen ein zweiter Vollzugang geworden.
+
+### Wer war es? Was ein gemeinsamer Zugang kostet
+
+Das muss ausgesprochen sein: **Mit einem gemeinsam benutzten Zugang lässt sich
+nicht mehr beweisen, welcher Mensch eine Änderung vorgenommen hat.** Der
+Audit-Trail hält deshalb zweierlei auseinander:
+
+| Spalte | Bedeutung | Belastbarkeit |
+|---|---|---|
+| `audit_log.user_id` | der angemeldete Zugang | beweiskräftig |
+| `audit_log.actor_id` | die Person, zu der sich die Oberfläche bekannt hat | Angabe, kein Nachweis |
+
+Beim Anmelden am Teamzugang wählt man sich aus dem Verzeichnis; diese Angabe
+wandert in `created_by`/`updated_by` und von dort in den Trail. Ein Trigger
+lässt nur eine **aktive Person aus dem Verzeichnis** durch — eine erfundene
+Kennung fällt auf den Zugang zurück. Fachlich ist das brauchbar
+("Marion hat die Aufgabe geschlossen"); als Nachweis gegenüber einer Behörde
+ist es das nicht.
+
+Wer diese Beweiskraft braucht, braucht eigene Anmeldungen je Person. Der Weg
+dorthin bliebe klein: `public.users` trägt schon `auth_user_id`, es müssten nur
+weitere Zeilen eine Rolle bekommen und der Unique-Index fallen.
 
 ### Sichtbarkeit von Projekten
 
-**Entschieden am 18.09.2026:** Jeder freigegebene Nutzer liest alle nicht
-archivierten Projekte. Abschnitt 5 gibt dem Viewer ausdrücklich Leserecht auf
-Projekte, und ein Management-Dashboard mit Löchern wäre wertlos. Geändert wird
-weiterhin nur nach Rolle.
+**Entschieden am 19.09.2026:** Beide Zugänge lesen jedes Projekt, auch ein
+archiviertes. Ein Management-Dashboard mit Löchern wäre wertlos, und eine
+Abstufung nach Projektmitgliedschaft beschriebe Rechte, die es mit zwei
+gemeinsam benutzten Zugängen nicht gibt.
 
-Technisch heißt das: die SELECT-Policy ruft `pcc.can_read()` — freigegebenes
-Konto mit Rolle, Archiv nur für Mitglieder und die Admin-Ebene. Die schreibenden
-Policies prüfen `pcc.can_edit()` beziehungsweise `pcc.can_contribute()`. Eine
-spätere Einschränkung je Projekt bliebe eine reine Erweiterung von `can_read()`
-um ein Feld `projects.restricted`.
+Technisch heißt das: die SELECT-Policy ruft `pcc.can_read()` — angemeldet
+genügt. Die schreibenden Policies prüfen `pcc.can_edit()`: Teamzugang und
+Projekt nicht archiviert. Die Projektmitgliedschaft steuert seitdem keine
+Rechte mehr, sie sagt nur noch, wer fachlich zum Projekt gehört. Eine spätere
+Einschränkung je Projekt bliebe eine reine Erweiterung von `can_read()` um ein
+Feld `projects.restricted`.
 
 ---
 
@@ -261,13 +291,14 @@ enthalten personenbezogene Daten — Namen, Verantwortlichkeiten, gelegentlich
 Beurteilungen. Verlangt eine Person die Löschung, muss die Anwendung sie
 ausführen können, ohne den Projektverlauf zu zerstören.
 
-Umgesetzter Weg, ausschließlich für den Super Admin
-(`pcc.anonymise_user()`, `pcc.delete_comment()`, `pcc.delete_document()` —
-jede dieser Funktionen verlangt eine Grundlage im Klartext):
+Umgesetzter Weg, ausschließlich über den Teamzugang
+(`pcc.anonymise_user()`, `pcc.delete_comment()`, `pcc.delete_document()`,
+`pcc.redact_audit()` — jede dieser Funktionen verlangt eine Grundlage im
+Klartext):
 
 | Objekt | Behandlung |
 |---|---|
-| `users` | Konto deaktiviert, Name ersetzt durch „Ehemaliger Mitarbeiter (Nr.)", E-Mail geleert. Die ID bleibt, damit Zuordnungen nicht brechen |
+| `users` | Person stillgelegt, Name ersetzt durch „Ehemaliger Mitarbeiter (Nr.)", E-Mail geleert. Die ID bleibt, damit Zuordnungen nicht brechen |
 | `comments`, `documents` | Auf Antrag einzeln löschbar, mit Eintrag im Audit-Trail: wer, wann, auf welcher Grundlage. Ein Trigger verhindert, dass jemand den Löschvermerk im Vorbeigehen setzt — auch der Eigentümer eines Dokuments nicht |
 | `audit_log` | Einträge bleiben, der Personenbezug wird durch die Pseudonymisierung in `users` aufgelöst. Der Vorgang selbst bleibt nachvollziehbar |
 | `tasks`, `risks`, `decisions` | Zuordnung bleibt über die ID bestehen und zeigt den pseudonymisierten Namen |
@@ -300,9 +331,10 @@ Implementierung nach Abschnitt 61.
 |---|---|---|
 | Oberfläche, Navigation, Dashboard | vollständig | Prototyp, Zielversion offen |
 | Rollen und Sichtbarkeit | im Frontend nachgebildet | **umgesetzt** als RLS in PostgreSQL (`20260918000400`) |
-| Anmeldung | Rollenwahl | **Datenbankseite umgesetzt**: Registrierungs-Trigger, Freigabe durch Super Admin; Supabase Auth folgt mit dem Projekt |
-| Persistenz | im Speicher, bis Neuladen | **Schema umgesetzt** (`20260918000100`), noch keine Cloud-Instanz |
-| Echtzeit, Autosave | nicht vorhanden | offen — braucht die Supabase-Instanz |
+| Anmeldung | Zugang wählen, dann Person | **Datenbankseite umgesetzt**: zwei vorbereitete Zugänge, Verknüpfung über die Adresse; Supabase Auth folgt mit dem Projekt |
+| Persistenz | sofort auf dem Gerät (localStorage, Dateien in IndexedDB) | **Schema umgesetzt** (`20260918000100`), noch keine Cloud-Instanz |
+| Autosave | umgesetzt: jede Änderung wird im selben Augenblick abgelegt | in der Anwendung derselbe Ansatz — jeder Vorgang schreibt sofort, ohne „Speichern" |
+| Echtzeit | nicht vorhanden | offen — braucht die Supabase-Instanz |
 | Audit und Versionen | nachgebildet | **umgesetzt**: gemeinsamer Trail mit Modulspalte, unveränderliche Versionstabellen |
 | Export | PDF echt, Excel als Text | offen — Edge Function |
 
@@ -313,7 +345,7 @@ Implementierung nach Abschnitt 61.
 | Schritt | Inhalt | Stand |
 |---|---|---|
 | 1 | Datenmodell `pcc`, Nutzerkonto und Audit-Trail in `public` | **fertig** — `supabase/migrations/20260918000100`, lokal geprüft |
-| 2 | Registrierung, Freigabe durch Super Admin, Rollen, RLS | **fertig** — `…000200` bis `…000400` |
+| 2 | Zwei Zugänge, Personenverzeichnis, RLS | **fertig** — `…000200` bis `…000400` |
 | 3 | Kern: Projekte, Workstreams, Aufgaben, Teilaufgaben, Meilensteine | **Datenbank fertig**, Oberfläche offen |
 | 4 | Risiken, Issues, Decisions, RACI | **Datenbank fertig**, Oberfläche offen |
 | 5 | Dashboard, Timeline, Suche, Filter | Sichten fertig (`…000500`), Oberfläche offen |
@@ -350,8 +382,8 @@ Datenbank anzuschließen, die es noch nicht gibt, wäre Arbeit auf Verdacht.
 
 | # | Punkt | Entscheidung |
 |---|---|---|
-| 1 | Selbstregistrierung | erlaubt, Zugang erst nach Freigabe durch den Super Admin |
-| 2 | Sichtbarkeit von Projekten | jeder freigegebene Nutzer liest alle nicht archivierten Projekte |
+| 1 | Zugänge | genau zwei, gemeinsam benutzt: Teamzugang und Lesezugang (19.09.2026) |
+| 2 | Sichtbarkeit von Projekten | beide Zugänge lesen jedes Projekt, auch archivierte |
 | 3 | Auslöser für eine neue Version | nur fachlich bedeutsame Ereignisse, Liste in Abschnitt 6 |
 | 4 | Dokumente | Upload in die Anwendung, Folgen in Abschnitt 7a |
 | 5 | Aufbewahrung von Dokumenten, Projektdaten und Audit | unbegrenzt, Löschweg nach DSGVO in Abschnitt 7b |

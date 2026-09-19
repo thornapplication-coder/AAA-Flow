@@ -26,12 +26,13 @@ site_url = "http://localhost:5173"
 additional_redirect_urls = ["http://localhost:5173"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
-# Selbstregistrierung erlaubt. Das Profil entsteht gesperrt und ohne Rolle;
-# freigegeben wird es vom Super Admin (Architektur, Abschnitt 4).
-enable_signup = true
+# Keine Selbstregistrierung: es gibt genau zwei Zugänge, und die legt der
+# Betreiber an (Architektur, Abschnitt 4). Eine offene Anmeldung erzeugte nur
+# Konten ohne Rolle, die nichts sehen — und eine Liste, die niemand pflegt.
+enable_signup = false
 
 [auth.email]
-enable_signup = true
+enable_signup = false
 double_confirm_changes = true
 enable_confirmations = true
 

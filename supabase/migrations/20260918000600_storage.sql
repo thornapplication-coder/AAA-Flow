@@ -1,5 +1,5 @@
 -- =============================================================================
--- Project Control Center — Schema 1.0.0
+-- Project Control Center — Schema 1.1.0
 -- Migration 6/6: Storage-Policies für den Bucket project-docs
 -- Referenz: docs/ARCHITECTURE.md Abschnitt 7a
 --
@@ -7,9 +7,10 @@
 -- Schema storage nicht; dann tut diese Migration nichts und meldet das. Auf
 -- Supabase legt sie den privaten Bucket an und hängt die Policies daran.
 --
--- Namenskonvention: ein Objekt heißt <projekt-id>/<datei>. Die erste Ebene ist
--- damit die Projektzugehörigkeit, und pcc.documents.storage_path trägt genau
--- diesen Namen (Check-Constraint in Migration 1).
+-- Namenskonvention: ein Objekt heißt <projekt-id>/<datei>, an einer Aufgabe
+-- abgelegt <projekt-id>/<aufgaben-id>/<datei>. Die erste Ebene ist damit immer
+-- die Projektzugehörigkeit, und pcc.documents.storage_path trägt genau diesen
+-- Namen (Check-Constraint in Migration 1).
 -- =============================================================================
 
 do $$
@@ -44,9 +45,9 @@ begin
            and pcc.can_read(d.project_id))
     )$p$;
 
-  -- Hochladen darf, wer im Projekt beitragen darf, und nur unter dessen
-  -- Kennung. Ein Objektname ohne gültige Projekt-UUID wird abgewiesen, bevor
-  -- die Umwandlung ihn zu Fall bringen könnte.
+  -- Hochladen darf der Teamzugang, und nur unter der Kennung des Projekts.
+  -- Ein Objektname ohne gültige Projekt-UUID wird abgewiesen, bevor die
+  -- Umwandlung ihn zu Fall bringen könnte.
   execute $p$
     create policy project_docs_insert on storage.objects for insert to authenticated
     with check (

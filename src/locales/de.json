@@ -19,8 +19,8 @@
     "password": "Passwort",
     "signup": "Noch kein Zugang? Nach der Registrierung gibt der Super Admin das Konto frei.",
     "failed": "Anmeldung fehlgeschlagen.",
-    "pending": "Ihr Konto wartet auf die Freigabe durch den Super Admin. Sie erhalten eine Nachricht, sobald es so weit ist.",
-    "noProfile": "Für dieses Konto existiert kein Profil. Bitte an den Super Admin wenden."
+    "pending": "Dieser Zugang ist stillgelegt. Bitte wenden Sie sich an das Projektteam.",
+    "noProfile": "Zu dieser Anmeldung gehört kein Zugang. Es gibt genau zwei: den Teamzugang und den Lesezugang."
   },
   "common": {
     "loading": "Lädt …",
@@ -31,11 +31,8 @@
     "updateAvailable": "Eine neue Fassung ist verfügbar. Jetzt laden?"
   },
   "role": {
-    "super_admin": "Super Admin",
-    "admin": "Admin",
-    "pm": "Project Manager",
-    "contributor": "Contributor",
-    "viewer": "Viewer"
+    "team": "Team",
+    "viewer": "Lesezugang"
   },
   "status": {
     "not_started": "Nicht begonnen",

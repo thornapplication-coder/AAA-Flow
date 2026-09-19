@@ -1,8 +1,20 @@
 -- =============================================================================
 -- Project Control Center — Grunddaten
--- Konfiguration, keine Demodaten: Projekte brauchen Nutzer, und Nutzer entstehen
--- erst mit der Anmeldung. Beispieldaten stehen in supabase/tests/001_core.sql.
+-- Konfiguration und die beiden Zugänge, keine Demodaten. Beispieldaten stehen
+-- in supabase/tests/001_core.sql.
 -- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- Die zwei Zugänge (entschieden am 19.09.2026)
+-- 'team' darf alles, 'viewer' liest und gibt aus. Beide werden gemeinsam
+-- benutzt. Die Zeilen entstehen hier; verbunden werden sie mit dem
+-- Anmeldekonto, sobald der Betreiber es in Supabase unter derselben Adresse
+-- anlegt. Ein dritter Zugang scheitert am Riegel users_one_account_per_role.
+-- Die Adressen lassen sich vor dem ersten Einspielen ändern — danach über
+-- pcc.prepare_account() im SQL-Editor.
+-- -----------------------------------------------------------------------------
+select pcc.prepare_account('team@aviationacademy.at',   'team',   'Projektteam');
+select pcc.prepare_account('viewer@aviationacademy.at', 'viewer', 'Lesezugang');
 
 -- -----------------------------------------------------------------------------
 -- Welche Ereignisse eine neue Projektversion erzeugen (Abschnitt 6).
@@ -35,8 +47,8 @@ insert into pcc.settings (key, value, description) values
   ('documents', jsonb_build_object(
       'max_size_mb', 50,
       'bucket', 'project-docs',
-      'quarantine_prefix', 'quarantine/',
-      'allowed', jsonb_build_array('application/pdf','image/png','image/jpeg','text/plain',
+      'allowed', jsonb_build_array('application/pdf','image/png','image/jpeg','text/plain','text/csv',
+        'application/msword','application/vnd.ms-excel','application/vnd.ms-powerpoint',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'application/vnd.openxmlformats-officedocument.presentationml.presentation')),
@@ -80,5 +92,8 @@ on conflict (name) do nothing;
 insert into pcc.changelog (version, released_on, notes_de, notes_en) values
   ('1.0.0', date '2026-09-18',
    'Project Control Center: Datenmodell, Rechte, Versionierung, Dokumente und Tageslauf in der Datenbank.',
-   'Project Control Center: data model, permissions, versioning, documents and daily jobs in the database.')
+   'Project Control Center: data model, permissions, versioning, documents and daily jobs in the database.'),
+  ('1.1.0', date '2026-09-19',
+   'Zwei Zugänge statt fünf Rollen, Dateien an Aufgaben, sofortiges Speichern, Exporte mit Stand.',
+   'Two accounts instead of five roles, files on tasks, instant saving, exports stamped with their state.')
 on conflict (version) do nothing;

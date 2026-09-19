@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthProvider'
 export function AppShell() {
   const { t } = useTranslation()
   const { profile, signOut, setLanguage } = useAuth()
-  const isAdmin = profile?.role === 'super_admin' || profile?.role === 'admin'
+  const isTeam = profile?.role === 'team'
 
   return (
     <div className="shell">
@@ -20,7 +20,7 @@ export function AppShell() {
           <NavLink to="/tasks">{t('nav.tasks')}</NavLink>
           <NavLink to="/risks">{t('nav.risks')}</NavLink>
           <NavLink to="/reports">{t('nav.reports')}</NavLink>
-          {isAdmin && <NavLink to="/admin">{t('nav.admin')}</NavLink>}
+          {isTeam && <NavLink to="/admin">{t('nav.admin')}</NavLink>}
         </nav>
         <div className="user">
           <span className="name">

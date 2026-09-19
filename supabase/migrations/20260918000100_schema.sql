@@ -1,6 +1,6 @@
 -- =============================================================================
--- Project Control Center — Schema 1.0.0
--- Migration 1/5: Erweiterungen, gemeinsame Tabellen, Enums, Tabellen, Indizes
+-- Project Control Center — Schema 1.1.0
+-- Migration 1/6: Erweiterungen, gemeinsame Tabellen, Enums, Tabellen, Indizes
 -- Referenz: docs/ARCHITECTURE.md Abschnitte 3, 4, 6, 7a
 --
 -- Aufteilung: Nutzerkonto und Audit-Trail liegen in public, weil sie an der
@@ -16,7 +16,10 @@ create schema if not exists pcc;
 -- Enums. Die Werte sind identisch mit den Statuslisten des Prototyps, damit
 -- Oberfläche und Datenbank dieselbe Sprache sprechen.
 -- -----------------------------------------------------------------------------
-create type pcc.user_role as enum ('super_admin', 'admin', 'pm', 'contributor', 'viewer');
+-- Entschieden am 19.09.2026: es gibt genau zwei Zugänge. 'team' darf alles,
+-- 'viewer' darf nur lesen und ausgeben. Beide werden gemeinsam benutzt — wer
+-- am Werkzeug arbeitet, wählt sich danach aus dem Personenverzeichnis.
+create type pcc.user_role as enum ('team', 'viewer');
 
 create type pcc.project_status as enum (
   'not_started', 'started', 'on_track', 'at_risk', 'delayed', 'cancelled', 'completed'
@@ -47,41 +50,52 @@ create type pcc.notification_kind as enum (
 );
 
 -- -----------------------------------------------------------------------------
--- Nutzerkonten
--- Abschnitt 4: Selbstregistrierung ist erlaubt, erzeugt aber ein gesperrtes
--- Konto ohne Rolle. Eine NULL-Rolle sperrt die Anwendung vollständig, weil
--- keine einzige Policy greift.
+-- Personen und Zugänge
+-- Abschnitt 4, neu gefasst am 19.09.2026: Wer im Werkzeug vorkommt, ist nicht
+-- dasselbe wie wer sich anmeldet. public.users ist das Personenverzeichnis —
+-- Zuständigkeiten, Verantwortung und RACI zeigen darauf. Nur zwei dieser
+-- Zeilen tragen einen Zugang (auth_user_id) und damit eine Rolle.
 -- -----------------------------------------------------------------------------
 create type public.ui_language as enum ('de', 'en');
 
 create table public.users (
-  -- Kein Kaskadenlöschen: ein entferntes Anmeldekonto darf das Profil nicht
-  -- stillschweigend mitnehmen, sonst verlöre der Trail seinen Bezug. Konten
-  -- werden gesperrt oder pseudonymisiert (Abschnitt 7b), nie gelöscht.
-  id            uuid primary key references auth.users (id) on delete restrict,
+  id            uuid primary key default gen_random_uuid(),
+  -- Der Zugang. Kein Kaskadenlöschen: ein entferntes Anmeldekonto darf die
+  -- Person nicht mitnehmen, sonst verlöre der Trail seinen Bezug.
+  auth_user_id  uuid unique references auth.users (id) on delete restrict,
   name          text not null check (length(trim(name)) > 0),
   email         text not null unique,
+  job_title     text,
   role          pcc.user_role,
-  active        boolean not null default false,
-  pending       boolean not null default true,
+  active        boolean not null default true,
   language      public.ui_language not null default 'de',
-  approved_at   timestamptz,
-  approved_by   uuid references public.users (id),
-  registered_at timestamptz,
   created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
+  updated_at    timestamptz not null default now(),
+  -- Ein Anmeldekonto ohne Rolle wäre eine Anmeldung ohne jedes Recht — und
+  -- damit ein stiller Fehler. Umgekehrt ist eine Rolle ohne Anmeldekonto der
+  -- vorbereitete Zugang: er wartet darauf, dass der Betreiber das Konto unter
+  -- derselben Adresse anlegt.
+  check (auth_user_id is null or role is not null)
 );
-comment on table public.users is 'Nutzerprofil. Entsteht bei der Anmeldung gesperrt und ohne Rolle; freigegeben wird durch den Super Admin.';
-comment on column public.users.role is 'Rolle im Project Control Center. NULL: kein Zugang.';
-comment on column public.users.pending is 'Selbstregistrierung, noch nicht freigegeben (Abschnitt 4).';
-create index users_pending_idx on public.users (pending) where pending;
+comment on table public.users is 'Personenverzeichnis. Genau zwei Zeilen tragen einen Zugang: der Teamzugang (alles) und der Lesezugang.';
+comment on column public.users.role is 'Nur bei den beiden Zugangskonten gesetzt. NULL: Person ohne eigene Anmeldung.';
+comment on column public.users.auth_user_id is 'Verbindung zum Anmeldekonto in auth.users. NULL bei allen übrigen Personen.';
+comment on column public.users.job_title is 'Funktion im Haus. Steuert keine Rechte, erklärt nur, wer da vor einem steht.';
+-- Zwei Zugänge, nicht drei: je Rolle höchstens ein Konto. Der Riegel liegt im
+-- Schema, damit ihn auch ein direkter Eingriff in der Datenbank nicht umgeht.
+create unique index users_one_account_per_role on public.users (role) where role is not null;
+create index users_active_idx on public.users (active) where active;
 
 -- -----------------------------------------------------------------------------
 -- Audit-Trail. Unveränderlich, nicht löschbar (RLS und Trigger).
 -- -----------------------------------------------------------------------------
 create table public.audit_log (
   id          bigint generated always as identity primary key,
+  -- user_id ist der Zugang (beweiskräftig), actor_id die Person, die sich
+  -- beim Anmelden dazu bekannt hat (Angabe der Oberfläche, nicht beweisbar).
+  -- Bei einem gemeinsam benutzten Zugang ist das der bestmögliche Nachweis.
   user_id     uuid,
+  actor_id    uuid,
   project_id  uuid,
   entity      text not null,
   entity_id   text not null,
@@ -95,6 +109,7 @@ comment on table public.audit_log is 'Vollständiger Audit-Trail. Jede Änderung
 create index audit_log_entity_idx on public.audit_log (entity, entity_id, created_at);
 create index audit_log_project_idx on public.audit_log (project_id, created_at);
 create index audit_log_user_idx on public.audit_log (user_id, created_at);
+create index audit_log_actor_idx on public.audit_log (actor_id, created_at);
 create index audit_log_created_idx on public.audit_log (created_at);
 
 -- -----------------------------------------------------------------------------
@@ -397,7 +412,7 @@ create table pcc.documents (
 );
 comment on table pcc.documents is 'Dokument. Eine neue Fassung löst die alte über supersedes_id ab, statt sie zu überschreiben (Abschnitt 7a).';
 comment on column pcc.documents.size_bytes is 'Harte Grenze 50 MB je Datei. Größeres bleibt extern.';
-comment on column pcc.documents.storage_path is 'Objektname im Bucket project-docs, immer <projekt-id>/<datei>.';
+comment on column pcc.documents.storage_path is 'Objektname im Bucket project-docs. Beginnt mit der Projektkennung; an einer Aufgabe abgelegte Dateien liegen unter <projekt-id>/<aufgaben-id>/<datei>.';
 create index documents_project_idx on pcc.documents (project_id) where deleted_at is null;
 create index documents_entity_idx on pcc.documents (entity_type, entity_id);
 create index documents_owner_idx on pcc.documents (owner_user_id);
@@ -525,7 +540,9 @@ begin
             detail = 'Geladen: ' || new.updated_at || ', aktuell: ' || old.updated_at;
   end if;
   new.updated_at := now();
-  new.updated_by := coalesce(auth.uid(), new.updated_by);
+  -- Wer geändert hat: die von der Oberfläche benannte Person, sofern sie im
+  -- Verzeichnis steht — sonst der angemeldete Zugang.
+  new.updated_by := pcc.actor_or(new.updated_by);
   return new;
 end $$;
 
