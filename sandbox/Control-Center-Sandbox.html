@@ -42,6 +42,14 @@ button:disabled{cursor:not-allowed}
 .brand em{font-style:normal;color:var(--navy-400)}
 .brand span{color:var(--navy-400);font-weight:400;font-size:12px;letter-spacing:.04em}
 .topbar .spacer{flex:1}
+/* Zurück und Start stehen dort, wo man sie sucht: ganz links, vor allem
+   anderen, auf jeder Seite an derselben Stelle. */
+.navbtns{display:flex;gap:6px;flex:0 0 auto}
+.nvb{display:inline-flex;align-items:center;gap:6px;border:1px solid #24405F;border-radius:var(--r);
+  color:#9DB4CC;background:transparent;padding:5px 10px;font-size:12px;white-space:nowrap;min-height:32px}
+.nvb:hover:not(:disabled){background:var(--navy-700);color:#fff}
+.nvb:disabled{opacity:.4;cursor:default}
+.nvb span[aria-hidden]{font-size:14px;line-height:1}
 /* Suche über alles. Sie sitzt in der Kopfzeile, weil sie zu keinem Bereich
    gehört — und über allen. */
 .gsearch{position:relative;flex:1 1 180px;min-width:0;max-width:320px}
@@ -496,7 +504,10 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- Tablet ---------- */
 @media(max-width:1100px){
   /* Sobald die Seitenleiste weicht, wird auch die Kopfzeile eng: der
-     Personenwechsel trägt ab hier die Initialen statt der Beschriftung. */
+     Personenwechsel trägt ab hier die Initialen statt der Beschriftung,
+     Zurück und Start nur noch ihr Zeichen. */
+  .nvb .lbl{display:none}
+  .nvb{padding:5px 9px}
   .topbar .userchip .sw .lbl{display:none}
   .topbar .userchip .sw .ini2{display:inline}
   .app{grid-template-columns:minmax(0,1fr)}
@@ -551,12 +562,26 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
   .sandbar .sp{flex-basis:100%;min-width:100%;height:0}
   .sandbar .clock{font-size:11.5px}
 }
+
+/* Auf schmalen Telefonen reicht die Kopfzeile für Zurück, Start, Marke, Suche,
+   Person und Sprache nicht mehr. Die Marke ist dort das Entbehrlichste: dass
+   dies das Control Center ist, weiß, wer es geöffnet hat — die Reiterleiste
+   darunter sagt, wo man steht. */
+@media(max-width:480px){
+  .brand{display:none}
+  .nvb{padding:5px 8px}
+  .topbar{gap:6px}
+}
 </style>
 
 <div class="login" id="login"></div>
 
 <div class="app" id="app">
   <div class="topbar">
+    <div class="navbtns">
+      <button class="nvb" id="navBack" disabled><span aria-hidden="true">←</span><span class="lbl"></span></button>
+      <button class="nvb" id="navHome"><span aria-hidden="true">⌂</span><span class="lbl"></span></button>
+    </div>
     <div class="brand">Control Center <span id="brandSub">Sandbox</span></div>
     <div class="gsearch">
       <input type="search" id="gq" autocomplete="off" aria-label="Suche">
@@ -604,6 +629,8 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- i18n ---------- */
 const I = {
 de:{
+  nav_back:"Zurück",
+  nav_home:"Dashboard",
   act_dec:"Entscheidung festhalten",
   col_sub:"Teilaufgabe",
   act_sub:"Teilaufgabe anlegen",
@@ -1058,6 +1085,8 @@ de:{
   ver_t:"Versionsverlauf"
 },
 en:{
+  nav_back:"Back",
+  nav_home:"Dashboard",
   act_dec:"Record a decision",
   col_sub:"Subtask",
   act_sub:"Add subtask",
@@ -1930,6 +1959,13 @@ function wireExports() {
 /* ---------- Render: Chrome ---------- */
 function renderTop() {
   document.getElementById("brandSub").textContent = t("sub");
+  const nb = document.getElementById("navBack"), nh = document.getElementById("navHome");
+  nb.querySelector(".lbl").textContent = t("nav_back");
+  nh.querySelector(".lbl").textContent = t("nav_home");
+  nb.title = t("nav_back"); nb.setAttribute("aria-label", t("nav_back"));
+  nh.title = t("nav_home"); nh.setAttribute("aria-label", t("nav_home"));
+  nb.onclick = navBack;
+  nh.onclick = navHome;
   document.getElementById("gq").placeholder = t("gs_ph");
   const u = M();
   document.getElementById("userchip").innerHTML =
@@ -2047,6 +2083,12 @@ function renderMain() {
   const restore = () => { if (ws) { ws.dataset.view = vkey; ws.scrollTop = keepTop; } };
   setTimeout(restore, 0); restore();
   renderPcc(m);
+  /* Jede Navigation kommt hier vorbei — ein Ansichtswechsel zeichnet nur den
+     Hauptbereich neu, nicht die ganze Seite. Deshalb wird der Verlauf hier
+     fortgeschrieben und nicht in render(). */
+  navTrack();
+  const zb = document.getElementById("navBack");
+  if (zb) zb.disabled = NAV.length < 2;
 }
 
 /* ---------- Wiring ---------- */
@@ -2613,7 +2655,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
-const APP_VERSION = "1.8.1";
+const APP_VERSION = "1.9.0";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert
@@ -4948,6 +4990,32 @@ function pccDoc(kind) {
         rows:p.versions.map(v => [v.v, fmtLong(v.date), pName(v.by), evText(v.summary)]) }] };
   }
 }
+
+/* ---------- Wo war ich vorher? ----------
+   Der Verlauf hält jede Ansicht fest, die wirklich gezeichnet wurde — nicht
+   jeden Klick. Wer zweimal denselben Reiter wählt, bekommt keinen doppelten
+   Eintrag, und der Rücksprung landet dort, wo er erwartet wird. Erfasst wird
+   in render(): so muss kein einziger Knopf daran denken. */
+const NAV = [];
+const navNow = () => pv + "|" + (pProject || "") + "|" + pTab;
+function navTrack() {
+  if (!(ACCESS && me)) { NAV.length = 0; return; }
+  if (NAV[NAV.length - 1] !== navNow()) NAV.push(navNow());
+  /* Der Verlauf einer Sitzung, nicht der eines Tages: fünfzig Schritte
+     reichen, danach fällt der älteste heraus. */
+  if (NAV.length > 50) NAV.shift();
+}
+function navBack() {
+  if (NAV.length < 2) return;
+  NAV.pop();
+  const [v, prj, tab] = NAV[NAV.length - 1].split("|");
+  pv = v; pProject = prj || null; pTab = tab;
+  /* Ein Projekt, das inzwischen verworfen wurde, gibt es nicht mehr. Dann
+     führt der Weg zurück auf die Projektliste statt ins Leere. */
+  if (pProject && !pById(pProject)) { pProject = null; pv = "projects"; }
+  render();
+}
+function navHome() { pProject = null; pv = "dash"; render(); }
 
 function render() {
   const inApp = !!(ACCESS && me);

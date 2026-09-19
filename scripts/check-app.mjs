@@ -395,6 +395,65 @@ const frischeKennung = await page.evaluate(() => {
 ok('Eine neu angelegte Aufgabe bekommt eine freie Kennung', frischeKennung.frei,
   `vergeben: ${frischeKennung.id}`)
 
+// ------------------------------------------------------- Zurück und Start
+// Auf jeder Seite erreichbar: ein Schritt zurück und der Weg zum Dashboard.
+await frei()
+await page.evaluate(() => { pProject = null; pv = 'dash'; pTab = 'overview'; render() })
+await wait(300)
+ok('Der Zurück-Knopf steht in der Kopfzeile', !!(await $('#navBack')))
+ok('Der Start-Knopf steht in der Kopfzeile', !!(await $('#navHome')))
+ok('Auf der ersten Seite ist Zurück nicht bedienbar',
+  await page.evaluate(() => document.getElementById('navBack').disabled))
+
+await click('[data-v="projects"]', 'Zu den Projekten')
+ok('Danach ist Zurück bedienbar',
+  await page.evaluate(() => !document.getElementById('navBack').disabled))
+await click('[data-v="risks"]', 'Weiter zu den Risiken')
+await click('#navBack', 'Einen Schritt zurück')
+ok('Zurück führt auf die vorherige Ansicht', (await state()).view === 'projects',
+  `${(await state()).view}`)
+await click('#navBack', 'Noch einen Schritt zurück')
+ok('Zweimal Zurück führt bis zum Anfang', (await state()).view === 'dash')
+ok('Am Anfang ist Zurück wieder gesperrt',
+  await page.evaluate(() => document.getElementById('navBack').disabled))
+
+// Über Ansichten hinweg: Projektakte, Reiter, zurück
+await click('[data-v="projects"]')
+await click('[data-pp]', 'Projekt öffnen')
+await click('[data-ptab="tasks"]', 'Reiter Aufgaben')
+await click('[data-ptab="risks"]', 'Reiter Risiken')
+await click('#navBack')
+ok('Zurück wechselt auch den Reiter', await page.evaluate(() => pTab === 'tasks'), await page.evaluate(() => pTab))
+await click('#navBack')
+ok('Zurück verlässt danach den ersten Reiter', await page.evaluate(() => pTab === 'overview'))
+await click('#navBack')
+ok('Zurück schließt die Projektakte wieder', (await state()).project === null)
+
+// Start führt von überall zum Dashboard
+await click('[data-v="projects"]')
+await click('[data-pp]')
+await click('[data-ptab="docs"]')
+await click('#navHome', 'Start aus der Projektakte')
+const heim = await state()
+ok('Start führt zum Dashboard', heim.view === 'dash' && heim.project === null,
+  `${heim.view}, Projekt ${heim.project}`)
+ok('Nach Start bleibt der Weg zurück offen',
+  await page.evaluate(() => !document.getElementById('navBack').disabled))
+await click('#navBack', 'Von Start aus zurück')
+ok('Zurück führt in die Projektakte zurück', (await state()).project !== null)
+
+// Ein verworfenes Projekt darf kein Rücksprungziel bleiben
+await page.evaluate(() => {
+  const p = pById(pProject)
+  PROJECTS.splice(PROJECTS.indexOf(p), 1)
+  pProject = null; pv = 'dash'; render()
+})
+await wait(250)
+await click('#navBack', 'Zurück auf ein verworfenes Projekt')
+ok('Ein verworfenes Projekt führt auf die Projektliste statt ins Leere',
+  (await state()).project === null && (await state()).view === 'projects',
+  `${(await state()).view}`)
+
 // ------------------------------------------------------- Pflegedialoge
 // Alles, was ein Team im Alltag ändert: Stand, Abschluss, Meilensteine,
 // Teilprojekte, Entscheidungen, Team, Personen, Verwerfen, Archiv.

@@ -122,5 +122,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'The academy''s project inventory is in place; sample data only appears in demo mode.'),
   ('1.8.1', date '2026-09-19',
    'Das ATR Finding ist Teilprojekt von SafetyManager 365.',
-   'The ATR finding is now a workstream of SafetyManager 365.')
+   'The ATR finding is now a workstream of SafetyManager 365.'),
+  ('1.9.0', date '2026-09-19',
+   'Zurück und Dashboard auf jeder Seite in der Kopfzeile.',
+   'Back and dashboard buttons in the header on every page.')
 on conflict (version) do nothing;

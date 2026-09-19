@@ -3,6 +3,29 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.9.0 — 2026-09-19
+
+### Zurück und Dashboard, auf jeder Seite an derselben Stelle
+
+Links in der Kopfzeile stehen jetzt zwei Knöpfe, überall erreichbar:
+
+- **Zurück** springt einen Schritt im Verlauf zurück — über Ansichten, Projekte
+  und Reiter hinweg. Auf der ersten Seite ist er sichtbar, aber gesperrt: ein
+  Knopf, der nichts tut, verwirrt mehr als einer, der grau ist.
+- **Dashboard** führt von überall zurück auf die Gesamtlage. Der Weg dorthin
+  steht selbst im Verlauf, man kann ihn also rückgängig machen.
+
+Der Verlauf hält bis zu fünfzig Schritte und wird dort fortgeschrieben, wo
+tatsächlich gezeichnet wird — ein Ansichtswechsel zeichnet nur den Hauptbereich
+neu, nicht die ganze Seite. Zweimal dieselbe Ansicht erzeugt keinen doppelten
+Eintrag. Führt ein Rücksprung auf ein inzwischen verworfenes Projekt, landet er
+auf der Projektliste statt im Leeren.
+
+Auf schmalen Telefonen tragen beide Knöpfe nur ihr Zeichen, und die Marke
+weicht: die Kopfzeile hatte für Zurück, Dashboard, Marke, Suche, Person und
+Sprache keinen Platz mehr. Genau das hat `check:layout` gemeldet, bevor es
+jemand zu sehen bekam — 126 Befunde auf den schmalen Geräten, alle behoben.
+
 ## 1.8.1 — 2026-09-19
 
 ### SafetyManager 365 statt eigenständigem ATR Finding
