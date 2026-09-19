@@ -3,6 +3,53 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.5.0 — 2026-09-19
+
+### Freigabeprüfung für den Teameinsatz
+
+Vor dem Einsatz im Team wurde die Anwendung Knopf für Knopf, Ablauf für Ablauf
+durchgesehen. Ergebnis: sie konnte anlegen, aber nicht pflegen. Was einmal
+eingetragen war, ließ sich weder bearbeiten noch abschließen noch verwerfen.
+Das ist jetzt geschlossen. Der vollständige Befund mit Ampel steht in
+[`AUDIT-ROLLOUT.md`](AUDIT-ROLLOUT.md).
+
+- **Bearbeiten in jedem Bereich.** Aufgaben (Stand, Fortschritt, Termine,
+  Zuständigkeit, Vorgänger mit Kreisprüfung), Risiken (schließen, akzeptieren,
+  Maßnahme nachtragen), Probleme (lösen — ohne Lösungstext kein Abschluss),
+  Meilensteine, Teilprojekte, Entscheidungen, Teammitglieder und Rollen.
+- **Anlegen, was fehlte:** Meilensteine, Teilprojekte, Entscheidungen,
+  Teammitglieder und neue Personen im Verzeichnis — auch direkt aus der Anmeldung.
+- **Verwerfen mit Rückfrage.** Eine Aufgabe nimmt Teilaufgaben, Verbindungen
+  und Anhänge mit; nichts bleibt verwaist. Jeder Vorgang steht im Verlauf.
+- **Archivieren und wieder öffnen.** Mit Grund, schreibgeschützt, in den
+  Berichten weiterhin sichtbar, in der Projektliste über einen Schalter.
+- **Datensicherung.** Der gesamte Stand samt Anhängen als eine Datei — zum
+  Sichern, zum Gerätewechsel, zur Weitergabe. Einspielen ersetzt den Stand auf
+  dem Gerät und weist fremde Dateien ab.
+- **Zurücksetzen fragt nach** und weist auf die Datensicherung hin.
+- **Zwei offene Fenster** derselben Anwendung gleichen sich ab, sobald eines
+  speichert — nicht mitten in einer Eingabe.
+- **Zeitreise wird nicht mehr mitgespeichert.** Wer die Sandbox-Uhr verschoben
+  hat, startet am nächsten Tag wieder in der Gegenwart.
+- **Ausgaben gehärtet:** Zellen, die Excel als Formel läse, werden
+  entschärft; Zeilenumbrüche zerreißen keine Kalenderdatei mehr; Namen in
+  Ausgaben und Tooltips sind konsequent maskiert.
+
+### Prüfläufe vor jeder Fassung
+
+`npm run verify` läuft vor jedem Commit und in der CI bei jedem Push:
+
+| Prüflauf | Was er abdeckt | Umfang |
+|---|---|---|
+| `typecheck` | React-Gerüst und Typen gegen das Schema | — |
+| `check:logic` | Rechenregeln (Risikostufen, Terminnetz, Ampel, Fortschritt), Ausgabeschutz, Kalenderdatei, Speicherstand, Wortschatz in beiden Sprachen, Versionsnummer an allen Stellen | 58 Prüfungen |
+| `check:sandbox` | Laufzeitfehler und Überlauf bei 1440, 1024 und 390 px, beide Zugänge, englische Fassung | 3 Breiten |
+| `check:app` | Jeder Knopf, jeder Dialog samt Pflichtfeldern, jede Ausgabe, Suche, Kalender, Zeitreise, Speicherung über einen Neustart, Rechte des Lesezugangs, Bearbeiten/Verwerfen/Archiv/Sicherung, HTML in Eingaben | 215 Prüfungen |
+| `db:check` | Migrationen, Seed und SQL-Tests in einer frischen Datenbank; bricht ab, wenn stillschweigend weniger als 175 Prüfungen laufen | 181 Prüfungen |
+
+Die Regeln dazu stehen in `CLAUDE.md` und gelten für jede Sitzung: nie mit
+rotem Prüflauf committen, jeder neue Knopf bekommt seine Prüfung im selben Commit.
+
 ## 1.4.0 — 2026-09-19
 
 ### Die Risikomatrix erklärt sich jetzt selbst

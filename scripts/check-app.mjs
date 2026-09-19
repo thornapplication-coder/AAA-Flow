@@ -359,9 +359,241 @@ ok('Die angelegte Aufgabe ist noch da', await page.evaluate(() =>
 ok('Die angehängte Datei ist noch da', await page.evaluate(() =>
   PROJECTS.some((p) => p.docs.some((d) => d.title === 'Prüfdatei'))))
 
+// ------------------------------------------------------- Pflegedialoge
+// Alles, was ein Team im Alltag ändert: Stand, Abschluss, Meilensteine,
+// Teilprojekte, Entscheidungen, Team, Personen, Verwerfen, Archiv.
+await frei()
+await page.evaluate(() => { pProject = null; pv = 'projects'; render() })
+await wait(300)
+await click('[data-pp]', 'Projekt für die Pflegedialoge öffnen')
+await click('[data-ptab="tasks"]')
+
+// Aufgabe bearbeiten: Fortschritt außerhalb 0–100 wird abgewiesen
+if (await click('[data-ptedit]', 'Aufgabe bearbeiten öffnen')) {
+  const id = await page.evaluate(() => dlg && dlg.cfg.title.split(' · ')[0])
+  await page.selectOption('[data-f="status"]', 'in_progress')
+  await page.fill('[data-f="progress"]', '200')
+  await click('#mOk')
+  ok('Ein Fortschritt über 100 wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="progress"]', '50')
+  await click('#mOk', 'Aufgabe speichern')
+  ok('Die Aufgabe trägt den neuen Stand', await page.evaluate((ref) =>
+    pById(pProject).tasks.some((x) => x.ref === ref && x.progress === 50 && x.status === 'in_progress'), id))
+}
+// Erledigt über den Dialog setzt Fortschritt und Datum
+if (await click('[data-ptedit]')) {
+  const id = await page.evaluate(() => dlg.cfg.title.split(' · ')[0])
+  await page.selectOption('[data-f="status"]', 'completed')
+  await click('#mOk')
+  ok('Erledigt im Dialog setzt 100 % und ein Datum', await page.evaluate((ref) => {
+    const x = pById(pProject).tasks.find((y) => y.ref === ref)
+    return x && x.progress === 100 && !!x.done
+  }, id))
+}
+
+// Risiko schließen
+await click('[data-ptab="risks"]')
+if (await click('[data-predit]', 'Risiko bearbeiten öffnen')) {
+  const id = await page.evaluate(() => dlg.cfg.title.split(' · ')[0])
+  await page.selectOption('[data-f="status"]', 'closed')
+  await click('#mOk', 'Risiko speichern')
+  ok('Das Risiko ist geschlossen', await page.evaluate((ref) =>
+    pById(pProject).risks.some((r) => r.ref === ref && r.status === 'closed'), id))
+}
+
+// Problem lösen: ohne Lösung kein Abschluss
+await click('[data-ptab="issues"]')
+if (await click('[data-piedit]', 'Problem bearbeiten öffnen')) {
+  const id = await page.evaluate(() => dlg.cfg.title.split(' · ')[0])
+  await page.selectOption('[data-f="status"]', 'resolved')
+  await wait(200)
+  await page.fill('[data-f="resolution"]', '')
+  await click('#mOk')
+  ok('Gelöst ohne Lösungstext wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="resolution"]', 'Im Funktionstest gelöst.')
+  await click('#mOk', 'Problem speichern')
+  ok('Das Problem ist gelöst und trägt die Lösung', await page.evaluate((ref) =>
+    pById(pProject).issues.some((i) => i.ref === ref && i.status === 'resolved' && i.resolution.length > 5), id))
+}
+
+// Meilenstein anlegen und bearbeiten
+await click('[data-ptab="timeline"]')
+const vorMs = await page.evaluate(() => pById(pProject).ms.length)
+if (await click('[data-pmsnew]', 'Meilenstein anlegen öffnen')) {
+  await page.fill('[data-f="name"]', 'Prüfmeilenstein')
+  await page.fill('[data-f="date"]', '')
+  await click('#mOk')
+  ok('Ein Meilenstein ohne Datum wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="date"]', '2026-12-15')
+  await click('#mOk', 'Meilenstein anlegen')
+  ok('Der Meilenstein wurde angelegt', (await page.evaluate(() => pById(pProject).ms.length)) === vorMs + 1)
+}
+if (await click('[data-pmsedit]', 'Meilenstein bearbeiten öffnen')) {
+  await page.selectOption('[data-f="status"]', 'completed')
+  await click('#mOk', 'Meilenstein speichern')
+  ok('Der Meilenstein ist abgeschlossen', await page.evaluate(() =>
+    pById(pProject).ms.some((m) => m.status === 'completed')))
+}
+
+// Teilprojekt: doppelter Name wird abgewiesen
+const vorWs = await page.evaluate(() => pById(pProject).ws.length)
+const ersterWs = await page.evaluate(() => pById(pProject).ws[0] && pById(pProject).ws[0].name)
+if (await click('[data-pwsnew]', 'Teilprojekt anlegen öffnen')) {
+  if (ersterWs) {
+    await page.fill('[data-f="name"]', ersterWs)
+    await click('#mOk')
+    ok('Ein doppelter Teilprojektname wird abgewiesen', await page.evaluate(() => !!dlg))
+  }
+  await page.fill('[data-f="name"]', 'Prüf-Teilprojekt')
+  await click('#mOk', 'Teilprojekt anlegen')
+  ok('Das Teilprojekt wurde angelegt', (await page.evaluate(() => pById(pProject).ws.length)) === vorWs + 1)
+  ok('Das Teilprojekt steht im Gantt', await page.evaluate(() =>
+    document.getElementById('main').innerText.includes('Prüf-Teilprojekt')))
+}
+if (await click('[data-pwsedit]', 'Teilprojekt bearbeiten öffnen')) await click('#mCancel')
+
+// Entscheidung
+await click('[data-ptab="decisions"]')
+const vorDec = await page.evaluate(() => pById(pProject).decisions.length)
+if (await click('[data-pdecnew]', 'Entscheidung öffnen')) {
+  await page.fill('[data-f="topic"]', 'Prüfentscheidung')
+  await click('#mOk')
+  ok('Eine Entscheidung ohne Text wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="decision"]', 'Wir prüfen automatisch vor jeder Version.')
+  await click('#mOk', 'Entscheidung festhalten')
+  ok('Die Entscheidung ist festgehalten',
+    (await page.evaluate(() => pById(pProject).decisions.length)) === vorDec + 1)
+}
+
+// Team und Personen
+await click('[data-ptab="team"]')
+const vorTeam = await page.evaluate(() => pById(pProject).team.length)
+if (await click('[data-ptmadd]', 'Mitglied aufnehmen öffnen')) {
+  await click('#mOk')
+  ok('Ein Mitglied ohne Rolle wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="role"]', 'Prüfrolle')
+  await click('#mOk', 'Mitglied aufnehmen')
+  ok('Das Mitglied ist im Team', (await page.evaluate(() => pById(pProject).team.length)) === vorTeam + 1)
+}
+const letzterRm = (await page.$$('[data-ptmrm]:visible')).pop()
+if (letzterRm) {
+  await letzterRm.click(); await wait(250)
+  ok('Entfernen fragt nach', await page.evaluate(() => !!dlg))
+  await click('#mOk', 'Entfernen bestätigen')
+  ok('Das Mitglied ist wieder draußen', (await page.evaluate(() => pById(pProject).team.length)) === vorTeam)
+}
+const vorPersonen = await page.evaluate(() => USERS.length)
+if (await click('#pperson', 'Person anlegen öffnen')) {
+  await page.fill('[data-f="name"]', 'Einname')
+  await click('#mOk')
+  ok('Ein Name ohne Nachname wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="name"]', 'Prüf Person')
+  await page.fill('[data-f="email"]', 'kein-mail')
+  await click('#mOk')
+  ok('Eine ungültige E-Mail wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="email"]', '')
+  await click('#mOk', 'Person anlegen')
+  ok('Die Person ist im Verzeichnis', (await page.evaluate(() => USERS.length)) === vorPersonen + 1)
+  ok('Die Person hat eine abgeleitete Adresse', await page.evaluate(() =>
+    /@/.test((USERS.find((u) => u.name === 'Prüf Person') || {}).email || '')))
+}
+
+// Eingaben werden nie als HTML ausgeführt
+await click('[data-ptab="tasks"]')
+const giftig = '<img src=x onerror="window.__xss=1"> Prüf'
+if (await click('#pnewtask', 'Aufgabe mit HTML im Titel')) {
+  await page.fill('[data-f="title"]', giftig)
+  await click('#mOk')
+  await wait(300)
+  ok('HTML im Titel wird nicht ausgeführt', await page.evaluate(() => window.__xss === undefined))
+  ok('HTML im Titel erscheint als Text', await page.evaluate(() =>
+    document.getElementById('main').innerText.includes('<img src=x')))
+  await click('[data-v="dash"]'); await wait(200)
+  await page.fill('#gq', 'onerror'); await wait(400)
+  ok('Auch die Suche zeigt HTML nur als Text', await page.evaluate(() => window.__xss === undefined))
+  await frei()
+  await click('[data-v="projects"]'); await click('[data-pp]'); await click('[data-ptab="tasks"]')
+}
+
+// Verwerfen: mit Rückfrage, samt Verbindungen
+const giftId = await page.evaluate(() =>
+  (pById(pProject).tasks.find((x) => x.title.includes('onerror')) || {}).id)
+if (giftId) {
+  const vorT = await page.evaluate(() => pById(pProject).tasks.length)
+  await click(`[data-pdisc="task|${giftId}"]`, 'Aufgabe verwerfen')
+  ok('Verwerfen fragt nach', await page.evaluate(() => !!dlg))
+  await click('#mCancel')
+  ok('Abbrechen behält die Aufgabe', (await page.evaluate(() => pById(pProject).tasks.length)) === vorT)
+  await click(`[data-pdisc="task|${giftId}"]`)
+  await click('#mOk', 'Verwerfen bestätigen')
+  ok('Die Aufgabe ist verworfen', (await page.evaluate(() => pById(pProject).tasks.length)) === vorT - 1)
+  ok('Keine Verbindung zeigt mehr auf sie', await page.evaluate((id) =>
+    !(pById(pProject).links || []).some((l) => l.from === id || l.to === id), giftId))
+}
+
+// Archiv: Grund nötig, danach schreibgeschützt, wieder zu öffnen
+const archKey = await page.evaluate(() => pById(pProject).key)
+if (await click('#parchive', 'Archivieren öffnen')) {
+  await click('#mOk')
+  ok('Archivieren ohne Grund wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="reason"]', 'Funktionstest: Archiv prüfen')
+  await click('#mOk', 'Archivieren')
+  ok('Das Projekt ist archiviert', await page.evaluate((k) =>
+    PROJECTS.find((p) => p.key === k).archived === true, archKey))
+  ok('Archiviert schließt die Akte', (await state()).project === null)
+  await click('[data-v="projects"]')
+  ok('Archivierte sind standardmäßig ausgeblendet', await page.evaluate((k) =>
+    !document.getElementById('main').innerText.includes(k), archKey))
+  const schalter = await $('#parch')
+  ok('Es gibt einen Schalter für Archivierte', !!schalter)
+  if (schalter) {
+    await schalter.click(); await wait(250)
+    ok('Mit Schalter erscheint das Archivierte', await page.evaluate((k) =>
+      document.getElementById('main').innerText.includes(k), archKey))
+  }
+  await page.evaluate((k) => { pProject = PROJECTS.find((p) => p.key === k).id; render() }, archKey)
+  await wait(250)
+  ok('Ein archiviertes Projekt ist schreibgeschützt', await page.evaluate(() => pCanEdit(pById(pProject)) === false))
+  ok('Der Weg zurück ist da', !!(await $('#punarchive')))
+  await click('#punarchive', 'Wieder öffnen')
+  await click('#mOk', 'Wieder öffnen bestätigen')
+  ok('Das Projekt ist wieder offen', await page.evaluate((k) =>
+    PROJECTS.find((p) => p.key === k).archived === false, archKey))
+  await page.evaluate(() => { PF.archived = false })
+}
+
+// Datensicherung
+await frei()
+await page.evaluate(() => { pProject = null; pv = 'reports'; render() })
+await wait(300)
+ok('Der Zeitstand wird nicht mitgespeichert', await page.evaluate(() => !('clock' in storeSnapshot())))
+if (await click('#bkexport', 'Datensicherung herunterladen')) await wait(600)
+const sicherung = await page.evaluate(() => JSON.stringify(Object.assign(
+  { kind: 'pcc-backup', app: APP_VERSION, people: USERS.filter((u) => u.added), files: {} }, storeSnapshot())))
+const vorImport = await state()
+if (await click('#bkimport', 'Datensicherung einspielen öffnen')) {
+  await click('#mOk')
+  ok('Einspielen ohne Datei wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.setInputFiles('[data-ff="file"]', { name: 'kaputt.json', mimeType: 'application/json', buffer: Buffer.from('{"kind":"x"}') })
+  await click('#mOk')
+  await wait(300)
+  ok('Eine fremde Datei wird abgewiesen', (await state()).projekte === vorImport.projekte)
+  await frei()
+  await click('#bkimport')
+  await page.setInputFiles('[data-ff="file"]', { name: 'sicherung.json', mimeType: 'application/json', buffer: Buffer.from(sicherung) })
+  await click('#mOk', 'Sicherung einspielen')
+  await wait(500)
+  ok('Die Sicherung ist eingespielt', (await state()).projekte === vorImport.projekte)
+}
+
 // ------------------------------------------------------------- Zurücksetzen
 await frei()
 await click('#sbReset', 'Sandbox zurücksetzen')
+ok('Zurücksetzen fragt nach', await page.evaluate(() => !!dlg))
+await click('#mCancel')
+ok('Abbrechen behält den Speicher', await page.evaluate(() => !!localStorage.getItem('pcc.sandbox.v1')))
+await click('#sbReset')
+await Promise.all([page.waitForNavigation({ waitUntil: 'load' }).catch(() => {}), click('#mOk', 'Zurücksetzen bestätigen')])
 await wait(800)
 ok('Zurücksetzen leert den Speicher', await page.evaluate(() =>
   !localStorage.getItem('pcc.sandbox.v1')))

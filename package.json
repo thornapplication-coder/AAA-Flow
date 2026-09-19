@@ -1,7 +1,7 @@
 {
   "name": "project-control-center",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Project Control Center — Projektsteuerung der Aviation Academy Austria",
   "type": "module",
   "scripts": {
@@ -11,7 +11,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "db:check": "./scripts/db-check.sh",
     "check:sandbox": "node scripts/check-sandbox.mjs",
-    "check:app": "node scripts/check-app.mjs"
+    "check:app": "node scripts/check-app.mjs",
+    "check:logic": "node scripts/check-logic.mjs",
+    "verify": "npm run typecheck && npm run check:logic && npm run check:sandbox && npm run check:app",
+    "verify:db": "npm run verify && npm run db:check"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.114.0",

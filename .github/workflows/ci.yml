@@ -33,6 +33,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      # Rechenregeln, Wortschatz und Versionsstand — schnell und ohne Klicken.
+      - run: npm run check:logic
       - run: npm run check:sandbox
       # Der Funktionsdurchlauf: jeder Knopf, jeder Dialog, jede Ausgabe, beide
       # Zugänge, Speicherung und Rechte. Läuft vor jeder Weitergabe ans Team.

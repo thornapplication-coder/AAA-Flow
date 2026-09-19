@@ -338,6 +338,8 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .grow.group{background:var(--surface-2);border-bottom:1px solid var(--line);min-height:38px}
 .grow .gnm{flex:0 0 var(--gnm);padding:6px 12px 6px 0;min-width:0;font-size:13px}
 .grow .gnm b{font-weight:600}
+.glnk{color:var(--navy-600);font-size:12px;padding:0 4px;opacity:.7}
+.glnk:hover{opacity:1}
 .grow .gnm .gt{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .grow .gnm .co{display:block;font-size:11px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .grow.sub .gnm{padding-left:16px}
@@ -583,6 +585,84 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- i18n ---------- */
 const I = {
 de:{
+  act_dec:"Entscheidung festhalten",
+  act_ms:"Meilenstein anlegen",
+  act_person:"Person anlegen",
+  act_team:"Mitglied aufnehmen",
+  act_ws:"Teilprojekt anlegen",
+  arch_h:"Ein archiviertes Projekt bleibt lesbar und in den Berichten, ist aber schreibgeschützt. Der Grund steht im Verlauf.",
+  arch_reason:"Grund",
+  arch_show:"Archivierte anzeigen",
+  arch_state:"archiviert",
+  arch_t:"Archivieren",
+  arch_undo:"Wieder öffnen",
+  arch_undo_q:"{n} wieder öffnen? Das Projekt wird wieder bearbeitbar.",
+  bk_export:"Datensicherung herunterladen",
+  bk_h:"Der Prototyp speichert nur auf diesem Gerät. Eine Datensicherung ist der einzige Weg, den Stand zu sichern, auf ein anderes Gerät zu bringen oder im Team weiterzugeben.",
+  bk_import:"Datensicherung einspielen",
+  bk_import_h:"Ersetzt den gesamten Stand auf diesem Gerät durch den Inhalt der Datei. Was hier nicht gesichert ist, geht dabei verloren.",
+  bk_files:"Dateien",
+  bk_t:"Datensicherung",
+  bk_toolarge:"Die Anhänge sind zusammen größer als 25 MB und bleiben außen vor. Die Angaben zu ihnen werden mitgesichert.",
+  dec_h:"Was wurde entschieden, warum, und was folgt daraus? Eine Entscheidung ohne Begründung lässt sich später nicht mehr nachvollziehen.",
+  disc_q:"{x} verwerfen?",
+  disc_t:"Verwerfen",
+  disc_task_x:"Die Teilaufgaben ({n}), Verbindungen und Anhänge werden mit verworfen.",
+  disc_ws_x:"Die Aufgaben darin ({n}) bleiben erhalten und stehen danach ohne Teilprojekt.",
+  discard:"Verwerfen",
+  e_cycle:"Diese Abhängigkeit schließt einen Kreis.",
+  e_dec:"Bitte die Entscheidung im Wortlaut festhalten.",
+  e_mail:"Das sieht nicht nach einer E-Mail-Adresse aus.",
+  e_msdate:"Ein Termin gehört dazu.",
+  e_person:"Bitte Vor- und Nachname angeben.",
+  e_persondup:"Diese Person steht bereits im Verzeichnis.",
+  e_prog:"Der Fortschritt liegt zwischen 0 und 100.",
+  e_reason:"Bitte einen Grund angeben (mindestens 5 Zeichen).",
+  e_res:"Gelöst ohne zu sagen wie, ist nicht gelöst. Bitte die Lösung festhalten.",
+  e_role:"Bitte eine Projektrolle angeben.",
+  e_wsdup:"Ein Teilprojekt mit diesem Namen gibt es schon.",
+  ed_prog_done:"Erledigt zählt als 100 %.",
+  ed_res_h:"Pflicht, sobald das Problem als gelöst oder geschlossen gilt.",
+  ed_rstatus_h:"Gemindert, geschlossen oder akzeptiert nimmt das Risiko aus der Matrix.",
+  ev_archived:"Projekt archiviert: {x}",
+  ev_decedit:"Entscheidung geändert: {x}",
+  ev_decnew:"Entscheidung festgehalten: {x}",
+  ev_discard:"Verworfen: {x}",
+  ev_iedit:"Problem geändert: {x}",
+  ev_iresolved:"Problem gelöst: {x}",
+  ev_msedit:"Meilenstein geändert: {x}",
+  ev_msmoved:"Meilenstein verschoben: {x}",
+  ev_msnew:"Meilenstein angelegt: {x}",
+  ev_person:"Person aufgenommen: {x}",
+  ev_rclosed:"Risiko geschlossen: {x}",
+  ev_redit:"Risiko geändert: {x}",
+  ev_restored:"Datensicherung eingespielt",
+  ev_tassign:"Aufgabe zugewiesen: {x}",
+  ev_tedit:"Aufgabe geändert: {x}",
+  ev_tmadd:"Ins Team aufgenommen: {x}",
+  ev_tmedit:"Teamrolle geändert: {x}",
+  ev_tmremove:"Aus dem Team entfernt: {x}",
+  ev_tstatus:"Aufgabenstatus: {x}",
+  ev_unarchived:"Projekt wieder geöffnet: {x}",
+  ev_wsedit:"Teilprojekt geändert: {x}",
+  ev_wsnew:"Teilprojekt angelegt: {x}",
+  person_h:"Personen tragen Aufgaben und Verantwortung, melden sich aber nicht selbst an — es gibt genau zwei Zugänge.",
+  sb_reset_q:"Alle Daten auf diesem Gerät löschen und den Ausgangszustand wiederherstellen? Das lässt sich nicht rückgängig machen. Vorher eine Datensicherung herunterladen.",
+  sb_synced:"Stand aus einem anderen Fenster übernommen.",
+  t_archived:"{n} archiviert.",
+  t_backup:"Datensicherung erzeugt.",
+  t_discarded:"{x} verworfen.",
+  t_person:"{n} ins Verzeichnis aufgenommen.",
+  t_restored:"Datensicherung eingespielt: {p} Projekte, {f} Dateien.",
+  tm_add:"Aufnehmen",
+  tm_ext:"nicht im Team",
+  tm_nofree:"Alle Personen aus dem Verzeichnis sind bereits im Team. Neue Personen legen Sie über „Person anlegen\" an.",
+  tm_pm:"Die Projektleitung bleibt im Team. Wechseln Sie sie zuerst über „Bearbeiten\".",
+  tm_remove:"Aus dem Team entfernen",
+  tm_remove_q:"{n} aus dem Team entfernen? Zugewiesene Aufgaben bleiben bestehen.",
+  usr_fn:"Funktion",
+  e_bkfile:"Bitte eine Datensicherung (.json) wählen.",
+  e_bkbad:"Diese Datei ist keine Datensicherung des Control Centers.",
   solo_ok:"Verstanden",
   solo_s:"Dieser Prototyp speichert auf diesem Gerät, nicht in einer gemeinsamen Datenbank. Jede Person sieht ihren eigenen Stand — Änderungen der Kolleginnen und Kollegen erscheinen hier nicht. Für das gemeinsame Arbeiten im Team ist die Supabase-Instanz nötig; die Datenbank dafür ist fertig und geprüft.",
   solo_t:"Zum Ausprobieren, noch nicht zum gemeinsamen Arbeiten.",
@@ -950,6 +1030,84 @@ de:{
   ver_t:"Versionsverlauf"
 },
 en:{
+  act_dec:"Record a decision",
+  act_ms:"Add milestone",
+  act_person:"Add person",
+  act_team:"Add member",
+  act_ws:"Add workstream",
+  arch_h:"An archived project stays readable and in the reports, but is read-only. The reason goes into the history.",
+  arch_reason:"Reason",
+  arch_show:"Show archived",
+  arch_state:"archived",
+  arch_t:"Archive",
+  arch_undo:"Reopen",
+  arch_undo_q:"Reopen {n}? The project becomes editable again.",
+  bk_export:"Download backup",
+  bk_h:"The prototype saves on this device only. A backup is the only way to secure the state, move it to another device or hand it on within the team.",
+  bk_import:"Restore backup",
+  bk_import_h:"Replaces the entire state on this device with the content of the file. Anything not backed up here is lost.",
+  bk_files:"files",
+  bk_t:"Backup",
+  bk_toolarge:"The attachments exceed 25 MB together and are left out. Their details are included.",
+  dec_h:"What was decided, why, and what follows? A decision without a rationale cannot be traced later.",
+  disc_q:"Discard {x}?",
+  disc_t:"Discard",
+  disc_task_x:"Its subtasks ({n}), links and attachments are discarded with it.",
+  disc_ws_x:"The tasks in it ({n}) remain and will be without a workstream.",
+  discard:"Discard",
+  e_cycle:"This dependency closes a cycle.",
+  e_dec:"Please record the decision in words.",
+  e_mail:"That does not look like an email address.",
+  e_msdate:"A date is required.",
+  e_person:"Please give first and last name.",
+  e_persondup:"This person is already in the directory.",
+  e_prog:"Progress is between 0 and 100.",
+  e_reason:"Please give a reason (at least 5 characters).",
+  e_res:"Resolved without saying how is not resolved. Please record the resolution.",
+  e_role:"Please give a project role.",
+  e_wsdup:"A workstream with this name already exists.",
+  ed_prog_done:"Completed counts as 100 %.",
+  ed_res_h:"Required once the issue counts as resolved or closed.",
+  ed_rstatus_h:"Mitigated, closed or accepted takes the risk out of the matrix.",
+  ev_archived:"Project archived: {x}",
+  ev_decedit:"Decision changed: {x}",
+  ev_decnew:"Decision recorded: {x}",
+  ev_discard:"Discarded: {x}",
+  ev_iedit:"Issue changed: {x}",
+  ev_iresolved:"Issue resolved: {x}",
+  ev_msedit:"Milestone changed: {x}",
+  ev_msmoved:"Milestone moved: {x}",
+  ev_msnew:"Milestone added: {x}",
+  ev_person:"Person added: {x}",
+  ev_rclosed:"Risk closed: {x}",
+  ev_redit:"Risk changed: {x}",
+  ev_restored:"Backup restored",
+  ev_tassign:"Task assigned: {x}",
+  ev_tedit:"Task changed: {x}",
+  ev_tmadd:"Added to the team: {x}",
+  ev_tmedit:"Team role changed: {x}",
+  ev_tmremove:"Removed from the team: {x}",
+  ev_tstatus:"Task status: {x}",
+  ev_unarchived:"Project reopened: {x}",
+  ev_wsedit:"Workstream changed: {x}",
+  ev_wsnew:"Workstream added: {x}",
+  person_h:"People carry tasks and responsibility but do not sign in themselves — there are exactly two accounts.",
+  sb_reset_q:"Delete all data on this device and restore the initial state? This cannot be undone. Download a backup first.",
+  sb_synced:"State taken over from another window.",
+  t_archived:"{n} archived.",
+  t_backup:"Backup created.",
+  t_discarded:"{x} discarded.",
+  t_person:"{n} added to the directory.",
+  t_restored:"Backup restored: {p} projects, {f} files.",
+  tm_add:"Add",
+  tm_ext:"not in team",
+  tm_nofree:"Everyone in the directory is already on the team. Add new people via “Add person”.",
+  tm_pm:"The project manager stays on the team. Change them first via “Edit”.",
+  tm_remove:"Remove from team",
+  tm_remove_q:"Remove {n} from the team? Assigned tasks remain.",
+  usr_fn:"Function",
+  e_bkfile:"Please pick a backup file (.json).",
+  e_bkbad:"This file is not a Control Center backup.",
   solo_ok:"Understood",
   solo_s:"This prototype saves on this device, not in a shared database. Everyone sees their own state — changes made by colleagues do not appear here. Working together needs the Supabase instance; the database for it is finished and tested.",
   solo_t:"For trying out, not yet for working together.",
@@ -1599,13 +1757,19 @@ function openPrint(kind, keepScroll) {
     try { window.print(); } catch (e) { /* Vorschau blockiert den Druckdialog — Ansicht bleibt sichtbar */ }
   }
 }
+/* Ein Feld, das mit = + - @ beginnt, führt Excel als Formel aus. Ein
+   Apostroph davor macht daraus Text — sichtbar, aber ungefährlich. */
+const tsvSafe = v => {
+  const s = String(v == null ? "" : v).replace(/[\t\r\n]/g, " ");
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
+};
 function exportTsv(kind) {
   const def = docDef(kind);
   const lines = [def.title, t("exp_state") + "\t" + expStamp(), ""];
   def.sections.forEach(sec => {
     if (sec.h) lines.push(sec.h);
     lines.push(sec.cols.join("\t"));
-    sec.rows.forEach(r => lines.push(r.map(v => String(v == null ? "" : v).replace(/[\t\n]/g, " ")).join("\t")));
+    sec.rows.forEach(r => lines.push(r.map(v => tsvSafe(v)).join("\t")));
     lines.push("");
   });
   return lines.join("\n").trim();
@@ -1701,7 +1865,9 @@ function renderLogin() {
           <span class="rl">${t("ac_viewer_s").replace(/.*/, t("ac_team_s"))}</span></span></button>
     </div></div>
     <div class="fine">${t("ac_pick_s")}</div>
+    <button class="go" id="lgPerson" style="background:transparent;border:1px solid #24405F">${t("act_person")}</button>
     <button class="go" id="lgBack" style="background:transparent;border:1px solid #24405F">${t("ac_back")}</button>`);
+  document.getElementById("lgPerson").onclick = pDialogPerson;
   document.querySelectorAll("[data-login]").forEach(b => b.onclick = () => {
     me = b.dataset.login; pv = "dash"; pProject = null; commit(); render();
     toast(t("lg_ok", { n:M().name }));
@@ -1726,7 +1892,8 @@ function renderSandbar() {
      <button data-tr="31">+31 ${t("days")}</button>
      <button class="reset" id="sbReset">↺ ${t("sb_reset")}</button>`;
   document.querySelectorAll("[data-tr]").forEach(b => b.onclick = () => travel(+b.dataset.tr));
-  document.getElementById("sbReset").onclick = () => { storeClear(); location.reload(); };
+  document.getElementById("sbReset").onclick = () =>
+    confirmDialog(t("sb_reset"), t("sb_reset_q"), t("sb_reset"), () => { storeClear(); location.reload(); });
 }
 function renderNav() {
   const n = pccNavItems(), u = M();
@@ -1801,7 +1968,7 @@ document.querySelectorAll(".topbar .lang button").forEach(b => b.onclick = () =>
 const P_STATUS = ["not_started","started","on_track","at_risk","delayed","cancelled","completed"];
 const P_PRIO = ["Low","Medium","High","Critical"];
 let pv = "dash", pProject = null, pTab = "overview";
-let PF = { q:"", status:"", pm:"", health:"" };
+let PF = { q:"", status:"", pm:"", health:"", archived:false };
 /* Die Erklärung der Risikomatrix steht beim ersten Mal offen. Wer sie kennt,
    klappt sie zu — und das bleibt so, auch nach dem Neuladen. */
 let MXOPEN = true;
@@ -1827,8 +1994,17 @@ function mkProject(o) {
   PROJECTS.push(p);
   return p;
 }
+/* Die nächste freie Nummer je Art. Nach einem Verwerfen darf eine Nummer nie
+   ein zweites Mal vergeben werden — im Gespräch zeigt man auf sie. */
+function nextRef(list, prefix) {
+  const n = list.reduce((a, x) => {
+    const m = new RegExp("^" + prefix + "-(\\d+)$").exec(x.ref || "");
+    return m ? Math.max(a, +m[1]) : a;
+  }, 0);
+  return prefix + "-" + (n + 1);
+}
 function mkTask(p, o) {
-  const tk = Object.assign({ id:pid(), ref:"T-" + (p.tasks.length + 1), parent:null,
+  const tk = Object.assign({ id:pid(), ref:nextRef(p.tasks, "T"), parent:null,
     status:"not_started", prio:"Medium", progress:0, sub:[] }, o);
   p.tasks.push(tk); return tk;
 }
@@ -1839,7 +2015,8 @@ function mkSub(p, parent, title, status, assignee, done) {
     start:parent.start, due:parent.due, prio:parent.prio,
     done:done || null, progress:status === "completed" ? 100 : 0 });
 }
-const pUser = id => user(id).name;
+const pName = id => user(id).name;            // roh: Ausgaben, Kalender, Tooltips
+const pUser = id => esc(user(id).name);       // maskiert: alles, was in HTML landet
 
 /* 1 — Simulator, im Plan */
 const P1 = mkProject({ key:"SIM-26", name:"CL650 Full Flight Simulator Introduction",
@@ -2239,6 +2416,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
+const APP_VERSION = "1.5.0";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert
@@ -2271,8 +2449,8 @@ const FILES = (() => {
 })();
 
 function storeSnapshot() {
-  return { rev:DATA_REV, at:new Date().toISOString(), clock:CLOCK, access:ACCESS, me,
-           mxopen:MXOPEN, solo:SOLO_SEEN,
+  return { rev:DATA_REV, at:new Date().toISOString(), access:ACCESS, me,
+           mxopen:MXOPEN, solo:SOLO_SEEN, version:APP_VERSION,
            projects:PROJECTS, log:PLOG,
            /* Nur die selbst angelegten Personen: die Demoliste steht im Code. */
            people:USERS.filter(u => u.added) };
@@ -2293,7 +2471,6 @@ function storeLoad() {
     PROJECTS.length = 0; d.projects.forEach(x => PROJECTS.push(x));
     PLOG.length = 0; d.log.forEach(x => PLOG.push(x));
     (d.people || []).forEach(u => { if (!USERS.some(x => x.id === u.id)) USERS.push(u); });
-    CLOCK = d.clock || 0;
     ACCESS = d.access || null;
     me = d.me || null;
     if (typeof d.mxopen === "boolean") MXOPEN = d.mxopen;
@@ -2305,6 +2482,57 @@ function storeLoad() {
 }
 function storeClear() {
   try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+}
+
+/* Datensicherung: der ganze Stand als Datei, wahlweise mit den Anhängen. Für
+   ein Werkzeug, das nur auf dem Gerät speichert, ist das der einzige Weg zu
+   einem Backup, zu einem Gerätewechsel — und zur Weitergabe im Team. */
+const BK_MAX = 25 * 1048576;
+async function backupExport() {
+  const snap = storeSnapshot();
+  const docs = PROJECTS.flatMap(p => (p.docs || []).filter(d => d.kind === "file" && !d.deleted));
+  const total = docs.reduce((a, d) => a + (d.bytes || 0), 0);
+  const files = {};
+  let withFiles = total <= BK_MAX;
+  if (withFiles) {
+    for (const d of docs) {
+      const blob = await FILES.get(d.id);
+      if (!blob) continue;
+      files[d.id] = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+    }
+  }
+  const out = Object.assign({ kind:"pcc-backup", app:APP_VERSION, exported:new Date().toISOString(),
+    people:USERS.filter(u => u.added), files }, snap);
+  docSave("control-center-" + today() + ".json", new Blob([JSON.stringify(out)], { type:"application/json" }));
+  toast(withFiles ? t("t_backup") : t("bk_toolarge"), !withFiles);
+}
+function backupImport(file) {
+  const r = new FileReader();
+  r.onload = async () => {
+    let d;
+    try { d = JSON.parse(r.result); } catch (e) { return toast(t("e_bkbad"), true); }
+    if (!d || d.kind !== "pcc-backup" || !Array.isArray(d.projects)) return toast(t("e_bkbad"), true);
+    PROJECTS.length = 0; d.projects.forEach(x => PROJECTS.push(x));
+    PLOG.length = 0; (d.log || []).forEach(x => PLOG.push(x));
+    (d.people || []).forEach(u => { if (!USERS.some(x => x.id === u.id)) USERS.push(u); });
+    let n = 0;
+    for (const id of Object.keys(d.files || {})) {
+      try { const blob = await (await fetch(d.files[id])).blob(); await FILES.put(id, blob); n++; } catch (e) {}
+    }
+    plg(null, me, { k:"ev_restored" });
+    toast(t("t_restored", { p:PROJECTS.length, f:n }));
+    commit(); render();
+  };
+  r.readAsText(file);
+}
+function pDialogRestore() {
+  openDialog({
+    title:t("bk_import"), text:t("bk_import_h"), okLabel:t("bk_import"),
+    values:{ file:null },
+    build: () => [{ name:"file", label:t("bk_t"), type:"file", accept:".json,application/json", req:true }],
+    validate: v => !v.file ? [{ f:"file", m:t("e_bkfile") }] : [],
+    onSubmit: v => backupImport(v.file)
+  });
 }
 
 /* Der eine Weg, auf dem eine Änderung wirksam wird. Wer etwas ändert, ruft
@@ -2502,7 +2730,7 @@ function ganttHTML(p, forPrint) {
   };
   const gTip = x => [x.ref ? x.ref + " " + x.title : x.title,
     (x.start ? fmtLong(x.start) : "?") + " – " + (x.due ? fmtLong(x.due) : "?"),
-    x.assignee ? pUser(x.assignee) : null,
+    x.assignee ? pName(x.assignee) : null,
     x.status ? t("ts_" + x.status) : null].filter(Boolean).join(" · ");
 
   const track = inner => `<div class="gtrack">
@@ -2521,7 +2749,8 @@ function ganttHTML(p, forPrint) {
     const span = gSpan(all);
     const openN = all.filter(x => !pTaskDone(x)).length;
     rows.push(`<div class="grow group">
-      <div class="gnm"><b>${esc(g.name)}</b>
+      <div class="gnm"><b>${esc(g.name)}</b>${g.id && !forPrint && pCanEdit(p)
+        ? ` <button class="glnk" data-pwsedit="${g.id}" title="${esc(t("edit"))}">✎</button>` : ""}
         <span class="co">${all.length} ${t("pn_tasks")}${
           openN ? " · " + openN + " " + t("open").toLowerCase() : ""}${
           g.owner ? " · " + pUser(g.owner) : ""}</span></div>
@@ -2736,7 +2965,7 @@ function pccDash() {
           return `<li${p ? ` class="clickable" data-pp="${p.id}"` : ""}>
             <span class="when">${fmtDate(e.ts.slice(0,10))}</span>
             <span class="m"><b>${esc(evText(e.txt))}</b>
-              <span class="sub">${esc(pUser(e.who))}${p ? " · " + esc(p.key) : ""}</span></span>
+              <span class="sub">${pUser(e.who)}${p ? " · " + esc(p.key) : ""}</span></span>
           </li>`; }).join("")}</ul>
       </div>
     </div>`;
@@ -2791,7 +3020,7 @@ function tMatches(x) {
   return true;
 }
 function pFiltered() {
-  return pVisible().filter(p => {
+  return (PF.archived ? PROJECTS : pVisible()).filter(p => {
     if (PF.status && p.status !== PF.status) return false;
     if (PF.pm && p.pm !== PF.pm) return false;
     if (PF.q) {
@@ -2805,9 +3034,12 @@ function pFiltered() {
 }
 function pccProjects() {
   const rows = pFiltered();
-  if (!rows.length) return pFilterBar(0) +
+  const archToggle = PROJECTS.some(p => p.archived)
+    ? `<label class="co" style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+        <input type="checkbox" id="parch" ${PF.archived ? "checked" : ""}> ${t("arch_show")}</label>` : "";
+  if (!rows.length) return pFilterBar(0, archToggle) +
     `<div class="tblwrap"><div class="empty"><b>${t("p_noproj")}</b>${t("p_noproj_s")}</div></div>`;
-  return pFilterBar(rows.length) + `<div class="tblwrap aslist"><table><thead><tr>
+  return pFilterBar(rows.length, archToggle) + `<div class="tblwrap aslist"><table><thead><tr>
       <th>${t("f_key")}</th><th>${t("col_project")}</th><th>${t("col_health")}</th>
       <th>${t("col_status")}</th>
       <th>${t("col_progress")}</th><th>${t("col_pm")}</th><th>${t("f_end")}</th>
@@ -3029,6 +3261,13 @@ function pccReports() {
         </select>
         ${expBtns("pcc_weekly")}</div></div></div>
 
+    <div class="pcard"><header><h2>${t("bk_t")}</h2></header><div class="inner">
+      <p class="muted" style="margin-bottom:10px">${t("bk_h")}</p>
+      <div class="hdacts">
+        <button class="btn-primary" id="bkexport">${t("bk_export")}</button>
+        ${pIsAdmin() ? `<button class="btn-ghost" id="bkimport">${t("bk_import")}</button>` : ""}
+      </div></div></div>
+
     <div class="pcard"><header><h2>${t("pn_milestones")} · ${t("ics_all")}</h2></header><div class="inner">
       <p class="muted" style="margin-bottom:10px">${t("ics_h")}</p>
       <div class="hdacts">
@@ -3054,7 +3293,9 @@ function pHeader(p) {
     <div class="top">
       <h1>${esc(p.name)}</h1>
       <span class="hdacts">
-        ${canEdit ? `<button class="btn-ghost" id="pedit">${t("edit")}</button>` : ""}
+        ${canEdit ? `<button class="btn-ghost" id="pedit">${t("edit")}</button>
+          <button class="btn-ghost" id="parchive">${t("arch_t")}</button>` : ""}
+        ${p.archived && pIsAdmin() ? `<button class="btn-ghost" id="punarchive">${t("arch_undo")}</button>` : ""}
         <button class="btn-ghost" data-prep="pdf|${p.id}">${t("exp_pdf")}</button>
         <button class="btn-ghost" data-prep="xls|${p.id}">${t("exp_xls")}</button>
       </span>
@@ -3062,6 +3303,7 @@ function pHeader(p) {
     <div class="meta" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px">
       <span class="num">${esc(p.key)}</span>
       <span class="pill ${"s-" + p.status}">${t("lb_status")}: ${t("ps_" + p.status)}</span>
+      ${p.archived ? `<span class="pill p-open">${t("arch_state")}</span>` : ""}
       ${healthPill(p)}
       <span class="co">${esc(healthWhy(p))}</span>
     </div>
@@ -3133,7 +3375,9 @@ function pTabTasks(p) {
             `<button data-pdoc="${d.id}" title="${esc(d.title)}">${esc(docIcon(d))} ${esc(shortName(d))}</button>`).join("")
           }${may ? `<button data-pup="${x.id}" title="${esc(t("doc_up"))}">+</button>` : ""}</td>
         ${may ? `<td class="acts">${mine && !pTaskDone(x)
-          ? `<button data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}</td>` : ""}
+          ? `<button data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}
+          <button data-ptedit="${x.id}">${t("edit")}</button>
+          <button data-pdisc="task|${x.id}" title="${esc(t("disc_t"))}">✕</button></td>` : ""}
       </tr>`; }).join("") || `<tr><td colspan="${may ? 9 : 8}" class="muted">${t("p_none")}</td></tr>`}</tbody></table></div>
     <div class="cards">${rows.map(({x, sub}) => `<article class="card">
       <div class="top"><span class="num">${sub ? "↳ " : ""}${x.ref}</span>${pTaskPill(x)}</div>
@@ -3146,7 +3390,8 @@ function pTabTasks(p) {
           `<button class="btn-ghost" data-pdoc="${d.id}">${esc(docIcon(d))} ${esc(d.title)}</button>`).join("")}</div>` : ""}
       <div class="foot">
         ${pCanEdit(p) && !pTaskDone(x) ? `<button class="btn-ghost" data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}
-        ${may ? `<button class="btn-ghost" data-pup="${x.id}">${t("doc_up")}</button>` : ""}
+        ${may ? `<button class="btn-ghost" data-ptedit="${x.id}">${t("edit")}</button>
+                 <button class="btn-ghost" data-pup="${x.id}">${t("doc_up")}</button>` : ""}
       </div>
     </article>`).join("")}</div>`;
 }
@@ -3167,7 +3412,10 @@ function pTabRisks(p) {
         <div><div class="k">${t("f_cont")}</div><div class="v">${esc(r.conting)}</div></div>
         <div><div class="k">${t("col_cat")} · ${t("col_owner")} · ${t("col_due")}</div>
           <div class="v">${esc(r.cat)} · ${pUser(r.owner)} · ${fmtLong(r.due)}</div></div>
-      </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`}`;
+      </div>${pCanEdit(p) ? `<div class="inner hdacts" style="padding-top:0">
+        <button class="btn-ghost" data-predit="${r.id}">${t("edit")}</button>
+        <button class="btn-ghost" data-pdisc="risk|${r.id}">${t("disc_t")}</button></div>` : ""}</div>`).join("")
+      || `<p class="muted">${t("p_none")}</p>`}`;
 }
 function pTabIssues(p) {
   return `${pCanContribute(p) ? `<div class="hdacts" style="margin-bottom:12px">
@@ -3179,10 +3427,14 @@ function pTabIssues(p) {
       <div><div class="k">${t("f_desc")}</div><div class="v">${esc(i.description)}</div></div>
       <div><div class="k">${t("col_owner")} · ${t("col_due")}</div><div class="v">${pUser(i.owner)} · ${fmtLong(i.due)}</div></div>
       ${i.resolution ? `<div><div class="k">${t("f_res")}</div><div class="v">${esc(i.resolution)}</div></div>` : ""}
-    </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`}`;
+    </div>${pCanEdit(p) ? `<div class="inner hdacts" style="padding-top:0">
+      <button class="btn-ghost" data-piedit="${i.id}">${t("edit")}</button>
+      <button class="btn-ghost" data-pdisc="issue|${i.id}">${t("disc_t")}</button></div>` : ""}</div>`).join("")
+    || `<p class="muted">${t("p_none")}</p>`}`;
 }
 function pTabDecisions(p) {
-  return `<div class="hdacts" style="margin-bottom:12px">${expBtns("pcc_pdec")}</div>` +
+  return `<div class="hdacts" style="margin-bottom:12px">${pCanEdit(p)
+      ? `<button class="btn-primary" data-pdecnew="1">${t("act_dec")}</button>` : ""}${expBtns("pcc_pdec")}</div>` +
     p.decisions.map(d => `<div class="pcard"><header>
       <h2>${esc(d.ref)} · ${esc(d.topic)}</h2><span class="co">${fmtLong(d.date)}</span>
     </header><div class="inner kv2">
@@ -3191,7 +3443,10 @@ function pTabDecisions(p) {
       <div><div class="k">${t("f_imp2")}</div><div class="v">${esc(d.impact)}</div></div>
       <div><div class="k">${t("f_maker")} · ${t("f_part")}</div>
         <div class="v">${pUser(d.maker)} · ${d.participants.map(pUser).join(", ")}</div></div>
-    </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`;
+    </div>${pCanEdit(p) ? `<div class="inner hdacts" style="padding-top:0">
+      <button class="btn-ghost" data-pdecedit="${d.id}">${t("edit")}</button>
+      <button class="btn-ghost" data-pdisc="dec|${d.id}">${t("disc_t")}</button></div>` : ""}</div>`).join("")
+    || `<p class="muted">${t("p_none")}</p>`;
 }
 function pTabTeam(p) {
   /* RACI wird im Prototyp aus Projektrolle und Zuweisung abgeleitet:
@@ -3199,16 +3454,24 @@ function pTabTeam(p) {
   const letter = m => m.user === p.pm ? "A"
     : p.tasks.some(x => x.assignee === m.user) ? "R"
     : /Head|Supervisor|Compliance|Sponsor/.test(m.role) ? "C" : "I";
-  return `<div class="tblwrap aslist"><table><thead><tr>
-      <th>${t("usr_name")}</th><th>${t("f_prole")}</th><th>RACI</th><th>${t("f_resp")}</th><th>${t("usr_email")}</th>
-    </tr></thead><tbody>${p.team.length ? p.team.map(m => `<tr>
+  const may = pCanEdit(p);
+  return `${may ? `<div class="hdacts" style="margin-bottom:12px">
+      <button class="btn-primary" data-ptmadd="1">${t("act_team")}</button>
+      <button class="btn-ghost" id="pperson">${t("act_person")}</button></div>` : ""}
+    <div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("usr_name")}</th><th>${t("f_prole")}</th><th>RACI</th><th>${t("f_resp")}</th><th>${t("usr_email")}</th>${may ? "<th></th>" : ""}
+    </tr></thead><tbody>${p.team.length ? p.team.map((m, i) => `<tr>
       <td class="tn">${pUser(m.user)}</td><td class="co">${esc(m.role)}</td>
       <td><span class="raci ${letter(m)}">${letter(m)}</span></td>
       <td class="co">${esc(m.resp)}</td><td class="num">${esc(user(m.user).email || "")}</td>
-    </tr>`).join("") : `<tr><td colspan="5" class="muted">${t("p_none")}</td></tr>`}</tbody></table></div>
-    <div class="cards">${p.team.map(m => `<article class="card">
+      ${may ? `<td class="acts"><button data-ptmedit="${i}">${t("edit")}</button>
+        <button data-ptmrm="${i}" title="${esc(t("tm_remove"))}">✕</button></td>` : ""}
+    </tr>`).join("") : `<tr><td colspan="${may ? 6 : 5}" class="muted">${t("p_none")}</td></tr>`}</tbody></table></div>
+    <div class="cards">${p.team.map((m, i) => `<article class="card">
       <div class="top"><span class="raci ${letter(m)}">${letter(m)}</span><span class="num">${esc(m.role)}</span></div>
-      <h4>${pUser(m.user)}</h4><div class="sub"><span>${esc(m.resp)}</span></div></article>`).join("")}</div>
+      <h4>${pUser(m.user)}</h4><div class="sub"><span>${esc(m.resp)}</span></div>
+      ${may ? `<div class="foot"><button class="btn-ghost" data-ptmedit="${i}">${t("edit")}</button>
+        <button class="btn-ghost" data-ptmrm="${i}">${t("tm_remove")}</button></div>` : ""}</article>`).join("")}</div>
     <div class="notice" style="margin-top:14px">R = Responsible · A = Accountable · C = Consulted · I = Informed</div>`;
 }
 function pTabDocs(p) {
@@ -3252,7 +3515,7 @@ function pTabActivity(p) {
   return `<div class="hdacts" style="margin-bottom:12px">${expBtns("pcc_pact")}</div>
     <ul class="plist">${rows.map(e => `<li>
       <span class="when">${fmtDate(e.ts.slice(0,10))}</span>
-      <span class="m"><b>${esc(evText(e.txt))}</b><span class="sub">${esc(pUser(e.who))}</span></span>
+      <span class="m"><b>${esc(evText(e.txt))}</b><span class="sub">${pUser(e.who)}</span></span>
     </li>`).join("") || `<li class="muted">${t("p_none")}</li>`}</ul>`;
 }
 function pTabVersions(p) {
@@ -3273,13 +3536,15 @@ function pTabTimeline(p) {
      lässt, ohne den Balken zu deuten. */
   return `<div class="pcard"><header><h2>${t("g_t")}</h2>
       <span class="co">${p.ws.length} ${t("g_groups")} · ${p.tasks.length} ${t("pn_tasks")}</span>
-      <span class="hdacts"><button class="btn-ghost" id="picsproj">${t("ics_one")}</button>${expBtns("pcc_pgantt")}</span></header>
+      <span class="hdacts">${pCanEdit(p) ? `<button class="btn-primary" data-pwsnew="1">${t("act_ws")}</button>` : ""}
+        <button class="btn-ghost" id="picsproj">${t("ics_one")}</button>${expBtns("pcc_pgantt")}</span></header>
     <div class="inner">${ganttHTML(p)}</div></div>
     <div class="pcard"><header><h2>${t("pn_milestones")}</h2>
-      <span class="co">${ms.length} ${t("results")}</span></header>
+      <span class="co">${ms.length} ${t("results")}</span>
+      ${pCanEdit(p) ? `<span class="hdacts"><button class="btn-primary" data-pmsnew="1">${t("act_ms")}</button></span>` : ""}</header>
     ${ms.length ? `<div class="tblwrap aslist"><table><thead><tr>
       <th>${t("col_date")}</th><th>${t("col_title")}</th><th>${t("col_ws")}</th>
-      <th>${t("col_owner")}</th><th>${t("col_status")}</th>
+      <th>${t("col_owner")}</th><th>${t("col_status")}</th>${pCanEdit(p) ? "<th></th>" : ""}
     </tr></thead><tbody>${ms.map(m => `<tr>
       <td class="num">${fmtLong(m.date)}</td>
       <td><b>${esc(m.name)}</b><div class="num">${m.ref}</div></td>
@@ -3287,6 +3552,8 @@ function pTabTimeline(p) {
       <td class="co">${pUser(m.owner)}</td>
       <td>${pill(m.status === "completed" ? "p-done" : pMsOverdue(m) ? "p-late"
         : m.status === "in_progress" ? "p-work" : "p-open", t("ms_" + m.status))}</td>
+      ${pCanEdit(p) ? `<td class="acts"><button data-pmsedit="${m.id}">${t("edit")}</button>
+        <button data-pdisc="ms|${m.id}" title="${esc(t("disc_t"))}">✕</button></td>` : ""}
     </tr>`).join("")}</tbody></table></div>
     <div class="cards">${ms.map(m => `<article class="card">
       <div class="top"><span class="num">${m.ref}</span>${pill(m.status === "completed" ? "p-done"
@@ -3401,6 +3668,401 @@ function pDialogUpload(p, entity, entityId, label) {
       toast(t("t_docnew", { n:d.title }));
       commit(); render();
     }
+  });
+}
+
+/* ============================================================================
+   Pflege der Gegenstände (Audit vom 19.09.2026)
+   Anlegen allein macht kein Werkzeug: Ein Tippfehler muss korrigierbar sein,
+   ein Risiko schließbar, ein Problem lösbar, ein Meilenstein erreichbar. Jeder
+   Dialog hier schreibt seinen Vorgang in den Verlauf und speichert sofort.
+   ========================================================================== */
+
+/* Eine Rückfrage vor allem, was sich nicht ohne Weiteres zurücknehmen lässt. */
+function confirmDialog(title, text, okLabel, fn) {
+  openDialog({ title, text, okLabel,
+    values:{}, build: () => [{ type:"note", label:text }], validate: () => [],
+    onSubmit: fn });
+}
+
+const P_TSTATUS = ["not_started","in_progress","blocked","completed","cancelled"];
+const P_RSTATUS = ["open","monitoring","mitigated","closed","accepted"];
+const P_ISTATUS = ["open","in_progress","blocked","resolved","closed"];
+const P_MSTATUS = ["planned","in_progress","completed","delayed"];
+const teamOpts = p => p.team.map(m => ({ v:m.user, l:pName(m.user) }))
+  .concat(PEOPLE().filter(u => !p.team.some(m => m.user === u.id))
+    .sort(byName).map(u => ({ v:u.id, l:pName(u.id) + " (" + t("tm_ext") + ")" })));
+const wsOpts = p => [{ v:"", l:t("g_nogroup") }].concat(p.ws.map(w => ({ v:w.id, l:w.name })));
+
+/* ---------- Aufgabe bearbeiten ---------- */
+function pDialogEditTask(p, x) {
+  const others = pTop(p).filter(y => y.id !== x.id && !pTaskDone(y) && y.parent !== x.id);
+  openDialog({
+    title:x.ref + " · " + x.title, text:"", okLabel:t("save"),
+    values:{ title:x.title, ws:x.ws || "", assignee:x.assignee || "", prio:x.prio,
+             status:x.status, progress:String(x.progress || 0), start:x.start || "", due:x.due || "",
+             deps:(p.links || []).filter(l => l.to === x.id).map(l => l.from),
+             description:x.description || "" },
+    build: v => [
+      { name:"title", label:t("col_title"), type:"text", req:true },
+      { name:"ws", label:t("col_ws"), type:"select", half:true, options:wsOpts(p) },
+      { name:"assignee", label:t("col_assignee"), type:"select", half:true,
+        options:[{ v:"", l:t("none") }].concat(teamOpts(p)) },
+      { name:"status", label:t("col_status"), type:"select", half:true, reactive:true,
+        options:P_TSTATUS.map(st => ({ v:st, l:t("ts_" + st) })) },
+      { name:"prio", label:t("col_prio"), type:"select", half:true,
+        options:P_PRIO.map(pr => ({ v:pr, l:t("prio_" + pr) })) },
+      { name:"progress", label:t("col_progress") + " (%)", type:"number", half:true,
+        disabled:v.status === "completed" || v.status === "cancelled",
+        hint:v.status === "completed" ? t("ed_prog_done") : "" },
+      { name:"start", label:t("f_start"), type:"date", half:true },
+      { name:"due", label:t("col_due"), type:"date", half:true },
+      ...(x.parent ? [] : [{ name:"deps", label:t("g_dep"), type:"checks", hint:t("g_dep_h"),
+        options:others.map(y => ({ v:y.id, l:y.ref + " " + y.title })) }]),
+      { name:"description", label:t("f_desc"), type:"textarea" }
+    ],
+    validate: v => {
+      const e = [];
+      if ((v.title || "").trim().length < 3) e.push({ f:"title", m:t("e_pname") });
+      if (v.start && v.due && v.due < v.start) e.push({ f:"due", m:t("e_dates") });
+      const pr = +v.progress;
+      if (v.progress !== "" && (isNaN(pr) || pr < 0 || pr > 100)) e.push({ f:"progress", m:t("e_prog") });
+      // Ein Kreis darf auch über den Umweg „Bearbeiten" nicht entstehen.
+      if ((v.deps || []).some(id => reaches(p, x.id, id))) e.push({ f:"deps", m:t("e_cycle") });
+      return e;
+    },
+    onSubmit: v => {
+      const before = { status:x.status, due:x.due, assignee:x.assignee };
+      const done = v.status === "completed";
+      Object.assign(x, { title:v.title.trim(), ws:v.ws || null, assignee:v.assignee || null,
+        prio:v.prio, status:v.status, start:v.start || null, due:v.due || null,
+        description:v.description,
+        progress:done ? 100 : v.status === "cancelled" ? x.progress : Math.max(0, Math.min(100, +v.progress || 0)),
+        done:done ? (x.done || today()) : null });
+      if (!x.parent) {
+        p.links = (p.links || []).filter(l => l.to !== x.id)
+          .concat((v.deps || []).map(id => ({ from:id, to:x.id, kind:"fs", lag:0 })));
+      }
+      // Teilaufgaben folgen dem Teilprojekt ihres Elternteils.
+      p.tasks.filter(k => k.parent === x.id).forEach(k => { k.ws = x.ws; });
+      if (before.status !== x.status) plg(p, me, { k:"ev_tstatus", x:x.ref + " " + x.title + " → " + t("ts_" + x.status) });
+      else plg(p, me, { k:"ev_tedit", x:x.ref + " " + x.title });
+      if (before.assignee !== x.assignee && x.assignee) plg(p, me, { k:"ev_tassign", x:x.ref + " → " + pName(x.assignee) });
+      toast(t("t_ptask")); commit(); render();
+    }
+  });
+}
+/* Führt von a ein Weg zu b? Für die Kreisprüfung beim Bearbeiten. */
+function reaches(p, a, b) {
+  const seen = new Set(); const stack = [a];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (cur === b) return true;
+    if (seen.has(cur)) continue;
+    seen.add(cur);
+    (p.links || []).filter(l => l.from === cur).forEach(l => stack.push(l.to));
+  }
+  return false;
+}
+
+/* ---------- Risiko bearbeiten, schließen ---------- */
+function pDialogEditRisk(p, r) {
+  openDialog({
+    title:r.ref + " · " + r.title, text:t("p_score_h"), okLabel:t("save"),
+    values:{ title:r.title, cat:r.cat === "—" ? "" : r.cat, owner:r.owner || "", prob:String(r.prob),
+             imp:String(r.imp), status:r.status, due:r.due || "", description:r.description || "",
+             mitigation:r.mitigation || "", conting:r.conting || "" },
+    build: v => [
+      { name:"title", label:t("col_title"), type:"text", req:true },
+      { name:"cat", label:t("col_cat"), type:"text", half:true },
+      { name:"owner", label:t("col_owner"), type:"select", half:true, options:teamOpts(p) },
+      { name:"status", label:t("col_status"), type:"select",
+        options:P_RSTATUS.map(st => ({ v:st, l:t("rs_" + st) })), hint:t("ed_rstatus_h") },
+      { name:"prob", label:t("col_prob"), type:"select", reactive:true,
+        options:[1,2,3,4,5].map(i => ({ v:String(i), l:t("mx_prob" + i) })) },
+      { name:"imp", label:t("col_imp"), type:"select", reactive:true,
+        options:[1,2,3,4,5].map(i => ({ v:String(i), l:t("mx_imp" + i) })) },
+      { type:"note", label:`${t("mx_val")}: ${(+v.prob) * (+v.imp)} · ${
+          t("mx_lvl" + rLevel((+v.prob) * (+v.imp)))} — ${t("mx_act" + rLevel((+v.prob) * (+v.imp)))}` },
+      { name:"due", label:t("col_due"), type:"date", half:true },
+      { name:"description", label:t("f_desc"), type:"textarea" },
+      { name:"mitigation", label:t("f_mit"), type:"textarea" },
+      { name:"conting", label:t("f_cont"), type:"textarea" }
+    ],
+    validate: v => (v.title || "").trim().length < 3 ? [{ f:"title", m:t("e_pname") }] : [],
+    onSubmit: v => {
+      const wasOpen = ["open","monitoring"].includes(r.status), oldScore = rScore(r);
+      Object.assign(r, { title:v.title.trim(), cat:v.cat || "—", owner:v.owner, prob:+v.prob, imp:+v.imp,
+        status:v.status, due:v.due || null, description:v.description, mitigation:v.mitigation, conting:v.conting });
+      const nowOpen = ["open","monitoring"].includes(r.status);
+      if (wasOpen && !nowOpen) plg(p, me, { k:"ev_rclosed", x:r.ref + " " + r.title + " (" + t("rs_" + r.status) + ")" });
+      else plg(p, me, { k:"ev_redit", x:r.ref + " " + r.title });
+      if (rScore(r) >= 15 && oldScore < 15) pver(p, { k:"ev_critrisk", x:r.title },
+        [{ e:r.ref, f:t("col_score"), o:String(oldScore), n:String(rScore(r)) }]);
+      toast(t("t_psaved")); commit(); render();
+    }
+  });
+}
+
+/* ---------- Problem bearbeiten, lösen ---------- */
+function pDialogEditIssue(p, i) {
+  openDialog({
+    title:i.ref + " · " + i.title, text:"", okLabel:t("save"),
+    values:{ title:i.title, owner:i.owner || "", prio:i.prio, status:i.status, due:i.due || "",
+             description:i.description || "", resolution:i.resolution || "" },
+    build: v => [
+      { name:"title", label:t("col_title"), type:"text", req:true },
+      { name:"owner", label:t("col_owner"), type:"select", half:true, options:teamOpts(p) },
+      { name:"prio", label:t("col_prio"), type:"select", half:true,
+        options:P_PRIO.map(pr => ({ v:pr, l:t("prio_" + pr) })) },
+      { name:"status", label:t("col_status"), type:"select", half:true, reactive:true,
+        options:P_ISTATUS.map(st => ({ v:st, l:t("is_" + st) })) },
+      { name:"due", label:t("col_due"), type:"date", half:true },
+      { name:"description", label:t("f_desc"), type:"textarea" },
+      { name:"resolution", label:t("f_res"), type:"textarea",
+        req:["resolved","closed"].includes(v.status), hint:t("ed_res_h") }
+    ],
+    validate: v => {
+      const e = [];
+      if ((v.title || "").trim().length < 3) e.push({ f:"title", m:t("e_pname") });
+      // Gelöst ohne zu sagen wie, ist nicht gelöst — es ist vergessen.
+      if (["resolved","closed"].includes(v.status) && !(v.resolution || "").trim())
+        e.push({ f:"resolution", m:t("e_res") });
+      return e;
+    },
+    onSubmit: v => {
+      const was = i.status;
+      Object.assign(i, { title:v.title.trim(), owner:v.owner, prio:v.prio, status:v.status,
+        due:v.due || null, description:v.description, resolution:v.resolution });
+      if (was !== i.status && ["resolved","closed"].includes(i.status))
+        plg(p, me, { k:"ev_iresolved", x:i.ref + " " + i.title });
+      else plg(p, me, { k:"ev_iedit", x:i.ref + " " + i.title });
+      toast(t("t_psaved")); commit(); render();
+    }
+  });
+}
+
+/* ---------- Meilenstein anlegen, bearbeiten, erreichen ---------- */
+function pDialogMilestone(p, m) {
+  const neu = !m;
+  openDialog({
+    title:neu ? t("act_ms") : m.ref + " · " + m.name, text:"", okLabel:neu ? t("create") : t("save"),
+    values:neu ? { name:"", date:addBusinessDays(today(), 20), owner:p.pm, ws:(p.ws[0] || {}).id || "", status:"planned" }
+               : { name:m.name, date:m.date, owner:m.owner || "", ws:m.ws || "", status:m.status },
+    build: () => [
+      { name:"name", label:t("col_title"), type:"text", req:true },
+      { name:"date", label:t("col_date"), type:"date", req:true, half:true },
+      { name:"owner", label:t("col_owner"), type:"select", half:true, options:teamOpts(p) },
+      { name:"ws", label:t("col_ws"), type:"select", half:true, options:wsOpts(p) },
+      { name:"status", label:t("col_status"), type:"select", half:true,
+        options:P_MSTATUS.map(st => ({ v:st, l:t("ms_" + st) })) }
+    ],
+    validate: v => {
+      const e = [];
+      if ((v.name || "").trim().length < 3) e.push({ f:"name", m:t("e_pname") });
+      if (!v.date) e.push({ f:"date", m:t("e_msdate") });
+      return e;
+    },
+    onSubmit: v => {
+      if (neu) {
+        const ms = { id:pid(), ref:nextRef(p.ms, "M"), name:v.name.trim(), date:v.date, owner:v.owner,
+                     status:v.status, ws:v.ws || null };
+        p.ms.push(ms);
+        plg(p, me, { k:"ev_msnew", x:ms.ref + " " + ms.name });
+      } else {
+        const oldDate = m.date, oldStatus = m.status;
+        Object.assign(m, { name:v.name.trim(), date:v.date, owner:v.owner, status:v.status, ws:v.ws || null });
+        if (oldDate !== m.date) {
+          plg(p, me, { k:"ev_msmoved", x:m.ref + " " + m.name + ": " + fmtLong(oldDate) + " → " + fmtLong(m.date) });
+          pver(p, { k:"ev_msmoved", x:m.name },
+            [{ e:m.name, f:{ k:"col_date" }, o:fmtLong(oldDate), n:fmtLong(m.date) }]);
+        }
+        if (oldStatus !== "completed" && m.status === "completed") {
+          plg(p, me, { k:"ev_msdone", x:m.name });
+          pver(p, { k:"ev_msdone", x:m.name },
+            [{ e:m.name, f:{ k:"col_status" }, o:{ k:"ms_" + oldStatus }, n:{ k:"ms_completed" } }]);
+        } else if (oldStatus !== m.status) {
+          plg(p, me, { k:"ev_msedit", x:m.ref + " " + m.name });
+        }
+      }
+      toast(t("t_psaved")); commit(); render();
+    }
+  });
+}
+
+/* ---------- Teilprojekt anlegen, umbenennen ---------- */
+function pDialogWorkstream(p, w) {
+  const neu = !w;
+  openDialog({
+    title:neu ? t("act_ws") : w.name, text:"", okLabel:neu ? t("create") : t("save"),
+    values:neu ? { name:"", owner:p.pm } : { name:w.name, owner:w.owner || "" },
+    build: () => [
+      { name:"name", label:t("col_title"), type:"text", req:true },
+      { name:"owner", label:t("col_owner"), type:"select", options:teamOpts(p) }
+    ],
+    validate: v => {
+      const e = [];
+      if ((v.name || "").trim().length < 2) e.push({ f:"name", m:t("e_pname") });
+      if (p.ws.some(o => o !== w && o.name.toLowerCase() === (v.name || "").trim().toLowerCase()))
+        e.push({ f:"name", m:t("e_wsdup") });
+      return e;
+    },
+    onSubmit: v => {
+      if (neu) { p.ws.push({ id:pid(), name:v.name.trim(), owner:v.owner }); plg(p, me, { k:"ev_wsnew", x:v.name.trim() }); }
+      else { Object.assign(w, { name:v.name.trim(), owner:v.owner }); plg(p, me, { k:"ev_wsedit", x:w.name }); }
+      toast(t("t_psaved")); commit(); render();
+    }
+  });
+}
+
+/* ---------- Entscheidung festhalten ---------- */
+function pDialogDecision(p, d) {
+  const neu = !d;
+  openDialog({
+    title:neu ? t("act_dec") : d.ref + " · " + d.topic, text:t("dec_h"), okLabel:neu ? t("create") : t("save"),
+    values:neu ? { topic:"", decision:"", rationale:"", impact:"", maker:me === "uteam" ? p.pm : me,
+                   participants:[], date:today() }
+               : { topic:d.topic, decision:d.decision, rationale:d.rationale || "", impact:d.impact || "",
+                   maker:d.maker, participants:d.participants || [], date:d.date },
+    build: () => [
+      { name:"topic", label:t("col_title"), type:"text", req:true },
+      { name:"decision", label:t("tab_dec"), type:"textarea", req:true },
+      { name:"rationale", label:t("f_rat"), type:"textarea" },
+      { name:"impact", label:t("f_imp2"), type:"textarea" },
+      { name:"maker", label:t("f_maker"), type:"select", half:true, options:teamOpts(p) },
+      { name:"date", label:t("col_date"), type:"date", half:true, req:true },
+      { name:"participants", label:t("f_part"), type:"checks", options:teamOpts(p) }
+    ],
+    validate: v => {
+      const e = [];
+      if ((v.topic || "").trim().length < 3) e.push({ f:"topic", m:t("e_pname") });
+      if ((v.decision || "").trim().length < 3) e.push({ f:"decision", m:t("e_dec") });
+      if (!v.date) e.push({ f:"date", m:t("e_msdate") });
+      return e;
+    },
+    onSubmit: v => {
+      const vals = { topic:v.topic.trim(), decision:v.decision.trim(), rationale:v.rationale, impact:v.impact,
+                     maker:v.maker, participants:v.participants || [], date:v.date };
+      if (neu) { const nd = Object.assign({ id:pid(), ref:nextRef(p.decisions, "D") }, vals); p.decisions.push(nd);
+                 plg(p, me, { k:"ev_decnew", x:nd.ref + " " + nd.topic }); }
+      else { Object.assign(d, vals); plg(p, me, { k:"ev_decedit", x:d.ref + " " + d.topic }); }
+      toast(t("t_psaved")); commit(); render();
+    }
+  });
+}
+
+/* ---------- Team pflegen ---------- */
+function pDialogTeam(p, m) {
+  const neu = !m;
+  const free = PEOPLE().filter(u => !p.team.some(x => x.user === u.id)).sort(byName);
+  if (neu && !free.length) return toast(t("tm_nofree"), true);
+  openDialog({
+    title:neu ? t("act_team") : pName(m.user), text:"", okLabel:neu ? t("tm_add") : t("save"),
+    values:neu ? { user:free[0].id, role:"", resp:"" } : { user:m.user, role:m.role, resp:m.resp || "" },
+    build: () => [
+      { name:"user", label:t("usr_name"), type:"select", disabled:!neu, req:true,
+        options:(neu ? free : [user(m.user)]).map(u => ({ v:u.id, l:u.name + (u.fn ? " · " + u.fn : "") })) },
+      { name:"role", label:t("f_prole"), type:"text", req:true, placeholder:"Sponsor, Fachlicher Ansprechpartner …" },
+      { name:"resp", label:t("f_resp"), type:"textarea" }
+    ],
+    validate: v => (v.role || "").trim().length < 2 ? [{ f:"role", m:t("e_role") }] : [],
+    onSubmit: v => {
+      if (neu) { p.team.push({ user:v.user, role:v.role.trim(), resp:v.resp }); plg(p, me, { k:"ev_tmadd", x:pName(v.user) }); }
+      else { Object.assign(m, { role:v.role.trim(), resp:v.resp }); plg(p, me, { k:"ev_tmedit", x:pName(m.user) }); }
+      toast(t("t_psaved")); commit(); render();
+    }
+  });
+}
+function pRemoveTeam(p, m) {
+  if (m.user === p.pm) return toast(t("tm_pm"), true);
+  confirmDialog(t("tm_remove"), t("tm_remove_q", { n:pName(m.user) }), t("tm_remove"), () => {
+    p.team = p.team.filter(x => x !== m);
+    plg(p, me, { k:"ev_tmremove", x:pName(m.user) });
+    toast(t("t_psaved")); commit(); render();
+  });
+}
+
+/* ---------- Person im Verzeichnis anlegen ---------- */
+function pDialogPerson() {
+  if (!pIsAdmin()) return toast(t("p_noedit"), true);
+  openDialog({
+    title:t("act_person"), text:t("person_h"), okLabel:t("create"),
+    values:{ name:"", fn:"", email:"" },
+    build: v => [
+      { name:"name", label:t("usr_name"), type:"text", req:true },
+      { name:"fn", label:t("usr_fn"), type:"text", placeholder:"Training Admin, ATO, Sales …" },
+      { name:"email", label:t("usr_email"), type:"text", placeholder:(v.name || "").trim() ? mailFor(v.name) : "" }
+    ],
+    validate: v => {
+      const e = [];
+      const n = (v.name || "").trim();
+      if (n.length < 3 || !n.includes(" ")) e.push({ f:"name", m:t("e_person") });
+      if (USERS.some(u => u.name.toLowerCase() === n.toLowerCase())) e.push({ f:"name", m:t("e_persondup") });
+      const mail = (v.email || "").trim();
+      if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) e.push({ f:"email", m:t("e_mail") });
+      return e;
+    },
+    onSubmit: v => {
+      const u = { id:"u" + Date.now().toString(36), name:v.name.trim(), fn:(v.fn || "").trim(),
+                  email:(v.email || "").trim() || mailFor(v.name.trim()), active:true, added:true };
+      USERS.push(u);
+      plg(null, me, { k:"ev_person", x:u.name });
+      toast(t("t_person", { n:u.name })); commit(); render();
+    }
+  });
+}
+
+/* ---------- Verwerfen ---------- */
+/* Verworfen wird mit Rückfrage und Eintrag im Verlauf. Eine Aufgabe nimmt
+   ihre Teilaufgaben, Verbindungen und Anhänge mit; was an ihr hing, wäre
+   sonst verwaist. */
+function pDiscard(p, kind, obj) {
+  const label = { task:obj.ref + " " + obj.title, risk:obj.ref + " " + obj.title,
+                  issue:obj.ref + " " + obj.title, ms:obj.ref + " " + obj.name,
+                  dec:obj.ref + " " + obj.topic, ws:obj.name }[kind];
+  const extra = kind === "task" ? " " + t("disc_task_x", { n:p.tasks.filter(k => k.parent === obj.id).length })
+              : kind === "ws" ? " " + t("disc_ws_x", { n:p.tasks.filter(x => x.ws === obj.id).length }) : "";
+  confirmDialog(t("disc_t"), t("disc_q", { x:label }) + extra, t("disc_t"), () => {
+    if (kind === "task") {
+      const ids = [obj.id].concat(p.tasks.filter(k => k.parent === obj.id).map(k => k.id));
+      p.tasks = p.tasks.filter(x => !ids.includes(x.id));
+      p.links = (p.links || []).filter(l => !ids.includes(l.from) && !ids.includes(l.to));
+      (p.docs || []).filter(d => d.entity === "task" && ids.includes(d.entityId)).forEach(d => { d.deleted = true; FILES.del(d.id); });
+    }
+    if (kind === "risk") p.risks = p.risks.filter(x => x !== obj);
+    if (kind === "issue") p.issues = p.issues.filter(x => x !== obj);
+    if (kind === "ms") p.ms = p.ms.filter(x => x !== obj);
+    if (kind === "dec") p.decisions = p.decisions.filter(x => x !== obj);
+    if (kind === "ws") { p.ws = p.ws.filter(x => x !== obj);
+      p.tasks.filter(x => x.ws === obj.id).forEach(x => { x.ws = null; });
+      p.ms.filter(m => m.ws === obj.id).forEach(m => { m.ws = null; }); }
+    plg(p, me, { k:"ev_discard", x:label });
+    toast(t("t_discarded", { x:label })); commit(); render();
+  });
+}
+
+/* ---------- Projekt archivieren, wieder öffnen ---------- */
+function pArchive(p) {
+  if (!pIsAdmin()) return toast(t("p_noedit"), true);
+  openDialog({
+    title:t("arch_t"), text:t("arch_h"), okLabel:t("arch_t"),
+    values:{ reason:"" },
+    build: () => [{ name:"reason", label:t("arch_reason"), type:"textarea", req:true }],
+    validate: v => (v.reason || "").trim().length < 5 ? [{ f:"reason", m:t("e_reason") }] : [],
+    onSubmit: v => {
+      p.archived = true; p.archivedAt = today(); p.archivedReason = v.reason.trim();
+      plg(p, me, { k:"ev_archived", x:p.key }, v.reason.trim());
+      pver(p, { k:"ev_archived", x:p.key }, [{ e:p.name, f:{ k:"col_status" }, o:{ k:"ps_" + p.status }, n:{ k:"arch_state" } }]);
+      toast(t("t_archived", { n:p.key })); pProject = null; commit(); render();
+    }
+  });
+}
+function pUnarchive(p) {
+  if (!pIsAdmin()) return toast(t("p_noedit"), true);
+  confirmDialog(t("arch_undo"), t("arch_undo_q", { n:p.key }), t("arch_undo"), () => {
+    p.archived = false; p.archivedAt = null; p.archivedReason = null;
+    plg(p, me, { k:"ev_unarchived", x:p.key });
+    toast(t("t_psaved")); commit(); render();
   });
 }
 
@@ -3544,7 +4206,7 @@ function pDialogNewRisk(p) {
     ],
     validate: v => (v.title || "").trim().length < 3 ? [{ f:"title", m:t("e_pname") }] : [],
     onSubmit: v => {
-      const r = { id:pid(), ref:"R-" + (p.risks.length + 1), title:v.title.trim(),
+      const r = { id:pid(), ref:nextRef(p.risks, "R"), title:v.title.trim(),
         description:v.description, cat:v.cat || "—", prob:+v.prob, imp:+v.imp, owner:v.owner,
         status:"open", due:v.due, mitigation:v.mitigation, conting:v.conting };
       p.risks.push(r);
@@ -3569,7 +4231,7 @@ function pDialogNewIssue(p) {
     ],
     validate: v => (v.title || "").trim().length < 3 ? [{ f:"title", m:t("e_pname") }] : [],
     onSubmit: v => {
-      p.issues.push({ id:pid(), ref:"I-" + (p.issues.length + 1), title:v.title.trim(),
+      p.issues.push({ id:pid(), ref:nextRef(p.issues, "I"), title:v.title.trim(),
         description:v.description, owner:v.owner, prio:v.prio, status:"open", due:v.due, resolution:"" });
       plg(p, me, { k:"ev_issuenew", x:v.title.trim() });
       toast(t("t_psaved")); commit(); render();
@@ -3638,6 +4300,8 @@ function wirePcc() {
     renderMain();
   });
   if (q("icsall")) q("icsall").onclick = () => downloadIcs(pFiltered(), "control-center.ics");
+  if (q("bkexport")) q("bkexport").onclick = backupExport;
+  if (q("bkimport")) q("bkimport").onclick = pDialogRestore;
   if (q("picsproj")) q("picsproj").onclick = () =>
     downloadIcs([pById(pProject)], pById(pProject).key.toLowerCase() + ".ics");
   if (q("pback")) q("pback").onclick = () => { pProject = null; pv = pv === "dash" ? "dash" : "projects"; render(); };
@@ -3651,13 +4315,13 @@ function wirePcc() {
       const el = q("pq"); el.focus(); el.setSelectionRange(PF.q.length, PF.q.length); };
     q("pstatus").onchange = e => { PF.status = e.target.value; renderMain(); };
     q("ppm").onchange = e => { PF.pm = e.target.value; renderMain(); };
-    q("pclear").onclick = () => { PF = { q:"", status:"", pm:"", health:"" }; MX = null;
+    q("pclear").onclick = () => { PF = { q:"", status:"", pm:"", health:"", archived:false }; MX = null;
       TF = { who:"", state:"open", span:"" }; renderMain(); };
     ["tfwho","tfstate","tfspan"].forEach(id => { if (q(id)) q(id).onchange = e => {
       TF[id.slice(2)] = e.target.value; renderMain(); }; });
   }
   document.querySelectorAll("[data-ptab]").forEach(b => b.onclick = () => { pTab = b.dataset.ptab; renderMain(); });
-  if (q("repClear")) q("repClear").onclick = () => { PF = { q:"", status:"", pm:"", health:"" }; renderMain(); };
+  if (q("repClear")) q("repClear").onclick = () => { PF = { q:"", status:"", pm:"", health:"", archived:false }; renderMain(); };
   document.querySelectorAll("[data-pp]").forEach(el => el.onclick = e => {
     if (e.target.closest("button") && !e.target.closest("[data-pp]").isSameNode(e.target.closest("button"))) return;
     pProject = el.dataset.pp; pTab = "overview"; render();
@@ -3673,6 +4337,30 @@ function wirePcc() {
     const p = pById(pProject), d = (p.docs || []).find(y => y.id === b.dataset.pdoc);
     if (d) docOpen(d);
   });
+  /* Pflege der Gegenstände */
+  const P = () => pById(pProject);
+  const on = (sel, fn) => document.querySelectorAll(sel).forEach(b => b.onclick = e => { e.stopPropagation(); fn(b); });
+  on("[data-ptedit]", b => pDialogEditTask(P(), P().tasks.find(x => x.id === b.dataset.ptedit)));
+  on("[data-predit]", b => pDialogEditRisk(P(), P().risks.find(x => x.id === b.dataset.predit)));
+  on("[data-piedit]", b => pDialogEditIssue(P(), P().issues.find(x => x.id === b.dataset.piedit)));
+  on("[data-pmsnew]", () => pDialogMilestone(P(), null));
+  on("[data-pmsedit]", b => pDialogMilestone(P(), P().ms.find(x => x.id === b.dataset.pmsedit)));
+  on("[data-pwsnew]", () => pDialogWorkstream(P(), null));
+  on("[data-pwsedit]", b => pDialogWorkstream(P(), P().ws.find(x => x.id === b.dataset.pwsedit)));
+  on("[data-pdecnew]", () => pDialogDecision(P(), null));
+  on("[data-pdecedit]", b => pDialogDecision(P(), P().decisions.find(x => x.id === b.dataset.pdecedit)));
+  on("[data-ptmadd]", () => pDialogTeam(P(), null));
+  on("[data-ptmedit]", b => pDialogTeam(P(), P().team[+b.dataset.ptmedit]));
+  on("[data-ptmrm]", b => pRemoveTeam(P(), P().team[+b.dataset.ptmrm]));
+  on("[data-pdisc]", b => {
+    const [kind, id] = b.dataset.pdisc.split("|"), p = P();
+    const obj = { task:p.tasks, risk:p.risks, issue:p.issues, ms:p.ms, dec:p.decisions, ws:p.ws }[kind].find(x => x.id === id);
+    if (obj) pDiscard(p, kind, obj);
+  });
+  if (q("pperson")) q("pperson").onclick = pDialogPerson;
+  if (q("parchive")) q("parchive").onclick = () => pArchive(P());
+  if (q("punarchive")) q("punarchive").onclick = () => pUnarchive(P());
+  if (q("parch")) q("parch").onchange = e => { PF.archived = e.target.checked; renderMain(); };
   document.querySelectorAll("[data-ptdone]").forEach(b => b.onclick = e => {
     e.stopPropagation();
     const p = pById(pProject), x = p.tasks.find(y => y.id === b.dataset.ptdone);
@@ -3780,16 +4468,16 @@ function closeSearch() {
    ganztägig, Ende am Folgetag — sonst zeigt Outlook den letzten Tag nicht. */
 function icsText(ps) {
   const pad = d => d.replace(/-/g, "");
-  const esc2 = v => String(v || "").replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\;");
+  const esc2 = v => String(v || "").replace(/[\r\n]+/g, " ").replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\;");
   const next = d => addDays(d, 1).replace(/-/g, "");
   const ev = [];
   ps.forEach(p => {
     p.ms.filter(m => m.status !== "completed").forEach(m => ev.push({
       id:m.id, day:m.date, sum:`${p.key} · ${m.ref} ${m.name}`,
-      note:`${t("pn_milestones")} · ${m.owner ? pUser(m.owner) : t("none")} · ${t("ms_" + m.status)}` }));
+      note:`${t("pn_milestones")} · ${m.owner ? pName(m.owner) : t("none")} · ${t("ms_" + m.status)}` }));
     p.tasks.filter(x => x.due && !pTaskDone(x)).forEach(x => ev.push({
       id:x.id, day:x.due, sum:`${p.key} · ${x.ref} ${x.title}`,
-      note:`${t("col_due")} · ${x.assignee ? pUser(x.assignee) : t("none")} · ${t("ts_" + x.status)}` }));
+      note:`${t("col_due")} · ${x.assignee ? pName(x.assignee) : t("none")} · ${t("ts_" + x.status)}` }));
   });
   ev.sort((a,b) => a.day < b.day ? -1 : 1);
   const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0,15) + "Z";
@@ -3835,7 +4523,7 @@ function weeklyDef() {
       [t("rep_changes"), log.length], [t("k_otasks"), late.length]],
     sections:[
       { h:t("rep_done"), cols:[t("f_ref"), t("col_task"), t("col_project"), t("col_assignee"), t("col_date")],
-        rows:done.map(({p,x}) => [x.ref, x.title, p.key, x.assignee ? pUser(x.assignee) : "", fmtLong(x.done)]) },
+        rows:done.map(({p,x}) => [x.ref, x.title, p.key, x.assignee ? pName(x.assignee) : "", fmtLong(x.done)]) },
       { h:t("rep_next"), cols:[t("col_date"), t("col_title"), t("col_project"), t("col_owner"), t("col_status")],
         rows:soon.map(o => o.x
           ? [fmtLong(o.x.due), o.x.ref + " " + o.x.title, o.p.key,
@@ -3843,12 +4531,12 @@ function weeklyDef() {
           : [fmtLong(o.m.date), "◆ " + o.m.ref + " " + o.m.name, o.p.key,
              o.m.owner ? pUser(o.m.owner) : "", t("ms_" + o.m.status)]) },
       { h:t("c_overdue"), cols:[t("f_ref"), t("col_task"), t("col_project"), t("col_assignee"), t("col_due"), t("p_days")],
-        rows:late.map(({p,x}) => [x.ref, x.title, p.key, x.assignee ? pUser(x.assignee) : "",
+        rows:late.map(({p,x}) => [x.ref, x.title, p.key, x.assignee ? pName(x.assignee) : "",
           fmtLong(x.due), Math.abs(daysTo(x.due))]) },
       { h:t("c_crit"), cols:[t("f_ref"), t("col_title"), t("col_project"), t("col_score"), t("col_owner"), t("f_mit")],
-        rows:crit.map(({p,r}) => [r.ref, r.title, p.key, rScore(r), pUser(r.owner), r.mitigation || ""]) },
+        rows:crit.map(({p,r}) => [r.ref, r.title, p.key, rScore(r), pName(r.owner), r.mitigation || ""]) },
       { h:t("rep_changes"), cols:[t("exp_when"), t("exp_who"), t("col_project"), t("exp_what")],
-        rows:log.slice(0,80).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who),
+        rows:log.slice(0,80).map(e => [fmtLong(e.ts.slice(0,10)), pName(e.who),
           (pById(e.project) || {}).key || "", evText(e.txt)]) }] };
 }
 
@@ -3890,17 +4578,17 @@ function pccDoc(kind) {
             return [p.key, p.name, t("ps_" + p.status), pProgress(p) + "%", pUser(p.pm),
               n ? n.name + " (" + fmtLong(n.date) + ")" : "—", pOpenRisks(p).length]; }) },
         { h:t("c_upcoming"), cols:[t("col_date"), t("pn_milestones"), t("col_project"), t("col_owner"), t("col_status")],
-          rows:ms.slice(0,20).map(({p,m}) => [fmtLong(m.date), m.name, p.key, pUser(m.owner), t("ms_" + m.status)]) },
+          rows:ms.slice(0,20).map(({p,m}) => [fmtLong(m.date), m.name, p.key, pName(m.owner), t("ms_" + m.status)]) },
         { h:t("c_crit"), cols:RISK_COLS, rows:riskRows(crit.slice(0,20)) },
         { h:t("c_overdue"), cols:TASK_COLS, rows:taskRows(over) },
         { h:t("c_activity"), cols:[t("exp_when"), t("exp_who"), t("col_project"), t("exp_what")],
-          rows:PLOG.slice(0,25).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who),
+          rows:PLOG.slice(0,25).map(e => [fmtLong(e.ts.slice(0,10)), pName(e.who),
             (pById(e.project) || {}).key || "", evText(e.txt)]) }] };
   }
   if (kind === "pcc_projects") return { title:t("pp_t"), meta:listMeta(),
     sections:[{ cols:[t("f_key"), t("col_project"), t("col_status"), t("col_progress"), t("col_pm"),
       t("f_start"), t("f_end"), t("col_risks"), t("c_overdue"), t("f_health")],
-      rows:ps.map(p => [p.key, p.name, t("ps_" + p.status), pProgress(p) + "%", pUser(p.pm),
+      rows:ps.map(p => [p.key, p.name, t("ps_" + p.status), pProgress(p) + "%", pName(p.pm),
         fmtLong(p.start), fmtLong(p.end), pOpenRisks(p).length, pOverdueTasks(p).length, t("h_" + pHealth(p))]) }] };
   if (kind === "pcc_tasks" || kind === "pcc_ptasks") {
     const src = kind === "pcc_ptasks" ? [cur] : ps;
@@ -3920,7 +4608,7 @@ function pccDoc(kind) {
     rows.sort((a,b) => a.m.date < b.m.date ? -1 : 1);
     return { title:t("pm_t"), meta:[[t("exp_count"), rows.length]],
       sections:[{ cols:[t("col_date"), t("pn_milestones"), t("col_project"), t("col_owner"), t("col_status")],
-        rows:rows.map(({p,m}) => [fmtLong(m.date), m.name, p.key, pUser(m.owner), t("ms_" + m.status)]) }] };
+        rows:rows.map(({p,m}) => [fmtLong(m.date), m.name, p.key, pName(m.owner), t("ms_" + m.status)]) }] };
   }
   if (kind === "pcc_weekly") return weeklyDef();
   if (kind === "pcc_pgantt") {
@@ -3934,7 +4622,7 @@ function pccDoc(kind) {
       const all = cur.tasks.filter(x => g.id ? x.ws === g.id
                                             : (!x.ws || !cur.ws.some(y => y.id === x.ws)));
       const span = gSpan(all);
-      rows.push([g.name, t("col_ws"), g.owner ? pUser(g.owner) : "",
+      rows.push([g.name, t("col_ws"), g.owner ? pName(g.owner) : "",
                  span ? fmtLong(span.from) : "—", span ? fmtLong(span.to) : "—", "", ""]);
       all.filter(x => !x.parent).forEach(x => {
         const add = (y, sub) => rows.push([(sub ? "↳ " : "") + y.title, y.ref,
@@ -3945,7 +4633,7 @@ function pccDoc(kind) {
         cur.tasks.filter(k => k.parent === x.id).forEach(k => add(k, true));
       });
       cur.ms.filter(m => g.id ? m.ws === g.id : !m.ws).forEach(m =>
-        rows.push(["◆ " + m.name, m.ref, m.owner ? pUser(m.owner) : "",
+        rows.push(["◆ " + m.name, m.ref, m.owner ? pName(m.owner) : "",
                    "—", fmtLong(m.date), t("ms_" + m.status), ""]));
     });
     return { title:t("g_t") + " — " + cur.key, meta:projMeta(cur), gantt:ganttHTML(cur, true),
@@ -3956,10 +4644,10 @@ function pccDoc(kind) {
     sections:[{ cols:[t("f_ref"), t("col_date"), t("col_title"), t("tab_dec"), t("f_rat"),
       t("f_imp2"), t("f_maker"), t("f_part")],
       rows:cur.decisions.map(d => [d.ref, fmtLong(d.date), d.topic, d.decision, d.rationale,
-        d.impact, pUser(d.maker), d.participants.map(pUser).join(", ")]) }] };
+        d.impact, pName(d.maker), d.participants.map(pName).join(", ")]) }] };
   if (kind === "pcc_pact") return { title:t("tab_act") + " — " + cur.key, meta:projMeta(cur),
     sections:[{ cols:[t("exp_when"), t("exp_who"), t("exp_what")],
-      rows:pActivity(cur).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who), evText(e.txt)]) }] };
+      rows:pActivity(cur).map(e => [fmtLong(e.ts.slice(0,10)), pName(e.who), evText(e.txt)]) }] };
   if (kind === "pcc_report") {
     const p = pById(pRepProject) || cur;
     const tk = p.tasks.map(x => ({ p, x })), rk = p.risks.map(r => ({ p, r }));
@@ -3968,15 +4656,15 @@ function pccDoc(kind) {
       { h:t("tab_over"), cols:[t("col_title"), t("f_desc")],
         rows:[[t("f_desc"), p.description], [t("f_obj"), p.objectives], [t("f_scope"), p.scope]] },
       { h:t("pn_milestones"), cols:[t("col_date"), t("col_title"), t("col_owner"), t("col_status")],
-        rows:p.ms.map(m => [fmtLong(m.date), m.name, pUser(m.owner), t("ms_" + m.status)]) },
+        rows:p.ms.map(m => [fmtLong(m.date), m.name, pName(m.owner), t("ms_" + m.status)]) },
       { h:t("pn_tasks"), cols:TASK_COLS, rows:taskRows(tk) },
       { h:t("pn_risks"), cols:RISK_COLS, rows:riskRows(rk) },
       { h:t("pn_issues"), cols:[t("f_key"), t("col_title"), t("col_owner"), t("col_prio"), t("col_status"), t("col_due")],
-        rows:p.issues.map(i => [i.ref, i.title, pUser(i.owner), i.prio, t("is_" + i.status), fmtLong(i.due)]) },
+        rows:p.issues.map(i => [i.ref, i.title, pName(i.owner), i.prio, t("is_" + i.status), fmtLong(i.due)]) },
       { h:t("tab_dec"), cols:[t("col_date"), t("col_title"), t("tab_dec"), t("f_maker")],
-        rows:p.decisions.map(d => [fmtLong(d.date), d.topic, d.decision, pUser(d.maker)]) },
+        rows:p.decisions.map(d => [fmtLong(d.date), d.topic, d.decision, pName(d.maker)]) },
       { h:t("tab_team"), cols:[t("usr_name"), t("f_prole"), t("f_resp")],
-        rows:p.team.map(m => [pUser(m.user), m.role, m.resp]) },
+        rows:p.team.map(m => [pName(m.user), m.role, m.resp]) },
       { h:t("tab_docs"), cols:[t("col_title"), t("doc_at"), t("col_status"), t("f_ver"),
           t("doc_size"), t("col_owner"), t("f_desc")],
         rows:p.docs.map(d => [d.title,
@@ -3987,9 +4675,9 @@ function pccDoc(kind) {
           d.version + (d.superseded ? " (" + t("doc_super") + ")" : ""), d.size || "—",
           pUser(d.owner), d.description]) },
       { h:t("tab_act"), cols:[t("exp_when"), t("exp_who"), t("exp_what")],
-        rows:pActivity(p).slice(0,30).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who), evText(e.txt)]) },
+        rows:pActivity(p).slice(0,30).map(e => [fmtLong(e.ts.slice(0,10)), pName(e.who), evText(e.txt)]) },
       { h:t("ver_t"), cols:[t("f_ver"), t("col_date"), t("exp_who"), t("ver_sum")],
-        rows:p.versions.map(v => [v.v, fmtLong(v.date), pUser(v.by), evText(v.summary)]) }] };
+        rows:p.versions.map(v => [v.v, fmtLong(v.date), pName(v.by), evText(v.summary)]) }] };
   }
 }
 
@@ -4005,4 +4693,13 @@ function render() {
    keiner vor, bleibt es bei den Demodaten. */
 storeLoad();
 render();
+/* Ein zweites Fenster derselben Person schreibt in denselben Speicher. Ohne
+   das hier überschrieben sich beide gegenseitig — die letzte Speicherung
+   gewann, die andere Arbeit war weg. Jetzt übernimmt ein Fenster den Stand des
+   anderen, sobald der gespeichert ist. */
+window.addEventListener("storage", e => {
+  if (e.key !== STORE_KEY || !e.newValue) return;
+  if (dlg) return;   // mitten in einer Eingabe wird nichts unter der Hand ausgetauscht
+  if (storeLoad()) { render(); toast(t("sb_synced")); }
+});
 </script>

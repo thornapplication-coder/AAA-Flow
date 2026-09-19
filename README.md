@@ -76,11 +76,16 @@ Risiken mit 5×5-Matrix, Problemen, Entscheidungen, Team und RACI, Dokumente,
 Aktivität und Versionsverlauf. Dazu Aufgaben-, Risiko- und Meilensteinlisten
 über alle Projekte hinweg sowie ein Berichtsbereich.
 
-Der Einstieg erfolgt über einen Anmeldebildschirm; die Schnellwahl darunter
-lässt die Rechte aller Rollen durchspielen. Die Sandbox-Leiste am unteren Rand
-verschiebt das simulierte Datum um 1, 8 oder 31 Tage — damit werden Fristen,
-Überfälligkeit und die Gesamtlage erlebbar. Zurücksetzen stellt den
-Ausgangszustand her.
+Der Einstieg erfolgt über die Zugangswahl (Teamzugang mit Person, Lesezugang).
+Alles lässt sich anlegen, bearbeiten, abschließen, verwerfen und archivieren;
+jede Änderung ist sofort gespeichert und steht im Verlauf. Die Sandbox-Leiste
+am unteren Rand verschiebt das simulierte Datum um 1, 8 oder 31 Tage — damit
+werden Fristen, Überfälligkeit und die Gesamtlage erlebbar. Zurücksetzen
+stellt nach Rückfrage den Ausgangszustand her.
+
+Der Stand liegt auf dem Gerät. *Berichte → Datensicherung* schreibt ihn samt
+Anhängen in eine Datei; Einspielen ersetzt den Stand auf einem anderen Gerät.
+Das ist bis zur Supabase-Instanz der Weg, einen Stand im Team weiterzugeben.
 
 Exportiert wird über **PDF** (Druckansicht, in jeder Ansicht) und **Excel**
 (überall dort, wo die Ansicht eine Liste ist).
@@ -95,7 +100,7 @@ Weichen Prototyp und Datenbank voneinander ab, gilt die Datenbank.
 
 ```
 .github/workflows/ci.yml      Drei Jobs: Frontend, Prototyp, Datenbank
-docs/                         Architektur und Changelog
+docs/                         Architektur, Changelog, Freigabeprüfung
 index.html                    Einstiegsseite der Anwendung
 public/                       Statisches Beiwerk: Symbole für Browser und Installation
 sandbox/                      Klickbarer Prototyp mit Demodaten, ohne Backend
@@ -126,15 +131,20 @@ cp .env.example .env            # Supabase-URL und Anon-Key eintragen
 npm run dev                     # http://localhost:5173
 npm run typecheck
 npm run build
+npm run check:logic             # Rechenregeln, Ausgaben, Wortschatz, Versionsstand
 npm run check:sandbox           # drei Bildschirmbreiten, beide Sprachen
 npm run check:app               # jeder Knopf, Dialog und Export, beide Zugänge
+npm run verify                  # alles davon, in dieser Reihenfolge
 ```
 
-> **Vor jeder Weitergabe an das Team:** `npm run check:app`. Der Durchlauf
-> klickt sich durch die ganze Anwendung — Anmeldung, alle Bereiche, alle Reiter,
-> alle Dialoge samt Pflichtfeldern, Ausgaben, Suche, Kalender, Zeitreise,
-> Speicherung über einen Neustart hinweg und die Rechte des Lesezugangs — und
-> meldet jeden Laufzeitfehler und jeden Knopf ohne Wirkung.
+> **Vor jedem Commit:** `npm run verify`. Der Durchlauf prüft die Rechenregeln
+> gegen feste Erwartungen und klickt sich dann durch die ganze Anwendung —
+> Anmeldung, alle Bereiche, alle Reiter, alle Dialoge samt Pflichtfeldern,
+> Bearbeiten, Verwerfen, Archiv, Datensicherung, Ausgaben, Suche, Kalender,
+> Zeitreise, Speicherung über einen Neustart hinweg und die Rechte des
+> Lesezugangs — und meldet jeden Laufzeitfehler und jeden Knopf ohne Wirkung.
+> Die CI führt dasselbe bei jedem Push aus. Die Regeln stehen in `CLAUDE.md`,
+> der Prüfbericht in [`docs/AUDIT-ROLLOUT.md`](docs/AUDIT-ROLLOUT.md).
 
 Datenbank prüfen, ohne Supabase-Projekt (legt die Datenbank `pcc_check` an und
 spielt Migrationen, Seed und Tests ein):

@@ -398,7 +398,7 @@ Implementierung nach Abschnitt 61.
 | Oberfläche, Navigation, Dashboard | vollständig | Prototyp, Zielversion offen |
 | Rollen und Sichtbarkeit | im Frontend nachgebildet | **umgesetzt** als RLS in PostgreSQL (`20260918000400`) |
 | Anmeldung | Zugang wählen, dann Person | **Datenbankseite umgesetzt**: zwei vorbereitete Zugänge, Verknüpfung über die Adresse; Supabase Auth folgt mit dem Projekt |
-| Persistenz | sofort auf dem Gerät (localStorage, Dateien in IndexedDB) | **Schema umgesetzt** (`20260918000100`), noch keine Cloud-Instanz |
+| Persistenz | sofort auf dem Gerät (localStorage, Dateien in IndexedDB); Datensicherung als Datei | **Schema umgesetzt** (`20260918000100`), noch keine Cloud-Instanz |
 | Autosave | umgesetzt: jede Änderung wird im selben Augenblick abgelegt | in der Anwendung derselbe Ansatz — jeder Vorgang schreibt sofort, ohne „Speichern" |
 | Echtzeit | nicht vorhanden | offen — braucht die Supabase-Instanz |
 | Audit und Versionen | nachgebildet | **umgesetzt**: gemeinsamer Trail mit Modulspalte, unveränderliche Versionstabellen |
@@ -420,7 +420,7 @@ Implementierung nach Abschnitt 61.
 | 8 | Export Excel und PDF, Dashboard-Bericht | offen, 2 Tage |
 | 9 | PWA, Offline, Auto-Update | Gerüst steht, Ausbau offen, 1–2 Tage |
 | 10 | Oberfläche auf die Datenbank heben, Prototyp ablösen | offen, 8–10 Tage |
-| 11 | Tests nach Abschnitt 59, Sicherheitsdurchsicht, Bereitstellung | SQL-Tests laufen, Oberflächentests offen |
+| 11 | Tests nach Abschnitt 59, Sicherheitsdurchsicht, Bereitstellung | SQL-Tests (181), Logik- (58) und Funktionsdurchlauf (215) laufen in der CI; Freigabeprüfung in `AUDIT-ROLLOUT.md` |
 
 Zusammen rund **drei bis vier Wochen** bis zu der in Abschnitt 60 aufgeführten
 Definition of Done.
