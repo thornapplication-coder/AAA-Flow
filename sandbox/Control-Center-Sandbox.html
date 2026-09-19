@@ -605,6 +605,8 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 const I = {
 de:{
   act_dec:"Entscheidung festhalten",
+  col_sub:"Teilaufgabe",
+  act_sub:"Teilaufgabe anlegen",
   act_ms:"Meilenstein anlegen",
   act_person:"Person anlegen",
   act_team:"Mitglied aufnehmen",
@@ -640,12 +642,14 @@ de:{
   e_res:"Gelöst ohne zu sagen wie, ist nicht gelöst. Bitte die Lösung festhalten.",
   e_role:"Bitte eine Projektrolle angeben.",
   e_wsdup:"Ein Teilprojekt mit diesem Namen gibt es schon.",
+  ed_prog_sub:"Ergibt sich aus den Teilaufgaben und lässt sich hier nicht setzen.",
   ed_prog_done:"Erledigt zählt als 100 %.",
   ed_res_h:"Pflicht, sobald das Problem als gelöst oder geschlossen gilt.",
   ed_rstatus_h:"Gemindert, geschlossen oder akzeptiert nimmt das Risiko aus der Matrix.",
   ev_archived:"Projekt archiviert: {x}",
   ev_decedit:"Entscheidung geändert: {x}",
   ev_decnew:"Entscheidung festgehalten: {x}",
+  ev_subnew:"Teilaufgabe angelegt: {x}",
   ev_discard:"Verworfen: {x}",
   ev_iedit:"Problem geändert: {x}",
   ev_iresolved:"Problem gelöst: {x}",
@@ -1018,7 +1022,10 @@ de:{
   sb_tag:"SANDBOX",
   sb_today:"Simuliertes Datum",
   sub:"Sandbox — Demodaten",
+  sub_h:"Die Teilaufgabe gehört zu {r} · {n}. Teilprojekt und Priorität kommen von dort.",
+  sub_win:"Die Aufgabe läuft von {d} bis {b}.",
   switch:"Wechseln",
+  t_sub:"Teilaufgabe {r} unter {n} angelegt.",
   t_copied:"Kopiert — in Excel mit Einfügen übernehmen.",
   t_pnew:"Projekt {n} angelegt, Version 1.0.",
   t_psaved:"Projekt gespeichert.",
@@ -1052,6 +1059,8 @@ de:{
 },
 en:{
   act_dec:"Record a decision",
+  col_sub:"Subtask",
+  act_sub:"Add subtask",
   act_ms:"Add milestone",
   act_person:"Add person",
   act_team:"Add member",
@@ -1087,12 +1096,14 @@ en:{
   e_res:"Resolved without saying how is not resolved. Please record the resolution.",
   e_role:"Please give a project role.",
   e_wsdup:"A workstream with this name already exists.",
+  ed_prog_sub:"Derived from the subtasks; cannot be set here.",
   ed_prog_done:"Completed counts as 100 %.",
   ed_res_h:"Required once the issue counts as resolved or closed.",
   ed_rstatus_h:"Mitigated, closed or accepted takes the risk out of the matrix.",
   ev_archived:"Project archived: {x}",
   ev_decedit:"Decision changed: {x}",
   ev_decnew:"Decision recorded: {x}",
+  ev_subnew:"Subtask added: {x}",
   ev_discard:"Discarded: {x}",
   ev_iedit:"Issue changed: {x}",
   ev_iresolved:"Issue resolved: {x}",
@@ -1465,7 +1476,10 @@ en:{
   sb_tag:"SANDBOX",
   sb_today:"Simulated date",
   sub:"Sandbox — demo data",
+  sub_h:"The subtask belongs to {r} · {n}. Workstream and priority come from there.",
+  sub_win:"The task runs from {d} to {b}.",
   switch:"Switch",
+  t_sub:"Subtask {r} created under {n}.",
   t_copied:"Copied — paste into Excel.",
   t_pnew:"Project {n} created, version 1.0.",
   t_psaved:"Project saved.",
@@ -2421,12 +2435,26 @@ P6.risks = []; P6.issues = []; P6.decisions = []; P6.docs = [];
 
 /* ---------- Ableitungen ---------- */
 const pTop = p => p.tasks.filter(x => !x.parent);
-const pKids = (p, t) => p.tasks.filter(x => x.parent === t.id);
+/* Ohne die Prüfung auf x.parent gälten zwei Aufgaben ohne Elternteil
+   gegenseitig als Teilaufgaben — beide tragen dort nichts. */
+const pKids = (p, t) => p.tasks.filter(x => x.parent && x.parent === t.id);
 const pTaskDone = t => t.status === "completed" || t.status === "cancelled";
+/* Eine Aufgabe ist so weit, wie ihre Teile fertig sind. Hat sie keine
+   Teilaufgaben, gilt ihr eigener Wert; ist sie selbst abgeschlossen, gilt 100 —
+   sonst stünde eine erledigte Aufgabe mit offener Teilaufgabe bei 60 %. */
+function pTaskProgress(p, x) {
+  if (pTaskDone(x)) return 100;
+  const kids = pKids(p, x).filter(k => k.status !== "cancelled");
+  if (!kids.length) return x.progress || 0;
+  return Math.round(kids.reduce((a, k) => a + (pTaskDone(k) ? 100 : (k.progress || 0)), 0) / kids.length);
+}
+const pHasKids = (p, x) => pKids(p, x).length > 0;
+/* Gemittelt wird über die Hauptaufgaben: deren Wert enthält die Teilaufgaben
+   bereits. Zählte man beide, wögen zerlegte Aufgaben doppelt. */
 function pProgress(p) {
-  const all = p.tasks.filter(t => t.status !== "cancelled");
+  const all = pTop(p).filter(t => t.status !== "cancelled");
   if (!all.length) return 0;
-  return Math.round(all.reduce((a, t) => a + (pTaskDone(t) ? 100 : (t.progress || 0)), 0) / all.length);
+  return Math.round(all.reduce((a, t) => a + pTaskProgress(p, t), 0) / all.length);
 }
 const pTaskOverdue = t => !pTaskDone(t) && t.due && daysTo(t.due) < 0;
 const pOverdueTasks = p => p.tasks.filter(pTaskOverdue);
@@ -2538,7 +2566,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
-const APP_VERSION = "1.6.1";
+const APP_VERSION = "1.7.0";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert
@@ -2583,6 +2611,26 @@ function storeSave() {
     SAVED_AT = new Date(); STORE_OK = true;
   } catch (e) { STORE_OK = false; }
 }
+/* Kennungen werden fortlaufend vergeben. Nach einem Neuladen stünde der
+   Zähler wieder auf dem Stand der Demodaten, während die gespeicherten Daten
+   längst höhere Nummern tragen — die nächste Aufgabe bekäme eine Kennung, die
+   es schon gibt. Verwerfen träfe dann zwei Einträge, ein Anhang hinge an der
+   falschen Aufgabe. Also den Zähler nach jedem Laden über alles heben, was
+   schon vergeben ist. */
+function pSeqSync() {
+  let max = pSeq;
+  const gehe = o => {
+    if (!o || typeof o !== "object") return;
+    if (Array.isArray(o)) return o.forEach(gehe);
+    Object.values(o).forEach(v => {
+      if (typeof v === "string") { const m = /^p(\d+)$/.exec(v); if (m && +m[1] > max) max = +m[1]; }
+      else gehe(v);
+    });
+  };
+  gehe(PROJECTS);
+  pSeq = max;
+}
+
 function storeLoad() {
   let raw = null;
   try { raw = localStorage.getItem(STORE_KEY); } catch (e) { STORE_OK = false; return false; }
@@ -2599,6 +2647,7 @@ function storeLoad() {
     if (typeof d.solo === "boolean") SOLO_SEEN = d.solo;
     DATA_REV = d.rev || 0;
     SAVED_AT = d.at ? new Date(d.at) : null;
+    pSeqSync();
     return true;
   } catch (e) { return false; }
 }
@@ -2646,6 +2695,7 @@ function backupImport(file) {
     for (const id of Object.keys(d.files || {})) {
       try { const blob = await (await fetch(d.files[id])).blob(); await FILES.put(id, blob); n++; } catch (e) {}
     }
+    pSeqSync();
     plg(null, me, { k:"ev_restored" });
     toast(t("t_restored", { p:PROJECTS.length, f:n }));
     commit(); render();
@@ -2891,11 +2941,11 @@ function ganttHTML(p, forPrint) {
       rows.push(`<div class="grow">
         <div class="gnm"><span class="gt" title="${esc(x.title)}">${esc(x.title)}</span>
           <span class="co">${x.ref}${x.assignee ? " · " + pUser(x.assignee) : ""}</span></div>
-        ${track(bar(x, gCls(x), pTaskDone(x) ? 100 : x.progress || 0))}</div>`);
+        ${track(bar(x, gCls(x), pTaskProgress(p, x)))}</div>`);
       kids.forEach(k => rows.push(`<div class="grow sub">
         <div class="gnm"><span class="gt" title="${esc(k.title)}">↳ ${esc(k.title)}</span>
           <span class="co">${k.ref}${k.assignee ? " · " + pUser(k.assignee) : ""}</span></div>
-        ${track(bar(k, gCls(k), pTaskDone(k) ? 100 : k.progress || 0))}</div>`));
+        ${track(bar(k, gCls(k), pTaskProgress(p, k)))}</div>`));
     });
 
     p.ms.filter(m => g.id ? m.ws === g.id : !m.ws).forEach(m => {
@@ -3207,7 +3257,7 @@ function pccTasks() {
         : x.status === "in_progress" ? "p-work" : "p-open", t("ts_" + x.status))}</td>
       <td>${prioPill(x.prio)}</td>
       <td class="${pTaskOverdue(x) ? "" : "co"}" style="${pTaskOverdue(x) ? "color:var(--late);font-weight:600" : ""}">${fmtDate(x.due)}</td>
-      <td style="min-width:110px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</td>
+      <td style="min-width:110px">${pBar(pTaskProgress(p, x))}</td>
     </tr>`).join("")}</tbody></table></div>
     <div class="cards">${rows.map(({p,x}) => `<article class="card" data-pp="${p.id}">
       <div class="top"><span class="num">${x.ref} · ${esc(p.key)}</span>
@@ -3216,7 +3266,7 @@ function pccTasks() {
       <h4>${esc(x.title)}</h4>
       <div class="sub"><span>${x.assignee ? pUser(x.assignee) : t("none")}</span><span>·</span>
         <span${pTaskOverdue(x) ? ' style="color:var(--late);font-weight:600"' : ""}>${fmtDate(x.due)}</span></div>
-      <div style="margin-top:8px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</div>
+      <div style="margin-top:8px">${pBar(pTaskProgress(p, x))}</div>
     </article>`).join("")}</div>`;
 }
 /* Die Stufe eines Werts — dieselbe Einteilung wie die Farben der Matrix und
@@ -3497,12 +3547,13 @@ function pTabTasks(p) {
         <td>${pTaskPill(x)}</td>
         <td>${prioPill(x.prio)}</td>
         <td class="co" style="${pTaskOverdue(x) ? "color:var(--late);font-weight:600" : ""}">${fmtDate(x.due)}</td>
-        <td style="min-width:110px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</td>
+        <td style="min-width:110px">${pBar(pTaskProgress(p, x))}</td>
         <td class="acts">${docsFor(p, "task", x.id).map(d =>
             `<button data-pdoc="${d.id}" title="${esc(d.title)}">${esc(docIcon(d))} ${esc(shortName(d))}</button>`).join("")
           }${may ? `<button data-pup="${x.id}" title="${esc(t("doc_up"))}">+</button>` : ""}</td>
         ${may ? `<td class="acts">${mine && !pTaskDone(x)
           ? `<button data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}
+          ${!sub ? `<button data-ptsub="${x.id}" title="${esc(t("act_sub"))}">+ ${t("col_sub")}</button>` : ""}
           <button data-ptedit="${x.id}">${t("edit")}</button>
           <button data-pdisc="task|${x.id}" title="${esc(t("disc_t"))}">✕</button></td>` : ""}
       </tr>`; }).join("") || `<tr><td colspan="${may ? 9 : 8}" class="muted">${t("p_none")}</td></tr>`}</tbody></table></div>
@@ -3511,13 +3562,14 @@ function pTabTasks(p) {
       <h4>${esc(x.title)}</h4>
       <div class="sub"><span>${x.assignee ? pUser(x.assignee) : t("none")}</span><span>·</span>
         <span${pTaskOverdue(x) ? ' style="color:var(--late);font-weight:600"' : ""}>${fmtDate(x.due)}</span></div>
-      <div style="margin-top:8px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</div>
+      <div style="margin-top:8px">${pBar(pTaskProgress(p, x))}</div>
       ${docsFor(p, "task", x.id).length ? `<div class="sub" style="margin-top:8px">${
         docsFor(p, "task", x.id).map(d =>
           `<button class="btn-ghost" data-pdoc="${d.id}">${esc(docIcon(d))} ${esc(d.title)}</button>`).join("")}</div>` : ""}
       <div class="foot">
         ${pCanEdit(p) && !pTaskDone(x) ? `<button class="btn-ghost" data-ptdone="${x.id}">${t("ts_completed")}</button>` : ""}
         ${may ? `<button class="btn-ghost" data-ptedit="${x.id}">${t("edit")}</button>
+                 ${!sub ? `<button class="btn-ghost" data-ptsub="${x.id}">+ ${t("col_sub")}</button>` : ""}
                  <button class="btn-ghost" data-pup="${x.id}">${t("doc_up")}</button>` : ""}
       </div>
     </article>`).join("")}</div>`;
@@ -3839,9 +3891,11 @@ function pDialogEditTask(p, x) {
         options:P_TSTATUS.map(st => ({ v:st, l:t("ts_" + st) })) },
       { name:"prio", label:t("col_prio"), type:"select", half:true,
         options:P_PRIO.map(pr => ({ v:pr, l:t("prio_" + pr) })) },
+      /* Gesperrt, wo der Wert nicht von Hand kommt: bei abgeschlossenen
+         Aufgaben und bei solchen, die ihre Teilaufgaben mitteln. */
       { name:"progress", label:t("col_progress") + " (%)", type:"number", half:true,
-        disabled:v.status === "completed" || v.status === "cancelled",
-        hint:v.status === "completed" ? t("ed_prog_done") : "" },
+        disabled:v.status === "completed" || v.status === "cancelled" || pHasKids(p, x),
+        hint:pHasKids(p, x) ? t("ed_prog_sub") : v.status === "completed" ? t("ed_prog_done") : "" },
       { name:"start", label:t("f_start"), type:"date", half:true },
       { name:"due", label:t("col_due"), type:"date", half:true },
       ...(x.parent ? [] : [{ name:"deps", label:t("g_dep"), type:"checks", hint:t("g_dep_h"),
@@ -4305,6 +4359,45 @@ function pDialogNewTask(p) {
     }
   });
 }
+/* Eine Teilaufgabe zerlegt eine Aufgabe in Schritte, die verschiedene Personen
+   übernehmen können. Teilprojekt und Zeitraum kommen vom Elternteil — eine
+   Teilaufgabe außerhalb des Zeitraums ihrer Aufgabe wäre ein Widerspruch im
+   Plan. Eine weitere Ebene gibt es bewusst nicht: zwei reichen, drei
+   verlieren den Überblick. */
+function pDialogSub(p, parent) {
+  openDialog({
+    title:t("act_sub"), text:t("sub_h", { r:parent.ref, n:parent.title }), okLabel:t("create"),
+    values:{ title:"", assignee:parent.assignee || me, status:"not_started",
+             start:parent.start || "", due:parent.due || "", description:"" },
+    build: v => [
+      { name:"title", label:t("col_title"), type:"text", req:true },
+      { name:"assignee", label:t("col_assignee"), type:"select", half:true, options:teamOpts(p) },
+      { name:"status", label:t("col_status"), type:"select", half:true,
+        options:P_TSTATUS.map(x => ({ v:x, l:t("ts_" + x) })) },
+      { name:"start", label:t("f_start"), type:"date", half:true },
+      { name:"due", label:t("col_due"), type:"date", half:true,
+        hint:parent.due ? t("sub_win", { d:fmtLong(parent.start), b:fmtLong(parent.due) }) : "" },
+      { name:"description", label:t("f_desc"), type:"textarea" }
+    ],
+    validate: v => {
+      const e = [];
+      if ((v.title || "").trim().length < 3) e.push({ f:"title", m:t("e_pname") });
+      if (v.start && v.due && v.due < v.start) e.push({ f:"due", m:t("e_dates") });
+      return e;
+    },
+    onSubmit: v => {
+      const x = mkTask(p, { title:v.title.trim(), parent:parent.id, ws:parent.ws,
+        assignee:v.assignee, prio:parent.prio, status:v.status,
+        start:v.start || parent.start, due:v.due || parent.due,
+        progress:v.status === "completed" ? 100 : 0,
+        done:v.status === "completed" ? today() : null,
+        description:v.description });
+      plg(p, me, { k:"ev_subnew", x:parent.ref + " · " + x.title });
+      toast(t("t_sub", { r:x.ref, n:parent.ref })); commit(); render();
+    }
+  });
+}
+
 function pDialogNewRisk(p) {
   openDialog({
     title:t("pn_risks"), text:t("p_score_h"), okLabel:t("create"),
@@ -4468,6 +4561,7 @@ function wirePcc() {
   const P = () => pById(pProject);
   const on = (sel, fn) => document.querySelectorAll(sel).forEach(b => b.onclick = e => { e.stopPropagation(); fn(b); });
   on("[data-ptedit]", b => pDialogEditTask(P(), P().tasks.find(x => x.id === b.dataset.ptedit)));
+  on("[data-ptsub]", b => pDialogSub(P(), P().tasks.find(x => x.id === b.dataset.ptsub)));
   on("[data-predit]", b => pDialogEditRisk(P(), P().risks.find(x => x.id === b.dataset.predit)));
   on("[data-piedit]", b => pDialogEditIssue(P(), P().issues.find(x => x.id === b.dataset.piedit)));
   on("[data-pmsnew]", () => pDialogMilestone(P(), null));
@@ -4679,7 +4773,7 @@ function pccDoc(kind) {
     [t("f_health"), t("h_" + pHealth(p))]];
   const taskRows = list => list.map(({p,x}) => [x.ref, x.title, p.key,
     (p.ws.find(w => w.id === x.ws) || {}).name || "", x.assignee ? pUser(x.assignee) : "",
-    t("ts_" + x.status), x.prio, fmtLong(x.due), (pTaskDone(x) ? 100 : x.progress || 0) + "%",
+    t("ts_" + x.status), x.prio, fmtLong(x.due), pTaskProgress(p, x) + "%",
     docsFor(p, "task", x.id).map(d => d.title).join("; ")]);
   const TASK_COLS = [t("f_ref"), t("col_task"), t("col_project"), t("col_ws"), t("col_assignee"),
     t("col_status"), t("col_prio"), t("col_due"), t("col_progress"), t("doc_att")];

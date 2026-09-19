@@ -412,7 +412,7 @@ Implementierung nach Abschnitt 61.
 |---|---|---|
 | 1 | Datenmodell `pcc`, Nutzerkonto und Audit-Trail in `public` | **fertig** — `supabase/migrations/20260918000100`, lokal geprüft |
 | 2 | Zwei Zugänge, Personenverzeichnis, RLS | **fertig** — `…000200` bis `…000400` |
-| 3 | Kern: Projekte, Workstreams, Aufgaben, Teilaufgaben, Meilensteine | **Datenbank fertig**, Oberfläche offen |
+| 3 | Kern: Projekte, Workstreams, Aufgaben, Teilaufgaben, Meilensteine | **Datenbank fertig**; im Prototyp vollständig bedienbar, Zielanwendung offen |
 | 4 | Risiken, Issues, Decisions, RACI | **Datenbank fertig**, Oberfläche offen |
 | 5 | Dashboard, Timeline, Suche, Filter | Sichten fertig (`…000500`), Oberfläche offen |
 | 6 | Kommentare, Benachrichtigungen, Dokumente mit Upload, Activity, Audit | **Datenbank fertig**; Storage-Bucket und Virenprüfung brauchen die Instanz |

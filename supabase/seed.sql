@@ -113,5 +113,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'Excel export as a real .xlsx file with one sheet per section; onboarding page for the team.'),
   ('1.6.1', date '2026-09-19',
    'Überlagerte Beschriftungen auf Tablet und Telefon behoben; Darstellungsprüfung über elf Geräteklassen.',
-   'Fixed overlapping labels on tablet and phone; layout check across eleven device classes.')
+   'Fixed overlapping labels on tablet and phone; layout check across eleven device classes.'),
+  ('1.7.0', date '2026-09-19',
+   'Teilaufgaben lassen sich anlegen und verteilen; der Fortschritt einer Aufgabe ergibt sich aus ihren Teilaufgaben.',
+   'Subtasks can be created and assigned; a task''s progress is derived from its subtasks.')
 on conflict (version) do nothing;

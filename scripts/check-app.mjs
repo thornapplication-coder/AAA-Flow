@@ -368,6 +368,31 @@ ok('Die angelegte Aufgabe ist noch da', await page.evaluate(() =>
 ok('Die angehängte Datei ist noch da', await page.evaluate(() =>
   PROJECTS.some((p) => p.docs.some((d) => d.title === 'Prüfdatei'))))
 
+/* Kennungen werden fortlaufend vergeben. Nach dem Neuladen stand der Zähler
+   wieder auf dem Stand der Demodaten — die nächste Aufgabe bekam eine Kennung,
+   die es schon gab. Verwerfen traf dann zwei Einträge auf einmal. */
+const kennungen = await page.evaluate(() => {
+  const alle = []
+  PROJECTS.forEach((p) => ['tasks', 'risks', 'issues', 'ms', 'decisions', 'ws', 'docs']
+    .forEach((k) => (p[k] || []).forEach((o) => alle.push(o.id))))
+  PROJECTS.forEach((p) => alle.push(p.id))
+  return { anzahl: alle.length, doppelt: alle.filter((x, i) => alle.indexOf(x) !== i) }
+})
+ok('Nach dem Neuladen ist jede Kennung eindeutig', kennungen.doppelt.length === 0,
+  `${kennungen.anzahl} Kennungen, doppelt: ${kennungen.doppelt.join(', ')}`)
+const frischeKennung = await page.evaluate(() => {
+  const p = PROJECTS[0]
+  const vorhanden = new Set()
+  PROJECTS.forEach((q) => ['tasks', 'risks', 'issues', 'ms', 'decisions', 'ws', 'docs']
+    .forEach((k) => (q[k] || []).forEach((o) => vorhanden.add(o.id))))
+  const neu = mkTask(p, { title: 'Kennungsprobe' })
+  const frei = !vorhanden.has(neu.id)
+  p.tasks = p.tasks.filter((t) => t !== neu)
+  return { id: neu.id, frei }
+})
+ok('Eine neu angelegte Aufgabe bekommt eine freie Kennung', frischeKennung.frei,
+  `vergeben: ${frischeKennung.id}`)
+
 // ------------------------------------------------------- Pflegedialoge
 // Alles, was ein Team im Alltag ändert: Stand, Abschluss, Meilensteine,
 // Teilprojekte, Entscheidungen, Team, Personen, Verwerfen, Archiv.
@@ -377,8 +402,15 @@ await wait(300)
 await click('[data-pp]', 'Projekt für die Pflegedialoge öffnen')
 await click('[data-ptab="tasks"]')
 
-// Aufgabe bearbeiten: Fortschritt außerhalb 0–100 wird abgewiesen
-if (await click('[data-ptedit]', 'Aufgabe bearbeiten öffnen')) {
+// Aufgabe bearbeiten: Fortschritt außerhalb 0–100 wird abgewiesen.
+// Gewählt wird eine Aufgabe ohne Teilaufgaben — bei zerlegten Aufgaben ist der
+// Fortschritt abgeleitet und das Feld deshalb gesperrt.
+const ohneKinder = await page.evaluate(() => {
+  const p = pById(pProject)
+  const x = p.tasks.find((t) => !t.parent && !pKids(p, t).length)
+  return x ? x.id : null
+})
+if (ohneKinder && await click(`[data-ptedit="${ohneKinder}"]`, 'Aufgabe bearbeiten öffnen')) {
   const id = await page.evaluate(() => dlg && dlg.cfg.title.split(' · ')[0])
   await page.selectOption('[data-f="status"]', 'in_progress')
   await page.fill('[data-f="progress"]', '200')
@@ -398,6 +430,73 @@ if (await click('[data-ptedit]')) {
     const x = pById(pProject).tasks.find((y) => y.ref === ref)
     return x && x.progress === 100 && !!x.done
   }, id))
+}
+
+// -------------------------------------------------------- Teilaufgaben
+// Eine Aufgabe in Schritte zerlegen, die verschiedene Personen übernehmen.
+await frei()
+await click('[data-ptab="tasks"]')
+const eltern = await page.evaluate(() => {
+  const p = pById(pProject)
+  const x = p.tasks.find((t) => !t.parent && !pKids(p, t).length && !pTaskDone(t))
+  return x ? { id: x.id, ref: x.ref, ws: x.ws, prio: x.prio } : null
+})
+ok('Es gibt eine Aufgabe zum Zerlegen', !!eltern)
+if (eltern) {
+  const vorher = await page.evaluate(() => pById(pProject).tasks.length)
+  ok('Hauptaufgaben tragen einen Knopf für Teilaufgaben', !!(await $(`[data-ptsub="${eltern.id}"]`)))
+  await click(`[data-ptsub="${eltern.id}"]`, 'Teilaufgabe anlegen öffnen')
+  await click('#mOk')
+  ok('Eine Teilaufgabe ohne Titel wird abgewiesen', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="title"]', 'Prüf-Teilaufgabe eins')
+  await page.selectOption('[data-f="status"]', 'completed')
+  await click('#mOk', 'Erste Teilaufgabe anlegen')
+  ok('Die Teilaufgabe wurde angelegt',
+    (await page.evaluate(() => pById(pProject).tasks.length)) === vorher + 1)
+  const k1 = await page.evaluate((pid) => {
+    const p = pById(pProject)
+    const k = p.tasks.find((t) => t.parent === pid)
+    return k ? { ws: k.ws, prio: k.prio, progress: k.progress, done: !!k.done } : null
+  }, eltern.id)
+  ok('Sie erbt Teilprojekt und Priorität der Aufgabe',
+    !!k1 && k1.ws === eltern.ws && k1.prio === eltern.prio, JSON.stringify(k1))
+  ok('Erledigt angelegt heißt 100 % und ein Datum', !!k1 && k1.progress === 100 && k1.done)
+  ok('Die Teilaufgabe steht eingerückt in der Liste', await page.evaluate(() =>
+    !!document.querySelector('tr.sub') || document.getElementById('main').innerText.includes('↳')))
+
+  // Zweite Teilaufgabe, offen: der Fortschritt der Aufgabe ist dann die Hälfte
+  await click(`[data-ptsub="${eltern.id}"]`)
+  await page.fill('[data-f="title"]', 'Prüf-Teilaufgabe zwei')
+  await click('#mOk', 'Zweite Teilaufgabe anlegen')
+  ok('Der Fortschritt der Aufgabe kommt aus den Teilaufgaben', await page.evaluate((pid) => {
+    const p = pById(pProject)
+    return pTaskProgress(p, p.tasks.find((t) => t.id === pid)) === 50
+  }, eltern.id))
+  const subInfo = await page.evaluate((pid) => {
+    const p = pById(pProject)
+    const kinder = p.tasks.filter((t) => t.parent === pid)
+    return { anzahl: kinder.length,
+      mitKnopf: kinder.filter((k) => !!document.querySelector(`[data-ptsub="${k.id}"]`)).map((k) => k.ref),
+      refs: kinder.map((k) => k.ref) }
+  }, eltern.id)
+  ok('Eine Teilaufgabe bekommt selbst keine Teilaufgabe', subInfo.mitKnopf.length === 0,
+    JSON.stringify(subInfo))
+  // Das Fortschrittsfeld der zerlegten Aufgabe ist gesperrt
+  await click(`[data-ptedit="${eltern.id}"]`, 'Zerlegte Aufgabe bearbeiten')
+  ok('Der Fortschritt lässt sich dort nicht von Hand setzen',
+    await page.evaluate(() => { const el = document.querySelector('[data-f="progress"]'); return !!el && el.disabled }))
+  await click('#mCancel')
+  // Verwerfen nimmt die Teilaufgaben mit
+  const vorDisc = await page.evaluate((pid) => {
+    const p = pById(pProject)
+    return { gesamt: p.tasks.length, kinder: p.tasks.filter((t) => t.parent === pid).length }
+  }, eltern.id)
+  await click(`[data-pdisc="task|${eltern.id}"]`, 'Zerlegte Aufgabe verwerfen')
+  await click('#mOk')
+  const nachDisc = await page.evaluate(() => pById(pProject).tasks.length)
+  ok('Verwerfen nimmt genau die Aufgabe und ihre Teilaufgaben mit',
+    nachDisc === vorDisc.gesamt - (1 + vorDisc.kinder),
+    `${vorDisc.gesamt} (davon ${vorDisc.kinder} Teilaufgaben) → ${nachDisc}`)
 }
 
 // Risiko schließen

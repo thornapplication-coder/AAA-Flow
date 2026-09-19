@@ -3,6 +3,46 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.7.0 — 2026-09-19
+
+### Teilaufgaben anlegen und verteilen
+
+Teilaufgaben gab es im Datenmodell und in der Darstellung, aber keinen Weg,
+eine anzulegen. Eine Aufgabe ließ sich also nicht in Schritte zerlegen, die
+verschiedene Personen übernehmen — genau das, wofür die Ebene gedacht ist.
+
+- **„+ Teilaufgabe"** an jeder Hauptaufgabe, in der Tabelle und auf der Karte.
+  Eigener Titel, eigene Zuständigkeit, eigener Stand, eigene Termine.
+- **Teilprojekt und Priorität kommen vom Elternteil**, die Termine sind mit
+  dessen Zeitraum vorbelegt: eine Teilaufgabe außerhalb ihrer Aufgabe wäre ein
+  Widerspruch im Plan.
+- **Zwei Ebenen, nicht drei.** Eine Teilaufgabe bekommt selbst keine
+  Teilaufgabe — drei Ebenen kosten mehr Übersicht, als sie bringen.
+- **Der Fortschritt einer zerlegten Aufgabe ergibt sich aus ihren
+  Teilaufgaben** und lässt sich dort nicht mehr von Hand setzen; das Feld ist
+  gesperrt und sagt, warum. Abgebrochene Teilaufgaben zählen nicht mit, eine
+  abgeschlossene Aufgabe steht auf 100 %.
+- **Im Projektfortschritt zählen zerlegte Aufgaben einfach**, nicht doppelt:
+  gemittelt wird über die Hauptaufgaben, deren Wert die Teile bereits enthält.
+
+### Dabei gefunden: Kennungen wurden nach einem Neuladen doppelt vergeben
+
+Der schwerwiegendste Fehler dieser Runde, sichtbar geworden erst durch die
+neuen Prüfungen für Teilaufgaben.
+
+Kennungen werden fortlaufend vergeben (`p1001`, `p1002`, …). Nach einem
+Neuladen stand der Zähler wieder auf dem Stand der Demodaten, während die
+gespeicherten Daten längst höhere Nummern trugen. **Die nächste angelegte
+Aufgabe bekam damit eine Kennung, die es schon gab.** Folgen im Alltag:
+Verwerfen hätte zwei Einträge auf einmal getroffen, ein Anhang hätte an der
+falschen Aufgabe gehangen, eine Teilaufgabe am falschen Elternteil.
+
+Behoben: Nach jedem Laden und nach jedem Einspielen einer Datensicherung wird
+der Zähler über alles gehoben, was bereits vergeben ist. Geprüft wird jetzt
+nach dem Neuladen, dass jede Kennung eindeutig ist und eine neu angelegte
+Aufgabe eine freie bekommt — gegengeprüft: ohne die Korrektur vergibt die
+Anwendung eine bereits benutzte Kennung.
+
 ## 1.6.1 — 2026-09-19
 
 ### Überlagerte Beschriftungen behoben

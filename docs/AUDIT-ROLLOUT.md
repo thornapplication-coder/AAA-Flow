@@ -59,6 +59,14 @@ dafür fertig und geprüft.
 - Drei Bildschirmbreiten ohne Überlauf, englische Fassung ohne deutsche Reste.
 - Audit-Trail in der Datenbank unveränderlich; Versionen nur über Funktionen.
 
+### Nachgezogen in 1.7.0
+
+| Befund | Schwere | Behebung |
+|---|---|---|
+| Teilaufgaben ließen sich nicht anlegen — eine Aufgabe war nicht in Schritte für mehrere Personen zerlegbar | mittel | „+ Teilaufgabe" an jeder Hauptaufgabe; Teilprojekt, Priorität und Zeitraum vom Elternteil |
+| Der Fortschritt einer zerlegten Aufgabe war frei setzbar und widersprach ihren Teilen; im Projektfortschritt zählten zerlegte Aufgaben doppelt | mittel | Fortschritt wird aus den Teilaufgaben gemittelt, das Feld ist gesperrt; gemittelt wird über Hauptaufgaben |
+| **Kennungen wurden nach einem Neuladen doppelt vergeben** — Verwerfen hätte zwei Einträge getroffen, Anhänge hätten an der falschen Aufgabe gehangen | **hoch — stille Datenverfälschung** | Zähler wird nach Laden und Einspielen über alles Vergebene gehoben; Prüfung nach dem Neuladen, gegengeprüft |
+
 ### Nachgezogen in 1.6.1
 
 | Befund | Schwere | Behebung |

@@ -139,11 +139,38 @@ const netz = {
 }
 
 // Fortschritt: Erledigtes zählt 100, Abgebrochenes gar nicht
+const T = (o) => Object.assign({ id: 'x' + Math.random().toString(36).slice(2), parent: null, progress: 0 }, o)
 eq('Fortschritt ohne Aufgaben', await run(() => pProgress({ tasks: [] })), 0)
-eq('Fortschritt mittelt über offene und erledigte Aufgaben', await run(() => pProgress({ tasks: [
-  { status: 'in_progress', progress: 50 }, { status: 'completed', progress: 0 }, { status: 'cancelled', progress: 0 }] })), 75)
-eq('Fortschritt rundet', await run(() => pProgress({ tasks: [
-  { status: 'in_progress', progress: 33 }, { status: 'in_progress', progress: 34 }, { status: 'not_started', progress: 0 }] })), 22)
+eq('Fortschritt mittelt über offene und erledigte Aufgaben', await run((ts) => pProgress({ tasks: ts }),
+  [T({ status: 'in_progress', progress: 50 }), T({ status: 'completed' }), T({ status: 'cancelled' })]), 75)
+eq('Fortschritt rundet', await run((ts) => pProgress({ tasks: ts }), [
+  T({ status: 'in_progress', progress: 33 }), T({ status: 'in_progress', progress: 34 }), T({ status: 'not_started' })]), 22)
+
+// Teilaufgaben: eine Aufgabe ist so weit, wie ihre Teile fertig sind
+{
+  const eltern = T({ id: 'p1', status: 'in_progress', progress: 10 })
+  const k1 = T({ id: 'k1', parent: 'p1', status: 'in_progress', progress: 50 })
+  const k2 = T({ id: 'k2', parent: 'p1', status: 'completed' })
+  const k3 = T({ id: 'k3', parent: 'p1', status: 'cancelled' })
+  const proj = { tasks: [eltern, k1, k2, k3] }
+  eq('Der Fortschritt kommt aus den Teilaufgaben, nicht aus dem eigenen Wert',
+    await run((pr) => pTaskProgress(pr, pr.tasks[0]), proj), 75)
+  eq('Abgebrochene Teilaufgaben zählen nicht mit',
+    await run((pr) => pTaskProgress(pr, { id: 'p1', status: 'in_progress', progress: 10 }),
+      { tasks: [k1, k2] }), 75)
+  eq('Eine abgeschlossene Aufgabe steht auf 100, auch mit offener Teilaufgabe',
+    await run((pr) => pTaskProgress(pr, pr.tasks[0]),
+      { tasks: [T({ id: 'p2', status: 'completed' }), T({ id: 'k4', parent: 'p2', status: 'in_progress', progress: 0 })] }), 100)
+  eq('Ohne Teilaufgaben gilt der eigene Wert',
+    await run((pr) => pTaskProgress(pr, pr.tasks[0]), { tasks: [T({ status: 'in_progress', progress: 42 })] }), 42)
+  eq('Eine Aufgabe ohne Elternteil ist niemals Teilaufgabe einer anderen',
+    await run((pr) => pKids(pr, pr.tasks[0]).length, { tasks: [T({ id: 'a' }), T({ id: 'b' })] }), 0)
+  // Zerlegte Aufgaben wiegen nicht doppelt: gemittelt wird über die Hauptaufgaben.
+  eq('Teilaufgaben zählen im Projektfortschritt nicht doppelt',
+    await run((pr) => pProgress(pr), proj), 75)
+  eq('Zwei Hauptaufgaben werden gleich gewichtet',
+    await run((pr) => pProgress(pr), { tasks: proj.tasks.concat([T({ status: 'not_started' })]) }), 38)
+}
 
 // Ausgabeschutz: nichts, was Excel als Formel liest
 eq('Formeln werden entschärft', await run(() => ['=SUM(A1)', '+1', '-1', '@cmd', 'Text', '', null].map(tsvSafe)),
