@@ -631,6 +631,40 @@ const I = {
 de:{
   nav_back:"Zurück",
   nav_home:"Dashboard",
+  adm_data:"Daten",
+  adm_data_h:"Die Sicherung enthält alles, auch die Anhänge. Zurücksetzen löscht den Stand auf diesem Gerät und stellt den Ausgangszustand her.",
+  adm_deact:"Stilllegen",
+  adm_deact_q:"{n} stilllegen? Die Person erscheint dann nirgends mehr zur Auswahl, bleibt aber in allem stehen, was sie bisher getan hat.",
+  adm_drop:"Superadmin entziehen",
+  adm_drop_q:"{n} das Superadmin-Recht entziehen? Die Verwaltung ist dann für diese Person nicht mehr sichtbar.",
+  adm_make:"Zum Superadmin machen",
+  adm_make_q:"{n} zum Superadmin machen? Damit sieht die Person die Verwaltung und kann Personen und Rechte pflegen.",
+  adm_note:"Diese Abstufung ist eine Verabredung, keine Sperre: Am gemeinsamen Teamzugang kann sich jede Person beim Anmelden als jede andere ausgeben. Verbindlich wird sie erst mit eigenen Konten und Passwort — dann entscheidet die Datenbank, nicht die Oberfläche.",
+  adm_off:"stillgelegt",
+  adm_people:"Personenverzeichnis",
+  adm_people_h:"Wer hier steht, lässt sich einem Projekt und einer Aufgabe zuweisen.",
+  adm_projects:"Projekte",
+  adm_projects_h:"{n} Projekte, davon {a} archiviert. Eine Zeile öffnet das Projekt.",
+  adm_react:"Wieder aufnehmen",
+  adm_react_q:"{n} wieder aufnehmen? Die Person steht danach wieder zur Auswahl.",
+  adm_self:"Sie",
+  adm_super:"Superadmin",
+  adm_super_h:"Wer die Verwaltung sieht und Rechte vergibt.",
+  adm_super_now:"Zurzeit Superadmin: {n}",
+  e_lastsuper:"Der letzte Superadmin bleibt — sonst kommt niemand mehr in die Verwaltung.",
+  e_selfoff:"Sich selbst kann man nicht stilllegen.",
+  ev_deact:"Person stillgelegt: {x}",
+  ev_personedit:"Person geändert: {x}",
+  ev_react:"Person wieder aufgenommen: {x}",
+  ev_superoff:"Superadmin entzogen: {x}",
+  ev_superon:"Zum Superadmin gemacht: {x}",
+  pad_s:"Personen, Projekte und der Bestand an einem Ort.",
+  pad_t:"Verwaltung",
+  pn_admin:"Verwaltung",
+  t_deact:"{n} ist stillgelegt.",
+  t_react:"{n} ist wieder aufgenommen.",
+  t_super_off:"{n} ist kein Superadmin mehr.",
+  t_super_on:"{n} ist jetzt Superadmin.",
   act_dec:"Entscheidung festhalten",
   col_sub:"Teilaufgabe",
   act_sub:"Teilaufgabe anlegen",
@@ -1087,6 +1121,40 @@ de:{
 en:{
   nav_back:"Back",
   nav_home:"Dashboard",
+  adm_data:"Data",
+  adm_data_h:"The backup contains everything, attachments included. Reset deletes the state on this device and restores the initial state.",
+  adm_deact:"Deactivate",
+  adm_deact_q:"Deactivate {n}? They will no longer appear for selection, but remain visible in everything they have done so far.",
+  adm_drop:"Revoke superadmin",
+  adm_drop_q:"Revoke {n}'s superadmin rights? Administration will no longer be visible to them.",
+  adm_make:"Make superadmin",
+  adm_make_q:"Make {n} a superadmin? They will then see administration and can manage people and rights.",
+  adm_note:"This distinction is an agreement, not a lock: on the shared team account anyone can sign in as anyone else. It only becomes binding with individual accounts and passwords — then the database decides, not the interface.",
+  adm_off:"deactivated",
+  adm_people:"People directory",
+  adm_people_h:"Anyone listed here can be assigned to a project and a task.",
+  adm_projects:"Projects",
+  adm_projects_h:"{n} projects, {a} of them archived. A row opens the project.",
+  adm_react:"Reactivate",
+  adm_react_q:"Reactivate {n}? They will be available for selection again.",
+  adm_self:"you",
+  adm_super:"Superadmin",
+  adm_super_h:"Who sees administration and grants rights.",
+  adm_super_now:"Currently superadmin: {n}",
+  e_lastsuper:"The last superadmin stays — otherwise nobody can reach administration.",
+  e_selfoff:"You cannot deactivate yourself.",
+  ev_deact:"Person deactivated: {x}",
+  ev_personedit:"Person changed: {x}",
+  ev_react:"Person reactivated: {x}",
+  ev_superoff:"Superadmin revoked: {x}",
+  ev_superon:"Made superadmin: {x}",
+  pad_s:"People, projects and the data in one place.",
+  pad_t:"Administration",
+  pn_admin:"Administration",
+  t_deact:"{n} is deactivated.",
+  t_react:"{n} is active again.",
+  t_super_off:"{n} is no longer a superadmin.",
+  t_super_on:"{n} is now a superadmin.",
   act_dec:"Record a decision",
   col_sub:"Subtask",
   act_sub:"Add subtask",
@@ -1556,7 +1624,7 @@ const mailFor = n => n.toLowerCase()
 /* Rollen nach Abschnitt 4 der Architektur. „fn" ist die fachliche Funktion im
    Haus — sie steuert keine Rechte, sie erklärt nur, wer da vor einem steht. */
 const USERS = [
-  { id:"u1",  name:"Patrick Thorn",  fn:"Director Training" },
+  { id:"u1",  name:"Patrick Thorn",  fn:"Director Training", admin:true },
   { id:"u2",  name:"Christian Wies", fn:"Head of Training" },
   { id:"u3",  name:"Marion Kern",    fn:"Training Admin" },
   { id:"u6",  name:"Nina Hartl",     fn:"Sales" },
@@ -2155,6 +2223,12 @@ let SOLO_SEEN = false;
 
 const pRole = () => ACCESS || "viewer";
 const pIsAdmin = () => pRole() === "team";
+/* Superadmin ist eine Verabredung, keine Sperre: am gemeinsamen Teamzugang
+   kann sich jede Person als jede andere anmelden. Verbindlich wird die
+   Abstufung erst mit eigenen Konten — dann entscheidet die Datenbank.
+   Solange sagt der Hinweis im Bereich genau das. */
+const pIsSuper = () => pIsAdmin() && !!(user(me) || {}).admin;
+const pSupers = () => USERS.filter(u => !u.access && u.admin && u.active !== false);
 /* Der Teamzugang ändert jedes Projekt — außer einem archivierten. Eine
    Abstufung nach Projektmitgliedschaft gibt es nicht mehr: sie beschriebe
    Rechte, die es mit zwei Zugängen nicht gibt. */
@@ -2655,7 +2729,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
-const APP_VERSION = "1.9.0";
+const APP_VERSION = "1.10.0";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert
@@ -2691,8 +2765,11 @@ function storeSnapshot() {
   return { rev:DATA_REV, at:new Date().toISOString(), access:ACCESS, me,
            mxopen:MXOPEN, solo:SOLO_SEEN, version:APP_VERSION,
            projects:PROJECTS, log:PLOG,
-           /* Nur die selbst angelegten Personen: die Demoliste steht im Code. */
-           people:USERS.filter(u => u.added) };
+           /* Alle Personen, nicht nur die neu angelegten: auch eine geänderte
+              Funktion, ein entzogenes Superadmin-Recht oder eine stillgelegte
+              Person muss das Neuladen überleben. Die beiden Zugangszeilen
+              stehen im Code und gehören nicht dazu. */
+           people:USERS.filter(u => !u.access) };
 }
 function storeSave() {
   try {
@@ -2729,7 +2806,12 @@ function storeLoad() {
     if (!d || !Array.isArray(d.projects)) return false;
     PROJECTS.length = 0; d.projects.forEach(x => PROJECTS.push(x));
     PLOG.length = 0; d.log.forEach(x => PLOG.push(x));
-    (d.people || []).forEach(u => { if (!USERS.some(x => x.id === u.id)) USERS.push(u); });
+    /* Bekannte Person: Felder übernehmen. Unbekannte: aufnehmen. Ein reines
+       „nur wenn neu" ließe jede Änderung beim Laden verfallen. */
+    (d.people || []).forEach(u => {
+      const v = USERS.find(x => x.id === u.id);
+      if (v) Object.assign(v, u); else USERS.push(u);
+    });
     ACCESS = d.access || null;
     me = d.me || null;
     if (typeof d.mxopen === "boolean") MXOPEN = d.mxopen;
@@ -2762,7 +2844,7 @@ async function backupExport() {
     }
   }
   const out = Object.assign({ kind:"pcc-backup", app:APP_VERSION, exported:new Date().toISOString(),
-    people:USERS.filter(u => u.added), files }, snap);
+    people:USERS.filter(u => !u.access), files }, snap);
   docSave("control-center-" + today() + ".json", new Blob([JSON.stringify(out)], { type:"application/json" }));
   toast(withFiles ? t("t_backup") : t("bk_toolarge"), !withFiles);
 }
@@ -2779,7 +2861,12 @@ function backupImport(file) {
     if (!d.projects.every(shaped)) return toast(t("e_bkbad"), true);
     PROJECTS.length = 0; d.projects.forEach(x => PROJECTS.push(x));
     PLOG.length = 0; (d.log || []).forEach(x => PLOG.push(x));
-    (d.people || []).forEach(u => { if (!USERS.some(x => x.id === u.id)) USERS.push(u); });
+    /* Bekannte Person: Felder übernehmen. Unbekannte: aufnehmen. Ein reines
+       „nur wenn neu" ließe jede Änderung beim Laden verfallen. */
+    (d.people || []).forEach(u => {
+      const v = USERS.find(x => x.id === u.id);
+      if (v) Object.assign(v, u); else USERS.push(u);
+    });
     let n = 0;
     for (const id of Object.keys(d.files || {})) {
       try { const blob = await (await fetch(d.files[id])).blob(); await FILES.put(id, blob); n++; } catch (e) {}
@@ -3498,6 +3585,118 @@ function pccMilestones() {
           : m.status === "in_progress" ? "p-work" : "p-open", t("ms_" + m.status))}</div>
       <h4>${esc(m.name)}</h4><div class="sub"><span>${pUser(m.owner)}</span></div></article>`).join("")}</div>`;
 }
+/* ---------- Verwaltung ----------
+   Personen, Projekte und der Bestand an einem Ort. Vorher lagen diese Wege
+   verstreut: Personen nur in einer Projektakte, die Sicherung unter Berichte,
+   das Zurücksetzen in der Leiste am unteren Rand. */
+function pccAdmin() {
+  const leute = USERS.filter(u => !u.access).sort(byName);
+  const zeile = u => {
+    const ich = u.id === me, aus = u.active === false;
+    return `<tr${aus ? ' class="muted"' : ""}>
+      <td><b>${esc(u.name)}</b>${ich ? ` <span class="co">· ${t("adm_self")}</span>` : ""}
+        <div class="num">${esc(u.email || mailFor(u.name))}</div></td>
+      <td class="co">${esc(u.fn || t("none"))}</td>
+      <td>${u.admin ? pill("p-work", t("adm_super")) : ""}
+        ${aus ? pill("p-late", t("adm_off")) : ""}</td>
+      <td class="acts">
+        <button data-uedit="${u.id}">${t("edit")}</button>
+        <button data-usuper="${u.id}">${u.admin ? t("adm_drop") : t("adm_make")}</button>
+        <button data-uactive="${u.id}">${aus ? t("adm_react") : t("adm_deact")}</button></td>
+    </tr>`;
+  };
+  const projZeile = p => `<tr data-pp="${p.id}">
+    <td class="num">${esc(p.key)}</td><td><b>${esc(p.name)}</b></td>
+    <td>${p.archived ? pill("p-late", t("arch_state")) : pStatusPill(p.status)}</td>
+    <td class="co">${pUser(p.pm)}</td>
+    <td class="co">${p.ws.length}</td><td class="co">${p.tasks.length}</td>
+    <td class="co">${p.team.length}</td></tr>`;
+  return `<div class="pcard"><header><h2>${t("adm_people")}</h2>
+      <span class="co">${t("adm_people_h")}</span>
+      <span class="hdacts"><button class="btn-primary" id="admNewPerson">${t("act_person")}</button></span></header>
+    <div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("usr_name")}</th><th>${t("usr_fn")}</th><th>${t("lb_status")}</th><th></th>
+    </tr></thead><tbody>${leute.map(zeile).join("")}</tbody></table></div></div>
+
+    <div class="pcard"><header><h2>${t("adm_super")}</h2>
+      <span class="co">${t("adm_super_h")}</span></header>
+      <div class="inner"><div class="note">${t("adm_note")}</div>
+      <p class="co">${t("adm_super_now", { n:pSupers().map(u => esc(u.name)).join(", ") || t("none") })}</p></div></div>
+
+    <div class="pcard"><header><h2>${t("adm_projects")}</h2>
+      <span class="co">${t("adm_projects_h", { n:PROJECTS.length, a:PROJECTS.filter(p => p.archived).length })}</span></header>
+    <div class="tblwrap aslist"><table><thead><tr>
+      <th>${t("f_key")}</th><th>${t("col_project")}</th><th>${t("col_status")}</th><th>${t("col_pm")}</th>
+      <th>${t("g_groups")}</th><th>${t("pn_tasks")}</th><th>${t("tab_team")}</th>
+    </tr></thead><tbody>${PROJECTS.map(projZeile).join("")}</tbody></table></div></div>
+
+    <div class="pcard"><header><h2>${t("adm_data")}</h2><span class="co">${t("bk_h")}</span></header>
+      <div class="inner"><div class="hdacts">
+        <button class="btn-primary" id="bkexport">${t("bk_export")}</button>
+        <button class="btn-ghost" id="bkimport">${t("bk_import")}</button>
+        <button class="btn-ghost" id="admReset">${t("sb_reset")}</button>
+      </div><p class="co" style="margin-top:10px">${t("adm_data_h")}</p></div></div>`;
+}
+
+/* Person bearbeiten: Name, Funktion, Adresse. Die Kennung bleibt, woran sie
+   hängt — Aufgaben, Verlauf, Zuweisungen — bleibt damit heil. */
+function pDialogPersonEdit(u) {
+  openDialog({
+    title:u.name, text:t("person_h"), okLabel:t("save"),
+    values:{ name:u.name, fn:u.fn || "", email:u.email || mailFor(u.name) },
+    build: () => [
+      { name:"name", label:t("usr_name"), type:"text", req:true },
+      { name:"fn", label:t("usr_fn"), type:"text" },
+      { name:"email", label:t("usr_email"), type:"text" }
+    ],
+    validate: v => {
+      const e = [], n = (v.name || "").trim();
+      if (n.length < 3 || !n.includes(" ")) e.push({ f:"name", m:t("e_person") });
+      if (USERS.some(x => x.id !== u.id && x.name.toLowerCase() === n.toLowerCase()))
+        e.push({ f:"name", m:t("e_persondup") });
+      const mail = (v.email || "").trim();
+      if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) e.push({ f:"email", m:t("e_mail") });
+      return e;
+    },
+    onSubmit: v => {
+      Object.assign(u, { name:v.name.trim(), fn:(v.fn || "").trim(), email:(v.email || "").trim() });
+      plg(null, me, { k:"ev_personedit", x:u.name });
+      toast(t("t_psaved")); commit(); render();
+    }
+  });
+}
+
+/* Superadmin geben und nehmen. Der letzte bleibt — sonst sperrt sich das Team
+   aus seiner eigenen Verwaltung aus. */
+function pToggleSuper(u) {
+  if (u.admin && pSupers().length <= 1) return toast(t("e_lastsuper"), true);
+  const geben = !u.admin;
+  confirmDialog(geben ? t("adm_make") : t("adm_drop"),
+    t(geben ? "adm_make_q" : "adm_drop_q", { n:u.name }),
+    geben ? t("adm_make") : t("adm_drop"), () => {
+      u.admin = geben;
+      plg(null, me, { k:geben ? "ev_superon" : "ev_superoff", x:u.name });
+      toast(t(geben ? "t_super_on" : "t_super_off", { n:u.name }));
+      commit(); render();
+    });
+}
+
+/* Stillgelegt heißt: taucht nirgends mehr zur Auswahl auf, bleibt aber in
+   allem stehen, was sie einmal getan hat. Gelöscht wird niemand. */
+function pToggleActive(u) {
+  if (u.id === me) return toast(t("e_selfoff"), true);
+  const aus = u.active === false;
+  if (!aus && u.admin && pSupers().length <= 1) return toast(t("e_lastsuper"), true);
+  confirmDialog(aus ? t("adm_react") : t("adm_deact"),
+    t(aus ? "adm_react_q" : "adm_deact_q", { n:u.name }),
+    aus ? t("adm_react") : t("adm_deact"), () => {
+      u.active = aus;
+      plg(null, me, { k:aus ? "ev_react" : "ev_deact", x:u.name });
+      toast(t(aus ? "t_react" : "t_deact", { n:u.name }));
+      commit(); render();
+    });
+}
+
 function pccReports() {
   const ps = pVisible();
   const filtered = pFiltered();
@@ -4551,7 +4750,7 @@ function pDialogNewIssue(p) {
 /* ---------- Ansicht und Bedienung ---------- */
 const PCC_NAV = [["dash","pn_dash"],["projects","pn_projects"],["timeline","pn_timeline"],
   ["tasks","pn_tasks"],["risks","pn_risks"],["issues","pn_issues"],["milestones","pn_milestones"],
-  ["reports","pn_reports"]];
+  ["reports","pn_reports"], ["admin","pn_admin"]];
 
 function pccNavItems() {
   const ps = pVisible();
@@ -4562,9 +4761,11 @@ function pccNavItems() {
   const cnt = { dash:over, risks:crit,
     issues:ps.reduce((a,p) => a + p.issues.filter(i => ["open","blocked"].includes(i.status)).length, 0) };
   const hint = { dash:t("cnt_over"), risks:t("cnt_crit"), issues:t("cnt_issues") };
+  /* Die Verwaltung steht nur dort, wo sie jemandem nützt. */
+  const org = PCC_NAV.slice(4).filter(([k]) => k !== "admin" || pIsSuper());
   return {
     work:PCC_NAV.slice(0,4).map(([k,lb]) => [k, lb, cnt[k] || 0, k === "dash", hint[k]]),
-    org:PCC_NAV.slice(4).map(([k,lb]) => [k, lb, cnt[k] || 0, k === "risks", hint[k]])
+    org:org.map(([k,lb]) => [k, lb, cnt[k] || 0, k === "risks", hint[k]])
   };
 }
 function renderPcc(m) {
@@ -4588,7 +4789,9 @@ function renderPcc(m) {
     risks:   () => head("pr_t","pr_s", expBtns("pcc_risks")) + pccRisks(),
     issues:  () => head("pi_t","pi_s") + pccIssues(),
     milestones:() => head("pm_t","pm_s", expBtns("pcc_ms")) + pccMilestones(),
-    reports: () => head("prep_t","prep_s") + pccReports()
+    reports: () => head("prep_t","prep_s") + pccReports(),
+    admin:   () => pIsSuper() ? head("pad_t","pad_s") + pccAdmin()
+                              : head("pd_t","pd_s") + pccDash()
   }[pv] || (() => head("pd_t","pd_s") + pccDash());
   m.innerHTML = V();
   wirePcc();
@@ -4668,6 +4871,12 @@ function wirePcc() {
     if (obj) pDiscard(p, kind, obj);
   });
   if (q("pperson")) q("pperson").onclick = pDialogPerson;
+  if (q("admNewPerson")) q("admNewPerson").onclick = pDialogPerson;
+  if (q("admReset")) q("admReset").onclick = () =>
+    confirmDialog(t("sb_reset"), t("sb_reset_q"), t("sb_reset"), () => { storeClear(); location.reload(); });
+  on("[data-uedit]", b => pDialogPersonEdit(USERS.find(u => u.id === b.dataset.uedit)));
+  on("[data-usuper]", b => pToggleSuper(USERS.find(u => u.id === b.dataset.usuper)));
+  on("[data-uactive]", b => pToggleActive(USERS.find(u => u.id === b.dataset.uactive)));
   if (q("parchive")) q("parchive").onclick = () => pArchive(P());
   if (q("punarchive")) q("punarchive").onclick = () => pUnarchive(P());
   if (q("parch")) q("parch").onchange = e => { PF.archived = e.target.checked; renderMain(); };

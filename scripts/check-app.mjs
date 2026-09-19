@@ -395,10 +395,113 @@ const frischeKennung = await page.evaluate(() => {
 ok('Eine neu angelegte Aufgabe bekommt eine freie Kennung', frischeKennung.frei,
   `vergeben: ${frischeKennung.id}`)
 
+// ------------------------------------------------------- Verwaltung
+// Sichtbar nur für Superadmins, und die Regeln müssen halten: der letzte
+// Superadmin bleibt, niemand legt sich selbst still.
+await frei()
+// Angemeldet wird als die Person, die Superadmin ist — die Anmeldung wählt
+// sonst die alphabetisch erste, und die ist es nicht.
+const meVorher = await page.evaluate(() => me)
+await page.evaluate(() => { me = 'u1'; pProject = null; pv = 'dash'; render() })
+await wait(300)
+ok('Der Teamzugang von Patrick Thorn sieht die Verwaltung',
+  await page.evaluate(() => pIsSuper() && !!document.querySelector('[data-v="admin"]')))
+await click('[data-v="admin"]', 'Verwaltung öffnen')
+await wait(250)
+const verw = await page.evaluate(() => ({
+  personen: document.querySelectorAll('[data-uedit]').length,
+  projekte: document.querySelectorAll('#main [data-pp]').length,
+  hinweis: document.getElementById('main').innerText.includes('Verabredung'),
+  sicherung: !!document.getElementById('bkexport'),
+  zuruecksetzen: !!document.getElementById('admReset'),
+}))
+ok('Das Personenverzeichnis steht dort vollständig', verw.personen >= 13, `${verw.personen}`)
+ok('Die Projektübersicht listet alle Projekte', verw.projekte >= 10, `${verw.projekte}`)
+ok('Der Hinweis nennt die Abstufung eine Verabredung', verw.hinweis)
+ok('Datensicherung und Zurücksetzen liegen dort', verw.sicherung && verw.zuruecksetzen)
+
+// Superadmin vergeben und entziehen
+const zweit = await page.evaluate(() => {
+  const u = USERS.find((x) => !x.access && !x.admin && x.active !== false)
+  return u ? { id: u.id, name: u.name } : null
+})
+if (zweit) {
+  await click(`[data-usuper="${zweit.id}"]`, 'Superadmin vergeben')
+  await click('#mOk')
+  ok('Die zweite Person ist Superadmin',
+    await page.evaluate((id) => !!USERS.find((u) => u.id === id).admin, zweit.id))
+  await click(`[data-usuper="${zweit.id}"]`, 'Superadmin wieder entziehen')
+  await click('#mOk')
+  ok('Das Recht lässt sich auch wieder entziehen',
+    await page.evaluate((id) => !USERS.find((u) => u.id === id).admin, zweit.id))
+}
+// Der letzte Superadmin bleibt
+const ichSuper = await page.evaluate(() => me)
+await click(`[data-usuper="${ichSuper}"]`, 'Letztem Superadmin das Recht entziehen')
+ok('Dem letzten Superadmin lässt sich das Recht nicht entziehen',
+  await page.evaluate((id) => !!USERS.find((u) => u.id === id).admin && !dlg, ichSuper))
+ok('Die Anwendung sagt, warum', await page.evaluate(() =>
+  document.getElementById('toast').innerText.toLowerCase().includes('superadmin')))
+await frei()
+
+// Sich selbst stilllegen: nicht möglich
+await click(`[data-uactive="${ichSuper}"]`, 'Sich selbst stilllegen')
+ok('Sich selbst kann niemand stilllegen',
+  await page.evaluate((id) => USERS.find((u) => u.id === id).active !== false && !dlg, ichSuper))
+await frei()
+
+// Eine andere Person stilllegen und wieder aufnehmen
+if (zweit) {
+  await frei()
+  const vorAuswahl = await page.evaluate(() => PEOPLE().length)
+  await click(`[data-uactive="${zweit.id}"]`, 'Person stilllegen')
+  await click('#mOk')
+  ok('Die Person ist stillgelegt',
+    await page.evaluate((id) => USERS.find((u) => u.id === id).active === false, zweit.id))
+  ok('Sie steht nicht mehr zur Auswahl',
+    (await page.evaluate(() => PEOPLE().length)) === vorAuswahl - 1)
+  await click(`[data-uactive="${zweit.id}"]`, 'Person wieder aufnehmen')
+  await click('#mOk')
+  ok('Wieder aufgenommen steht sie erneut zur Auswahl',
+    (await page.evaluate(() => PEOPLE().length)) === vorAuswahl)
+  // Person bearbeiten. Vorher aufräumen: ein stehender Hinweis liegt über der
+  // Seite und fängt Klicks ab.
+  await frei()
+  await click(`[data-uedit="${zweit.id}"]`, 'Person bearbeiten')
+  const bearb = await page.evaluate((id) => ({
+    dlg: !!dlg, titel: dlg ? dlg.cfg.title : null,
+    felder: [...document.querySelectorAll('#mBody [data-f]')].map((e) => e.dataset.f),
+    knopf: document.querySelectorAll(`[data-uedit="${id}"]`).length, pv, me
+  }), zweit.id)
+  ok('Der Bearbeiten-Dialog steht offen', bearb.dlg && bearb.felder.includes('fn'), JSON.stringify(bearb))
+  if (bearb.felder.includes('fn')) {
+    await page.fill('[data-f="fn"]', 'Prüffunktion')
+    await click('#mOk', 'Person speichern')
+    ok('Die geänderte Funktion steht im Verzeichnis',
+      await page.evaluate((id) => USERS.find((u) => u.id === id).fn === 'Prüffunktion', zweit.id))
+  }
+}
+
+// Eine Person ohne Superadmin sieht die Verwaltung nicht
+await frei()
+await page.evaluate((m) => { me = m; pv = 'dash'; render() }, meVorher)
+await wait(300)
+ok('Ohne Superadmin fehlt der Menüpunkt',
+  await page.evaluate(() => !document.querySelector('[data-v="admin"]')))
+ok('Und die Ansicht selbst führt auf das Dashboard', await page.evaluate(() => {
+  pv = 'admin'; render()
+  return !document.getElementById('main').innerText.includes('Personenverzeichnis')
+}))
+// Zustand für die folgenden Abschnitte wiederherstellen
+await page.evaluate((m) => { me = m; pProject = null; pv = 'dash'; render() }, meVorher)
+await wait(250)
+
 // ------------------------------------------------------- Zurück und Start
 // Auf jeder Seite erreichbar: ein Schritt zurück und der Weg zum Dashboard.
 await frei()
-await page.evaluate(() => { pProject = null; pv = 'dash'; pTab = 'overview'; render() })
+// Wie frisch angemeldet: ohne geleerten Verlauf prüfte der nächste Schritt
+// nicht den Anfangszustand, sondern die Nachwirkungen des vorigen Abschnitts.
+await page.evaluate(() => { pProject = null; pv = 'dash'; pTab = 'overview'; NAV.length = 0; render() })
 await wait(300)
 ok('Der Zurück-Knopf steht in der Kopfzeile', !!(await $('#navBack')))
 ok('Der Start-Knopf steht in der Kopfzeile', !!(await $('#navHome')))

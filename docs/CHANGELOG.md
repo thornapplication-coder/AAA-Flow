@@ -3,6 +3,52 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.10.0 — 2026-09-19
+
+### Verwaltung an einem Ort
+
+Ein neuer Bereich **Verwaltung** fasst zusammen, was bisher verstreut lag:
+Personen konnte man nur aus einer Projektakte heraus anlegen, die
+Datensicherung lag unter Berichte, das Zurücksetzen in der Leiste am unteren
+Rand.
+
+| Abschnitt | Inhalt |
+|---|---|
+| **Personenverzeichnis** | alle Personen mit Funktion und Adresse; anlegen, bearbeiten, stilllegen und wieder aufnehmen |
+| **Superadmin** | wer die Verwaltung sieht, samt Hinweis, was diese Abstufung im Prototyp wert ist |
+| **Projekte** | alle Projekte samt archivierten, mit Teilprojekt-, Aufgaben- und Teamzahlen; eine Zeile öffnet das Projekt |
+| **Daten** | Datensicherung herunterladen und einspielen, Zurücksetzen |
+
+**Stilllegen statt löschen:** Eine stillgelegte Person erscheint nirgends mehr
+zur Auswahl, bleibt aber in allem stehen, was sie getan hat. Gelöscht wird
+niemand — sonst verlören Aufgaben und Verlauf ihren Bezug.
+
+**Zwei Regeln, die die Verwaltung schützen:** Dem letzten Superadmin lässt sich
+das Recht nicht entziehen, und niemand kann sich selbst stilllegen. Beides wird
+mit einer Begründung abgewiesen, nicht stillschweigend.
+
+### Rolle „Superadmin" — und was sie im Prototyp bedeutet
+
+Patrick Thorn ist der erste Superadmin und kann das Recht weitergeben. Im
+Bereich selbst steht unübersehbar, was die Abstufung wert ist:
+
+> Diese Abstufung ist eine Verabredung, keine Sperre: Am gemeinsamen Teamzugang
+> kann sich jede Person beim Anmelden als jede andere ausgeben. Verbindlich wird
+> sie erst mit eigenen Konten und Passwort — dann entscheidet die Datenbank,
+> nicht die Oberfläche.
+
+Das ist kein Schönheitsfehler, sondern die ehrliche Beschreibung des Stands:
+Eine Sperre, die aussieht wie eine Sperre, aber keine ist, wäre schlimmer als
+gar keine — man verlässt sich darauf.
+
+### Personenänderungen überleben jetzt das Neuladen
+
+Bisher wurden nur **neu angelegte** Personen gespeichert. Eine geänderte
+Funktion, ein vergebenes Superadmin-Recht oder eine stillgelegte Person an einer
+bereits bekannten Person wäre beim nächsten Laden verfallen. Jetzt werden alle
+Personen gesichert und beim Laden zusammengeführt — das gilt auch für die
+Datensicherung.
+
 ## 1.9.0 — 2026-09-19
 
 ### Zurück und Dashboard, auf jeder Seite an derselben Stelle

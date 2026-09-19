@@ -125,5 +125,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'The ATR finding is now a workstream of SafetyManager 365.'),
   ('1.9.0', date '2026-09-19',
    'Zurück und Dashboard auf jeder Seite in der Kopfzeile.',
-   'Back and dashboard buttons in the header on every page.')
+   'Back and dashboard buttons in the header on every page.'),
+  ('1.10.0', date '2026-09-19',
+   'Verwaltungsbereich für Personen, Projekte und Datenbestand; Rolle Superadmin.',
+   'Administration area for people, projects and data; superadmin role.')
 on conflict (version) do nothing;
