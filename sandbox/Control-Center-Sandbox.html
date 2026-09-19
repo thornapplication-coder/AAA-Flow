@@ -462,6 +462,7 @@ de:{
   doc_att:"Anhänge",
   doc_gone:"Der Inhalt dieser Datei liegt nicht mehr vor. Angaben und Verlauf bleiben erhalten.",
   doc_link_h:"Statt einer Datei: Verweis auf eine Ablage, etwa für sehr große Dateien.",
+  doc_nodl:"Diese Ansicht gibt keine Dateien heraus. Bitte den Prototyp in einem eigenen Fenster öffnen.",
   doc_nostore:"Dieses Fenster kann Dateien nicht dauerhaft ablegen — der Inhalt gilt nur für diese Sitzung.",
   doc_open:"Öffnen",
   doc_types:"PDF, Word, Excel, PowerPoint, CSV, Text oder Bild. Höchstens 50 MB.",
@@ -771,6 +772,7 @@ en:{
   doc_att:"Attachments",
   doc_gone:"The content of this file is no longer available. Details and history remain.",
   doc_link_h:"Instead of a file: a link to where it is stored, e.g. for very large files.",
+  doc_nodl:"This view does not hand out files. Please open the prototype in its own window.",
   doc_nostore:"This window cannot store files permanently — the content lasts for this session only.",
   doc_open:"Open",
   doc_types:"PDF, Word, Excel, PowerPoint, CSV, text or image. 50 MB at most.",
@@ -2701,16 +2703,32 @@ const shortName = d => (d.title || "").length > 18 ? d.title.slice(0,16) + "…"
 const docsFor = (p, kind, id) =>
   (p.docs || []).filter(d => d.entity === kind && d.entityId === id && !d.deleted);
 
-/* Herunterladen: der Inhalt liegt in IndexedDB, nicht im Dokumentsatz. */
+/* Herunterladen: der Inhalt liegt in IndexedDB, nicht im Dokumentsatz.
+   In der eingebetteten Vorschau auf claude.ai zieht ein gewöhnlicher
+   Download-Verweis nicht — dort geht die Datei über die Speichern-Funktion der
+   Umgebung, die den Betrachter fragt. Überall sonst bleibt es beim Verweis. */
+function docSave(name, blob) {
+  const plain = () => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  };
+  if (!(window.claude && typeof window.claude.use === "function")) return plain();
+  window.claude.use("downloads").then(dl => {
+    if (!dl) return plain();
+    dl.save({ filename:name, data:blob }).catch(err => {
+      if (err && err.code === "declined") return;      // Betrachter hat abgelehnt
+      toast(t("doc_nodl"), true);
+    });
+  }).catch(plain);
+}
 function docOpen(d) {
   if (d.kind === "link") { try { window.open(d.url, "_blank", "noopener"); } catch (e) {} return; }
   FILES.get(d.id).then(blob => {
     if (!blob) return toast(t("doc_gone"), true);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = d.file || "datei";
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    docSave(d.file || "datei", blob);
   });
 }
 
