@@ -59,6 +59,12 @@ dafür fertig und geprüft.
 - Drei Bildschirmbreiten ohne Überlauf, englische Fassung ohne deutsche Reste.
 - Audit-Trail in der Datenbank unveränderlich; Versionen nur über Funktionen.
 
+### Nachgezogen in 1.8.0
+
+- Der echte Projektbestand ist angelegt (zehn Projekte, drei davon mit je sechs Teilprojekten), leer bis auf die Struktur.
+- Beispieldaten nur noch mit `?demo=1`: im Alltag kann niemand Demo und Echtes verwechseln.
+- Neu geprüft: jeder Reiter sagt auch im leeren Projekt etwas, die Teilprojekte stehen im Projektverlauf, ohne Vorführmodus ist kein Beispielprojekt im Bestand.
+
 ### Nachgezogen in 1.7.0
 
 | Befund | Schwere | Behebung |

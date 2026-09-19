@@ -66,9 +66,11 @@ Rest. Was die Oberfläche nicht anbietet, gibt auch die API nicht heraus.
 
 ## Sandbox
 
-`sandbox/Control-Center-Sandbox.html` ist ein klickbarer Prototyp mit
-Demodaten, ohne Backend — einfach im Browser öffnen. Er dient dazu, Oberfläche
-und Bedienung zu entscheiden, bevor sie gegen Supabase gebaut werden.
+`sandbox/Control-Center-Sandbox.html` ist ein klickbarer Prototyp ohne Backend —
+einfach im Browser öffnen. Er enthält den echten Projektbestand der Academy
+(zehn Projekte mit ihren Teilprojekten, sonst leer). Die sechs erfundenen
+Beispielprojekte erscheinen nur mit `?demo=1` in der Adresse — zum Vorführen und
+als Grundlage der automatischen Prüfungen.
 
 Enthalten sind Dashboard mit Kennzahlen und Projektverlauf, Projektliste
 mit Filtern, Projektakte mit Überblick, Projektverlauf, Aufgaben samt Teilaufgaben,

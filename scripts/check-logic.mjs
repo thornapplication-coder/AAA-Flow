@@ -73,6 +73,50 @@ await page.goto(pathToFileURL(htmlPath).href)
 await page.waitForTimeout(300)
 const run = (fn, arg) => page.evaluate(fn, arg)
 
+// Der Bestand, den das Team sieht: zehn Projekte, leer bis auf die
+// Teilprojekte. Ohne ?demo=1 darf kein erfundenes Beispiel dabei sein.
+{
+  const bestand = await run(() => PROJECTS.map((p) => ({
+    key: p.key, name: p.name, ws: p.ws.map((w) => w.name),
+    aufgaben: p.tasks.length, risiken: p.risks.length, ms: p.ms.length,
+    pm: p.pm, imTeam: p.team.some((m) => m.user === p.pm),
+    start: !!p.start, ende: p.end, status: p.status })))
+  const soll = [
+    ['PH3-26', 'Phenom 300', 6], ['M2-26', 'M2', 6], ['GL65-26', 'Global 6000/6500', 6],
+    ['GRT-26', 'Grading Tool', 0], ['RTG-26', 'Recurrent Trainings General', 0],
+    ['OTG-26', 'Operator Training General', 0], ['WAG-26', 'WhatsApp Group Admin/ATO', 0],
+    ['ATRF-26', 'ATR Finding', 0], ['NGM-26', 'New Grading in Manuals', 0],
+    ['UKC-26', 'UK CL350', 0]]
+  eq('Zehn Projekte, in der vorgegebenen Reihenfolge',
+    bestand.map((p) => [p.key, p.name, p.ws.length]), soll)
+  const muster = ['TM Fertigstellung', 'All IH Fertigstellung', 'All SH Fertigstellung',
+    'Difference Training all Variant', 'Recurrent Training', 'SME']
+  eq('Die drei Muster tragen dieselben sechs Teilprojekte',
+    bestand.filter((p) => p.ws.length).map((p) => p.ws), [muster, muster, muster])
+  ok('Kein Projekt bringt erfundene Aufgaben, Risiken oder Meilensteine mit',
+    bestand.every((p) => !p.aufgaben && !p.risiken && !p.ms))
+  ok('Jedes Projekt hat eine Projektleitung, die auch im Team steht',
+    bestand.every((p) => p.pm && p.imTeam))
+  ok('Jedes Projekt beginnt heute und hat ein offenes Ende',
+    bestand.every((p) => p.start && !p.ende))
+  ok('Jeder Schlüssel folgt dem Muster und ist eindeutig',
+    bestand.every((p) => /^[A-Z][A-Z0-9]{1,9}-[0-9]{2}$/.test(p.key)) &&
+    new Set(bestand.map((p) => p.key)).size === bestand.length)
+  ok('Ohne Vorführmodus ist kein Beispielprojekt dabei',
+    !bestand.some((p) => ['SIM-26', 'OMB-26', 'EBT-27', 'ATR-26', 'PCC-26', 'PHE-25'].includes(p.key)),
+    bestand.map((p) => p.key).join(', '))
+}
+
+// Der Vorführmodus bringt die Beispiele zurück — die Prüfungen bauen darauf.
+{
+  const demo = await page.goto(pathToFileURL(htmlPath).href + '?demo=1').then(() => page.waitForTimeout(250))
+    .then(() => run(() => ({ anzahl: PROJECTS.length, keys: PROJECTS.slice(0, 2).map((p) => p.key) })))
+  ok('Mit ?demo=1 stehen Beispiele und echte Projekte nebeneinander',
+    demo.anzahl === 16 && demo.keys[0] === 'SIM-26', JSON.stringify(demo))
+  await page.goto(pathToFileURL(htmlPath).href)
+  await page.waitForTimeout(250)
+}
+
 // Risikostufen: die Grenzen aus der Matrixerklärung
 eq('Risikostufen an den Grenzen', await run(() => [1, 4, 5, 9, 10, 14, 15, 25].map(rLevel)),
   [1, 1, 2, 2, 3, 3, 4, 4])

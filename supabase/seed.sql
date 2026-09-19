@@ -116,5 +116,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'Fixed overlapping labels on tablet and phone; layout check across eleven device classes.'),
   ('1.7.0', date '2026-09-19',
    'Teilaufgaben lassen sich anlegen und verteilen; der Fortschritt einer Aufgabe ergibt sich aus ihren Teilaufgaben.',
-   'Subtasks can be created and assigned; a task''s progress is derived from its subtasks.')
+   'Subtasks can be created and assigned; a task''s progress is derived from its subtasks.'),
+  ('1.8.0', date '2026-09-19',
+   'Der Projektbestand der Academy ist angelegt; die Beispieldaten erscheinen nur noch im Vorführmodus.',
+   'The academy''s project inventory is in place; sample data only appears in demo mode.')
 on conflict (version) do nothing;

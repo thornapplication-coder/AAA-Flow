@@ -2154,284 +2154,328 @@ function mkSub(p, parent, title, status, assignee, done) {
 const pName = id => user(id).name;            // roh: Ausgaben, Kalender, Tooltips
 const pUser = id => esc(user(id).name);       // maskiert: alles, was in HTML landet
 
-/* 1 — Simulator, im Plan */
-const P1 = mkProject({ key:"SIM-26", name:"CL650 Full Flight Simulator Introduction",
-  description:"Einführung des CL650 FFS am Standort Wien, von der Abnahme bis zur Freigabe des ersten Type-Rating-Kurses.",
-  objectives:"FSTD-Qualifikation Level D bis Jahresende. Erster Kurs im Januar. Keine Abhängigkeit von Fremdsimulatoren ab Q1.",
-  scope:"In Scope: Abnahme, Qualifikation, Instruktorenschulung, Kursunterlagen. Nicht in Scope: Gebäudetechnik, Catering.",
-  status:"on_track", pm:"u3", start:D(-120), end:D(75), health:"green" });
-P1.team = [{ user:"u3", role:"Project Manager", resp:"Gesamtsteuerung, Behördenkontakt" },
-  { user:"u2", role:"Head of Training", resp:"Fachliche Abnahme, Instruktorenqualifikation" },
-  { user:"u12", role:"Course Supervisor CL650", resp:"Kursunterlagen, Instruktorenschulung" },
-  { user:"u5", role:"Training Admin", resp:"Dokumentation, Kursakte, Terminplanung" },
-  { user:"u1", role:"Sponsor", resp:"Freigaben, Budget" }];
-P1.ws = [{ id:pid(), name:"Qualifikation", owner:"u2" }, { id:pid(), name:"Instruktoren", owner:"u12" },
-  { id:pid(), name:"Unterlagen", owner:"u5" }];
-{
-  const [w1, w2, w3] = P1.ws;
-  const t1 = mkTask(P1, { title:"Factory Acceptance Test durchführen", ws:w1.id, assignee:"u2",
-    status:"completed", prio:"Critical", start:D(-60), due:D(-40), done:D(-42), progress:100,
-    description:"FAT beim Hersteller mit Prüfprotokoll nach CS-FSTD." });
-  mkSub(P1, t1, "Prüfprotokoll vorbereiten", "completed", "u5");
-  mkSub(P1, t1, "Testflüge abnehmen", "completed", "u2");
-  mkSub(P1, t1, "Mängelliste erstellen", "completed", "u2");
-  const t2 = mkTask(P1, { title:"Qualification Test Guide einreichen", ws:w1.id, assignee:"u2",
-    status:"in_progress", prio:"Critical", start:D(-30), due:D(12), progress:70,
-    description:"QTG an die Behörde, Rückfragen beantworten." });
-  mkSub(P1, t2, "Objektive Tests auswerten", "completed", "u2");
-  mkSub(P1, t2, "Subjektive Tests fliegen", "in_progress", "u12");
-  mkSub(P1, t2, "Einreichung Behörde", "not_started", "u2");
-  const t3 = mkTask(P1, { title:"Instruktoren auf CL650 schulen", ws:w2.id, assignee:"u12",
-    status:"in_progress", prio:"High", start:D(-20), due:D(30), progress:45,
-    description:"Vier Instruktoren, davon zwei mit Prüferberechtigung." });
-  const t4 = mkTask(P1, { title:"Kursunterlagen auf Revisionsstand bringen", ws:w3.id, assignee:"u5",
-    status:"blocked", prio:"High", start:D(-15), due:D(-3), progress:30,
-    description:"Wartet auf die finale Konfigurationsliste des Herstellers." });
-  const t5 = mkTask(P1, { title:"Joining Instructions für ersten Kurs", ws:w3.id, assignee:"u5",
-    status:"not_started", prio:"Medium", start:D(40), due:D(60), progress:0 });
-  /* Das Projekt endet mit dem ersten Kurs. Diese Aufgabe reicht bis zum
-     Zieltermin — damit bestimmt die Kette davor den Endtermin und liegt auf
-     dem kritischen Pfad. */
-  const t6 = mkTask(P1, { title:"Ersten Kurs durchführen", ws:w3.id, assignee:"u3",
-    status:"not_started", prio:"Critical", start:D(72), due:D(75), progress:0,
-    description:"Erster Kurs am neuen FFS, mit Begleitung durch die Instruktoren." });
-  /* Was auf was wartet. Erst der Abnahmetest, dann die Einreichung; geschult
-     wird, sobald der QTG draußen ist; die Joining Instructions folgen den
-     Kursunterlagen, und der erste Kurs schließt das Projekt ab.
-     Die Schulung ist absichtlich zu früh angesetzt — so zeigt der Prototyp,
-     wie ein Widerspruch zwischen Plan und Abhängigkeit aussieht. */
-  P1.links = [
-    { from:t1.id, to:t2.id, kind:"fs", lag:0 },
-    { from:t2.id, to:t3.id, kind:"fs", lag:0 },
-    { from:t4.id, to:t5.id, kind:"fs", lag:0 },
-    { from:t2.id, to:t5.id, kind:"fs", lag:0 },
-    { from:t5.id, to:t6.id, kind:"fs", lag:0 },
-    { from:t3.id, to:t6.id, kind:"fs", lag:0 }
-  ];
-}
-P1.ms = [{ id:pid(), ref:"M-1", name:"Simulator FAT", date:D(-42), owner:"u2", status:"completed", ws:P1.ws[0].id },
-  { id:pid(), ref:"M-2", name:"QTG eingereicht", date:D(12), owner:"u2", status:"in_progress", ws:P1.ws[0].id },
-  { id:pid(), ref:"M-3", name:"Level-D-Qualifikation erteilt", date:D(45), owner:"u2", status:"planned", ws:P1.ws[0].id },
-  { id:pid(), ref:"M-4", name:"Erster Kurs startet", date:D(72), owner:"u3", status:"planned", ws:P1.ws[2].id }];
-P1.risks = [{ id:pid(), ref:"R-1", title:"Konfigurationsliste des Herstellers verzögert sich",
-  description:"Ohne finale Liste lassen sich die Kursunterlagen nicht abschließen.",
-  cat:"Lieferant", prob:4, imp:4, owner:"u3", status:"open", due:D(10),
-  mitigation:"Wöchentlicher Abgleich mit dem Hersteller, Eskalation über den Vertrieb.",
-  conting:"Unterlagen mit vorläufigem Stand freigeben und nachziehen." },
-  { id:pid(), ref:"R-2", title:"Behördentermin für die Qualifikation nicht verfügbar",
-  description:"Die Behörde vergibt Termine mit acht Wochen Vorlauf.",
-  cat:"Behörde", prob:2, imp:5, owner:"u2", status:"monitoring", due:D(20),
-  mitigation:"Termin bereits vorläufig reserviert, Bestätigung nach QTG-Einreichung.",
-  conting:"Erster Kurs auf Februar verschieben." },
-  { id:pid(), ref:"R-3", title:"Zu wenige qualifizierte Instruktoren zum Kursstart",
-  description:"Zwei der vier Instruktoren sind parallel im Linienbetrieb.",
-  cat:"Personal", prob:2, imp:3, owner:"u12", status:"mitigated", due:D(35),
-  mitigation:"Freistellung für Januar bereits zugesagt.", conting:"Externer Instruktor für den ersten Kurs." }];
-P1.issues = [{ id:pid(), ref:"I-1", title:"Visual-System zeigt Artefakte bei Nachtanflügen",
-  description:"Tritt bei LVO-Szenarien in Wien reproduzierbar auf.", owner:"u12",
-  prio:"High", status:"in_progress", due:D(8), resolution:"" }];
-P1.decisions = [{ id:pid(), ref:"D-1", date:D(-55), topic:"Standort des Simulators",
-  decision:"Aufstellung in Halle 3 statt Halle 1.", maker:"u1", participants:["u2","u3"],
-  rationale:"Halle 3 bietet die notwendige Deckenhöhe und liegt näher an den Briefingräumen.",
-  impact:"Umbaukosten rund 40.000 EUR, Zeitplan unverändert." }];
-P1.docs = [{ id:pid(), title:"QTG CL650 Rev. 3", kind:"file", file:"QTG_CL650_Rev3.pdf", size:"8,4 MB",
-  version:"3.0", owner:"u2", at:D(-30), description:"Qualification Test Guide, eingereichte Fassung." },
-  { id:pid(), title:"Abnahmeprotokoll FAT", kind:"file", file:"FAT_Protokoll_CL650.pdf", size:"2,1 MB",
-  version:"1.0", owner:"u2", at:D(-42), description:"Unterzeichnetes Protokoll mit Mängelliste." },
-  { id:pid(), title:"Konfigurationsliste Hersteller", kind:"link", url:"https://sharepoint.example/config",
-  version:"—", owner:"u3", at:D(-5), description:"Liegt beim Hersteller, wird verlinkt statt kopiert." }];
+/* ---------- Projekte ----------
+   Der Bestand der Aviation Academy Austria, angelegt am 19.09.2026. Die
+   Projekte stehen mit ihren Teilprojekten da und sonst nichts: Aufgaben,
+   Termine und Zuständigkeiten trägt ein, wer sie kennt. Erfundene Inhalte in
+   einem Arbeitswerkzeug sind schlimmer als keine — man hält sie für Planung. */
+const MUSTER_WS = ["TM Fertigstellung", "All IH Fertigstellung", "All SH Fertigstellung",
+  "Difference Training all Variant", "Recurrent Training", "SME"];
 
-/* 2 — Handbuchrevision, gefährdet */
-const P2 = mkProject({ key:"OMB-26", name:"OM-B Revision 2026",
-  description:"Überarbeitung des Operations Manual Teil B für alle Muster, Abgleich mit den aktuellen Easy Access Rules.",
-  objectives:"Freigegebene Revision vor dem Audit im Dezember. Einheitliche Struktur über alle Muster.",
-  scope:"In Scope: OM-B aller sieben Muster. Nicht in Scope: OM-A und OM-D.",
-  status:"at_risk", pm:"u2", start:D(-90), end:D(55), health:"amber" });
-P2.team = [{ user:"u2", role:"Project Manager", resp:"Redaktion, Behördeneinreichung" },
-  { user:"u1", role:"Director Training", resp:"Freigabe" },
-  { user:"u11", role:"Fachautor CL350", resp:"Musterspezifische Kapitel" },
-  { user:"u13", role:"Fachautor ATR", resp:"Musterspezifische Kapitel" },
-  { user:"u3", role:"Compliance", resp:"Abgleich mit Easy Access Rules" }];
-P2.ws = [{ id:pid(), name:"Struktur und Vorlagen", owner:"u2" },
-  { id:pid(), name:"Musterkapitel", owner:"u11" }, { id:pid(), name:"Einreichung", owner:"u2" }];
-{
-  const [w1, w2, w3] = P2.ws;
-  mkTask(P2, { title:"Vorlagenstruktur festlegen", ws:w1.id, assignee:"u2", status:"completed",
-    prio:"High", start:D(-90), due:D(-70), done:D(-72), progress:100 });
-  const t = mkTask(P2, { title:"Musterkapitel überarbeiten", ws:w2.id, assignee:"u11",
-    status:"in_progress", prio:"Critical", start:D(-60), due:D(-5), progress:55,
-    description:"Sieben Muster, je Kapitel 3 bis 9." });
-  /* Zwei Kapitel sind in den letzten Tagen fertig geworden — damit der
-     Wochenbericht zeigt, wie eine gewöhnliche Woche aussieht. */
-  mkSub(P2, t, "ATR", "completed", "u13", D(-4));
-  mkSub(P2, t, "CL350", "completed", "u11", D(-2));
-  mkSub(P2, t, "CL650", "in_progress", "u12");
-  mkSub(P2, t, "C525", "not_started", "u9");
-  mkSub(P2, t, "M2, Phenom, XLS", "not_started", "u10");
-  mkTask(P2, { title:"Compliance-Abgleich Easy Access Rules", ws:w1.id, assignee:"u3",
-    status:"in_progress", prio:"High", start:D(-30), due:D(10), progress:40 });
-  mkTask(P2, { title:"Einreichung bei der Behörde", ws:w3.id, assignee:"u2",
-    status:"not_started", prio:"Critical", start:D(20), due:D(40), progress:0 });
+function ladeProjekte() {
+  /* Ohne Projektleitung im Team ließe sich keine Aufgabe zuweisen — die
+     Auswahl der Zuständigen kommt aus dem Projektteam. */
+  const neu = (key, name, ws) => {
+    const p = mkProject({ key, name, description:"", objectives:"", scope:"",
+      status:"not_started", pm:"u1", start:today(), end:null, health:"green" });
+    p.team = [{ user:"u1", role:"Project Manager", resp:"" }];
+    p.ws = (ws || []).map(n => ({ id:pid(), name:n, owner:"u1" }));
+    return p;
+  };
+  neu("PH3-26",  "Phenom 300",                  MUSTER_WS);
+  neu("M2-26",   "M2",                          MUSTER_WS);
+  neu("GL65-26", "Global 6000/6500",            MUSTER_WS);
+  neu("GRT-26",  "Grading Tool");
+  neu("RTG-26",  "Recurrent Trainings General");
+  neu("OTG-26",  "Operator Training General");
+  neu("WAG-26",  "WhatsApp Group Admin/ATO");
+  neu("ATRF-26", "ATR Finding");
+  neu("NGM-26",  "New Grading in Manuals");
+  neu("UKC-26",  "UK CL350");
 }
-P2.ms = [{ id:pid(), ref:"M-1", name:"Struktur freigegeben", date:D(-72), owner:"u2", status:"completed", ws:P2.ws[0].id },
-  { id:pid(), ref:"M-2", name:"Alle Musterkapitel fertig", date:D(-5), owner:"u11", status:"delayed", ws:P2.ws[1].id },
-  { id:pid(), ref:"M-3", name:"Manual Release", date:D(13), owner:"u2", status:"planned", ws:P2.ws[2].id },
-  { id:pid(), ref:"M-4", name:"Behördenfreigabe", date:D(52), owner:"u2", status:"planned", ws:P2.ws[2].id }];
-P2.risks = [{ id:pid(), ref:"R-1", title:"Musterkapitel werden nicht rechtzeitig fertig",
-  description:"Vier von sieben Mustern sind noch offen, die Autoren sind im Linienbetrieb gebunden.",
-  cat:"Kapazität", prob:5, imp:4, owner:"u2", status:"open", due:D(5),
-  mitigation:"Zwei Autoren für je zwei Wochen freigestellt, wöchentliche Abstimmung.",
-  conting:"Revision in zwei Stufen einreichen: erst vier Muster, dann drei." },
-  { id:pid(), ref:"R-2", title:"Audit im Dezember trifft auf alte Revision",
-  description:"Ohne Freigabe prüft der Auditor die Fassung von 2024.",
-  cat:"Compliance", prob:3, imp:5, owner:"u1", status:"open", due:D(45),
-  mitigation:"Behörde vorab über den Zeitplan informieren.", conting:"Abweichung dokumentieren und Zeitplan vorlegen." }];
-P2.issues = [{ id:pid(), ref:"I-1", title:"Zwei Autoren haben unterschiedliche Vorlagen verwendet",
-  description:"CL650 und C525 folgen noch der alten Struktur.", owner:"u2", prio:"Medium",
-  status:"open", due:D(6), resolution:"" },
-  { id:pid(), ref:"I-2", title:"Abbildungen liegen nur in niedriger Auflösung vor",
-  description:"Cockpit-Darstellungen sind im Druck unbrauchbar.", owner:"u11", prio:"Low",
-  status:"resolved", due:D(-10), resolution:"Vom Hersteller in 600 dpi nachgeliefert." }];
-P2.decisions = [{ id:pid(), ref:"D-1", date:D(-40), topic:"Zweistufige Einreichung",
-  decision:"Grundsätzlich einstufig einreichen, zweistufig nur als Rückfallebene.", maker:"u1",
-  participants:["u2","u3"], rationale:"Zwei Einreichungen binden doppelt Behördenkapazität.",
-  impact:"Erhöht den Termindruck auf die Autoren." }];
-P2.docs = [{ id:pid(), title:"OM-B Vorlage 2026", kind:"file", file:"OMB_Vorlage_2026.docx", size:"1,2 MB",
-  version:"2.1", owner:"u2", at:D(-70), description:"Verbindliche Kapitelstruktur." },
-  { id:pid(), title:"OM-B Vorlage 2026", kind:"file", file:"OMB_Vorlage_2026_v20.docx", size:"1,1 MB",
-  version:"2.0", owner:"u2", at:D(-85), superseded:true, description:"Abgelöst durch Version 2.1." }];
 
-/* 3 — EBT, gestartet */
-const P3 = mkProject({ key:"EBT-27", name:"EBT Implementation",
-  description:"Einführung von Evidence Based Training für die Muster CL350 und CL650.",
-  objectives:"Genehmigtes EBT-Programm bis Mitte 2027, Instruktoren als EBT-Assessor qualifiziert.",
-  scope:"In Scope: Programmentwicklung, Instruktorenqualifikation, Datenerhebung. Nicht in Scope: Änderungen am OM-A.",
-  status:"started", pm:"u6", start:D(-30), end:D(280), health:"green" });
-P3.team = [{ user:"u6", role:"Project Manager", resp:"Programmleitung" },
-  { user:"u2", role:"Head of Training", resp:"Fachliche Ausrichtung" },
-  { user:"u1", role:"Sponsor", resp:"Freigabe, Behördenkontakt" },
-  { user:"u4", role:"Training Admin", resp:"Datenerhebung, Auswertung" }];
-P3.ws = [{ id:pid(), name:"Programmentwicklung", owner:"u2" }, { id:pid(), name:"Datenerhebung", owner:"u4" }];
-{
-  const [w1, w2] = P3.ws;
-  mkTask(P3, { title:"Grid und Kompetenzmodell festlegen", ws:w1.id, assignee:"u2",
-    status:"in_progress", prio:"High", start:D(-20), due:D(40), progress:35 });
-  mkTask(P3, { title:"Baseline-Daten aus zwei Jahren auswerten", ws:w2.id, assignee:"u4",
-    status:"in_progress", prio:"Medium", start:D(-10), due:D(60), progress:20 });
-  mkTask(P3, { title:"Antrag bei der Behörde vorbereiten", ws:w1.id, assignee:"u6",
-    status:"not_started", prio:"High", start:D(120), due:D(180), progress:0 });
+/* ---------- Beispieldaten ----------
+   Sechs erfundene Projekte mit Aufgaben, Risiken, Meilensteinen und
+   Dokumenten. Sie zeigen die Anwendung im vollen Betrieb und sind die
+   Grundlage der automatischen Prüfungen. Im Alltag stören sie — niemand soll
+   Demo und Echtes verwechseln. Deshalb erscheinen sie nur mit ?demo=1 in der
+   Adresse, zum Vorführen und zum Prüfen. */
+function ladeBeispiele() {
+  /* 1 — Simulator, im Plan */
+  const P1 = mkProject({ key:"SIM-26", name:"CL650 Full Flight Simulator Introduction",
+    description:"Einführung des CL650 FFS am Standort Wien, von der Abnahme bis zur Freigabe des ersten Type-Rating-Kurses.",
+    objectives:"FSTD-Qualifikation Level D bis Jahresende. Erster Kurs im Januar. Keine Abhängigkeit von Fremdsimulatoren ab Q1.",
+    scope:"In Scope: Abnahme, Qualifikation, Instruktorenschulung, Kursunterlagen. Nicht in Scope: Gebäudetechnik, Catering.",
+    status:"on_track", pm:"u3", start:D(-120), end:D(75), health:"green" });
+  P1.team = [{ user:"u3", role:"Project Manager", resp:"Gesamtsteuerung, Behördenkontakt" },
+    { user:"u2", role:"Head of Training", resp:"Fachliche Abnahme, Instruktorenqualifikation" },
+    { user:"u12", role:"Course Supervisor CL650", resp:"Kursunterlagen, Instruktorenschulung" },
+    { user:"u5", role:"Training Admin", resp:"Dokumentation, Kursakte, Terminplanung" },
+    { user:"u1", role:"Sponsor", resp:"Freigaben, Budget" }];
+  P1.ws = [{ id:pid(), name:"Qualifikation", owner:"u2" }, { id:pid(), name:"Instruktoren", owner:"u12" },
+    { id:pid(), name:"Unterlagen", owner:"u5" }];
+  {
+    const [w1, w2, w3] = P1.ws;
+    const t1 = mkTask(P1, { title:"Factory Acceptance Test durchführen", ws:w1.id, assignee:"u2",
+      status:"completed", prio:"Critical", start:D(-60), due:D(-40), done:D(-42), progress:100,
+      description:"FAT beim Hersteller mit Prüfprotokoll nach CS-FSTD." });
+    mkSub(P1, t1, "Prüfprotokoll vorbereiten", "completed", "u5");
+    mkSub(P1, t1, "Testflüge abnehmen", "completed", "u2");
+    mkSub(P1, t1, "Mängelliste erstellen", "completed", "u2");
+    const t2 = mkTask(P1, { title:"Qualification Test Guide einreichen", ws:w1.id, assignee:"u2",
+      status:"in_progress", prio:"Critical", start:D(-30), due:D(12), progress:70,
+      description:"QTG an die Behörde, Rückfragen beantworten." });
+    mkSub(P1, t2, "Objektive Tests auswerten", "completed", "u2");
+    mkSub(P1, t2, "Subjektive Tests fliegen", "in_progress", "u12");
+    mkSub(P1, t2, "Einreichung Behörde", "not_started", "u2");
+    const t3 = mkTask(P1, { title:"Instruktoren auf CL650 schulen", ws:w2.id, assignee:"u12",
+      status:"in_progress", prio:"High", start:D(-20), due:D(30), progress:45,
+      description:"Vier Instruktoren, davon zwei mit Prüferberechtigung." });
+    const t4 = mkTask(P1, { title:"Kursunterlagen auf Revisionsstand bringen", ws:w3.id, assignee:"u5",
+      status:"blocked", prio:"High", start:D(-15), due:D(-3), progress:30,
+      description:"Wartet auf die finale Konfigurationsliste des Herstellers." });
+    const t5 = mkTask(P1, { title:"Joining Instructions für ersten Kurs", ws:w3.id, assignee:"u5",
+      status:"not_started", prio:"Medium", start:D(40), due:D(60), progress:0 });
+    /* Das Projekt endet mit dem ersten Kurs. Diese Aufgabe reicht bis zum
+       Zieltermin — damit bestimmt die Kette davor den Endtermin und liegt auf
+       dem kritischen Pfad. */
+    const t6 = mkTask(P1, { title:"Ersten Kurs durchführen", ws:w3.id, assignee:"u3",
+      status:"not_started", prio:"Critical", start:D(72), due:D(75), progress:0,
+      description:"Erster Kurs am neuen FFS, mit Begleitung durch die Instruktoren." });
+    /* Was auf was wartet. Erst der Abnahmetest, dann die Einreichung; geschult
+       wird, sobald der QTG draußen ist; die Joining Instructions folgen den
+       Kursunterlagen, und der erste Kurs schließt das Projekt ab.
+       Die Schulung ist absichtlich zu früh angesetzt — so zeigt der Prototyp,
+       wie ein Widerspruch zwischen Plan und Abhängigkeit aussieht. */
+    P1.links = [
+      { from:t1.id, to:t2.id, kind:"fs", lag:0 },
+      { from:t2.id, to:t3.id, kind:"fs", lag:0 },
+      { from:t4.id, to:t5.id, kind:"fs", lag:0 },
+      { from:t2.id, to:t5.id, kind:"fs", lag:0 },
+      { from:t5.id, to:t6.id, kind:"fs", lag:0 },
+      { from:t3.id, to:t6.id, kind:"fs", lag:0 }
+    ];
+  }
+  P1.ms = [{ id:pid(), ref:"M-1", name:"Simulator FAT", date:D(-42), owner:"u2", status:"completed", ws:P1.ws[0].id },
+    { id:pid(), ref:"M-2", name:"QTG eingereicht", date:D(12), owner:"u2", status:"in_progress", ws:P1.ws[0].id },
+    { id:pid(), ref:"M-3", name:"Level-D-Qualifikation erteilt", date:D(45), owner:"u2", status:"planned", ws:P1.ws[0].id },
+    { id:pid(), ref:"M-4", name:"Erster Kurs startet", date:D(72), owner:"u3", status:"planned", ws:P1.ws[2].id }];
+  P1.risks = [{ id:pid(), ref:"R-1", title:"Konfigurationsliste des Herstellers verzögert sich",
+    description:"Ohne finale Liste lassen sich die Kursunterlagen nicht abschließen.",
+    cat:"Lieferant", prob:4, imp:4, owner:"u3", status:"open", due:D(10),
+    mitigation:"Wöchentlicher Abgleich mit dem Hersteller, Eskalation über den Vertrieb.",
+    conting:"Unterlagen mit vorläufigem Stand freigeben und nachziehen." },
+    { id:pid(), ref:"R-2", title:"Behördentermin für die Qualifikation nicht verfügbar",
+    description:"Die Behörde vergibt Termine mit acht Wochen Vorlauf.",
+    cat:"Behörde", prob:2, imp:5, owner:"u2", status:"monitoring", due:D(20),
+    mitigation:"Termin bereits vorläufig reserviert, Bestätigung nach QTG-Einreichung.",
+    conting:"Erster Kurs auf Februar verschieben." },
+    { id:pid(), ref:"R-3", title:"Zu wenige qualifizierte Instruktoren zum Kursstart",
+    description:"Zwei der vier Instruktoren sind parallel im Linienbetrieb.",
+    cat:"Personal", prob:2, imp:3, owner:"u12", status:"mitigated", due:D(35),
+    mitigation:"Freistellung für Januar bereits zugesagt.", conting:"Externer Instruktor für den ersten Kurs." }];
+  P1.issues = [{ id:pid(), ref:"I-1", title:"Visual-System zeigt Artefakte bei Nachtanflügen",
+    description:"Tritt bei LVO-Szenarien in Wien reproduzierbar auf.", owner:"u12",
+    prio:"High", status:"in_progress", due:D(8), resolution:"" }];
+  P1.decisions = [{ id:pid(), ref:"D-1", date:D(-55), topic:"Standort des Simulators",
+    decision:"Aufstellung in Halle 3 statt Halle 1.", maker:"u1", participants:["u2","u3"],
+    rationale:"Halle 3 bietet die notwendige Deckenhöhe und liegt näher an den Briefingräumen.",
+    impact:"Umbaukosten rund 40.000 EUR, Zeitplan unverändert." }];
+  P1.docs = [{ id:pid(), title:"QTG CL650 Rev. 3", kind:"file", file:"QTG_CL650_Rev3.pdf", size:"8,4 MB",
+    version:"3.0", owner:"u2", at:D(-30), description:"Qualification Test Guide, eingereichte Fassung." },
+    { id:pid(), title:"Abnahmeprotokoll FAT", kind:"file", file:"FAT_Protokoll_CL650.pdf", size:"2,1 MB",
+    version:"1.0", owner:"u2", at:D(-42), description:"Unterzeichnetes Protokoll mit Mängelliste." },
+    { id:pid(), title:"Konfigurationsliste Hersteller", kind:"link", url:"https://sharepoint.example/config",
+    version:"—", owner:"u3", at:D(-5), description:"Liegt beim Hersteller, wird verlinkt statt kopiert." }];
+
+  /* 2 — Handbuchrevision, gefährdet */
+  const P2 = mkProject({ key:"OMB-26", name:"OM-B Revision 2026",
+    description:"Überarbeitung des Operations Manual Teil B für alle Muster, Abgleich mit den aktuellen Easy Access Rules.",
+    objectives:"Freigegebene Revision vor dem Audit im Dezember. Einheitliche Struktur über alle Muster.",
+    scope:"In Scope: OM-B aller sieben Muster. Nicht in Scope: OM-A und OM-D.",
+    status:"at_risk", pm:"u2", start:D(-90), end:D(55), health:"amber" });
+  P2.team = [{ user:"u2", role:"Project Manager", resp:"Redaktion, Behördeneinreichung" },
+    { user:"u1", role:"Director Training", resp:"Freigabe" },
+    { user:"u11", role:"Fachautor CL350", resp:"Musterspezifische Kapitel" },
+    { user:"u13", role:"Fachautor ATR", resp:"Musterspezifische Kapitel" },
+    { user:"u3", role:"Compliance", resp:"Abgleich mit Easy Access Rules" }];
+  P2.ws = [{ id:pid(), name:"Struktur und Vorlagen", owner:"u2" },
+    { id:pid(), name:"Musterkapitel", owner:"u11" }, { id:pid(), name:"Einreichung", owner:"u2" }];
+  {
+    const [w1, w2, w3] = P2.ws;
+    mkTask(P2, { title:"Vorlagenstruktur festlegen", ws:w1.id, assignee:"u2", status:"completed",
+      prio:"High", start:D(-90), due:D(-70), done:D(-72), progress:100 });
+    const t = mkTask(P2, { title:"Musterkapitel überarbeiten", ws:w2.id, assignee:"u11",
+      status:"in_progress", prio:"Critical", start:D(-60), due:D(-5), progress:55,
+      description:"Sieben Muster, je Kapitel 3 bis 9." });
+    /* Zwei Kapitel sind in den letzten Tagen fertig geworden — damit der
+       Wochenbericht zeigt, wie eine gewöhnliche Woche aussieht. */
+    mkSub(P2, t, "ATR", "completed", "u13", D(-4));
+    mkSub(P2, t, "CL350", "completed", "u11", D(-2));
+    mkSub(P2, t, "CL650", "in_progress", "u12");
+    mkSub(P2, t, "C525", "not_started", "u9");
+    mkSub(P2, t, "M2, Phenom, XLS", "not_started", "u10");
+    mkTask(P2, { title:"Compliance-Abgleich Easy Access Rules", ws:w1.id, assignee:"u3",
+      status:"in_progress", prio:"High", start:D(-30), due:D(10), progress:40 });
+    mkTask(P2, { title:"Einreichung bei der Behörde", ws:w3.id, assignee:"u2",
+      status:"not_started", prio:"Critical", start:D(20), due:D(40), progress:0 });
+  }
+  P2.ms = [{ id:pid(), ref:"M-1", name:"Struktur freigegeben", date:D(-72), owner:"u2", status:"completed", ws:P2.ws[0].id },
+    { id:pid(), ref:"M-2", name:"Alle Musterkapitel fertig", date:D(-5), owner:"u11", status:"delayed", ws:P2.ws[1].id },
+    { id:pid(), ref:"M-3", name:"Manual Release", date:D(13), owner:"u2", status:"planned", ws:P2.ws[2].id },
+    { id:pid(), ref:"M-4", name:"Behördenfreigabe", date:D(52), owner:"u2", status:"planned", ws:P2.ws[2].id }];
+  P2.risks = [{ id:pid(), ref:"R-1", title:"Musterkapitel werden nicht rechtzeitig fertig",
+    description:"Vier von sieben Mustern sind noch offen, die Autoren sind im Linienbetrieb gebunden.",
+    cat:"Kapazität", prob:5, imp:4, owner:"u2", status:"open", due:D(5),
+    mitigation:"Zwei Autoren für je zwei Wochen freigestellt, wöchentliche Abstimmung.",
+    conting:"Revision in zwei Stufen einreichen: erst vier Muster, dann drei." },
+    { id:pid(), ref:"R-2", title:"Audit im Dezember trifft auf alte Revision",
+    description:"Ohne Freigabe prüft der Auditor die Fassung von 2024.",
+    cat:"Compliance", prob:3, imp:5, owner:"u1", status:"open", due:D(45),
+    mitigation:"Behörde vorab über den Zeitplan informieren.", conting:"Abweichung dokumentieren und Zeitplan vorlegen." }];
+  P2.issues = [{ id:pid(), ref:"I-1", title:"Zwei Autoren haben unterschiedliche Vorlagen verwendet",
+    description:"CL650 und C525 folgen noch der alten Struktur.", owner:"u2", prio:"Medium",
+    status:"open", due:D(6), resolution:"" },
+    { id:pid(), ref:"I-2", title:"Abbildungen liegen nur in niedriger Auflösung vor",
+    description:"Cockpit-Darstellungen sind im Druck unbrauchbar.", owner:"u11", prio:"Low",
+    status:"resolved", due:D(-10), resolution:"Vom Hersteller in 600 dpi nachgeliefert." }];
+  P2.decisions = [{ id:pid(), ref:"D-1", date:D(-40), topic:"Zweistufige Einreichung",
+    decision:"Grundsätzlich einstufig einreichen, zweistufig nur als Rückfallebene.", maker:"u1",
+    participants:["u2","u3"], rationale:"Zwei Einreichungen binden doppelt Behördenkapazität.",
+    impact:"Erhöht den Termindruck auf die Autoren." }];
+  P2.docs = [{ id:pid(), title:"OM-B Vorlage 2026", kind:"file", file:"OMB_Vorlage_2026.docx", size:"1,2 MB",
+    version:"2.1", owner:"u2", at:D(-70), description:"Verbindliche Kapitelstruktur." },
+    { id:pid(), title:"OM-B Vorlage 2026", kind:"file", file:"OMB_Vorlage_2026_v20.docx", size:"1,1 MB",
+    version:"2.0", owner:"u2", at:D(-85), superseded:true, description:"Abgelöst durch Version 2.1." }];
+
+  /* 3 — EBT, gestartet */
+  const P3 = mkProject({ key:"EBT-27", name:"EBT Implementation",
+    description:"Einführung von Evidence Based Training für die Muster CL350 und CL650.",
+    objectives:"Genehmigtes EBT-Programm bis Mitte 2027, Instruktoren als EBT-Assessor qualifiziert.",
+    scope:"In Scope: Programmentwicklung, Instruktorenqualifikation, Datenerhebung. Nicht in Scope: Änderungen am OM-A.",
+    status:"started", pm:"u6", start:D(-30), end:D(280), health:"green" });
+  P3.team = [{ user:"u6", role:"Project Manager", resp:"Programmleitung" },
+    { user:"u2", role:"Head of Training", resp:"Fachliche Ausrichtung" },
+    { user:"u1", role:"Sponsor", resp:"Freigabe, Behördenkontakt" },
+    { user:"u4", role:"Training Admin", resp:"Datenerhebung, Auswertung" }];
+  P3.ws = [{ id:pid(), name:"Programmentwicklung", owner:"u2" }, { id:pid(), name:"Datenerhebung", owner:"u4" }];
+  {
+    const [w1, w2] = P3.ws;
+    mkTask(P3, { title:"Grid und Kompetenzmodell festlegen", ws:w1.id, assignee:"u2",
+      status:"in_progress", prio:"High", start:D(-20), due:D(40), progress:35 });
+    mkTask(P3, { title:"Baseline-Daten aus zwei Jahren auswerten", ws:w2.id, assignee:"u4",
+      status:"in_progress", prio:"Medium", start:D(-10), due:D(60), progress:20 });
+    mkTask(P3, { title:"Antrag bei der Behörde vorbereiten", ws:w1.id, assignee:"u6",
+      status:"not_started", prio:"High", start:D(120), due:D(180), progress:0 });
+  }
+  P3.ms = [{ id:pid(), ref:"M-1", name:"Kompetenzmodell freigegeben", date:D(45), owner:"u2", status:"planned", ws:P3.ws[0].id },
+    { id:pid(), ref:"M-2", name:"Antrag eingereicht", date:D(185), owner:"u6", status:"planned", ws:P3.ws[0].id }];
+  P3.risks = [{ id:pid(), ref:"R-1", title:"Datenqualität der Altdaten unzureichend",
+    description:"Grading Sheets der Jahre 2024 und 2025 liegen teilweise nur auf Papier vor.",
+    cat:"Daten", prob:4, imp:3, owner:"u4", status:"open", due:D(50),
+    mitigation:"Digitalisierung priorisieren, Stichprobe prüfen.", conting:"Baseline auf ein Jahr verkürzen." }];
+  P3.issues = [];
+  P3.decisions = [];
+  P3.docs = [];
+
+  /* 4 — Flotteneinführung, verzögert */
+  const P4 = mkProject({ key:"ATR-26", name:"ATR Fleet Entry",
+    description:"Aufnahme des Musters ATR in das Schulungsangebot einschließlich Kursakte, Prüfern und Simulatorzugang.",
+    objectives:"Erster ATR-Kurs im Frühjahr. Zwei eigene Prüfer.",
+    scope:"In Scope: Kursentwicklung, Prüferqualifikation, Simulatorvertrag. Nicht in Scope: Beschaffung eines eigenen FSTD.",
+    status:"delayed", pm:"u3", start:D(-150), end:D(20), health:"red" });
+  P4.team = [{ user:"u3", role:"Project Manager", resp:"Gesamtsteuerung" },
+    { user:"u13", role:"Course Supervisor ATR", resp:"Kursinhalte, Prüferqualifikation" },
+    { user:"u5", role:"Training Admin", resp:"Kursakte, Verträge" }];
+  P4.ws = [{ id:pid(), name:"Kursentwicklung", owner:"u13" }, { id:pid(), name:"Simulatorzugang", owner:"u3" }];
+  {
+    const [w1, w2] = P4.ws;
+    mkTask(P4, { title:"Kursunterlagen ATR erstellen", ws:w1.id, assignee:"u13",
+      status:"completed", prio:"High", start:D(-140), due:D(-60), done:D(-58), progress:100 });
+    mkTask(P4, { title:"Simulatorvertrag mit Partnerbetrieb abschließen", ws:w2.id, assignee:"u3",
+      status:"blocked", prio:"Critical", start:D(-90), due:D(-25), progress:60,
+      description:"Preisverhandlung stockt, Alternativanbieter wird geprüft." });
+    mkTask(P4, { title:"Zwei Prüfer qualifizieren", ws:w1.id, assignee:"u13",
+      status:"in_progress", prio:"High", start:D(-40), due:D(-8), progress:50 });
+  }
+  P4.ms = [{ id:pid(), ref:"M-1", name:"Kursunterlagen fertig", date:D(-58), owner:"u13", status:"completed", ws:P4.ws[0].id },
+    { id:pid(), ref:"M-2", name:"Simulatorvertrag unterzeichnet", date:D(-25), owner:"u3", status:"delayed", ws:P4.ws[1].id },
+    { id:pid(), ref:"M-3", name:"Erster ATR-Kurs", date:D(18), owner:"u3", status:"planned", ws:P4.ws[0].id }];
+  P4.risks = [{ id:pid(), ref:"R-1", title:"Kein Simulatorzugang zum geplanten Kursstart",
+    description:"Ohne Vertrag kein Slot; der Alternativanbieter hat erst ab März Kapazität.",
+    cat:"Lieferant", prob:5, imp:5, owner:"u3", status:"open", due:D(5),
+    mitigation:"Parallel mit zwei Anbietern verhandeln, Entscheidung bis Monatsende.",
+    conting:"Kursstart auf März verschieben, Kunden informieren." },
+    { id:pid(), ref:"R-2", title:"Prüferqualifikation nicht rechtzeitig abgeschlossen",
+    description:"Die Behörde benötigt vier Wochen für die Anerkennung.",
+    cat:"Behörde", prob:3, imp:4, owner:"u13", status:"open", due:D(10),
+    mitigation:"Unterlagen vollständig vorab einreichen.", conting:"Prüfer eines Partnerbetriebs einsetzen." }];
+  P4.issues = [{ id:pid(), ref:"I-1", title:"Preisvorstellung des Partnerbetriebs 30 Prozent über Budget",
+    description:"Angebot liegt bei 1.950 EUR je Stunde statt der kalkulierten 1.500.",
+    owner:"u3", prio:"Critical", status:"open", due:D(3), resolution:"" }];
+  P4.decisions = [{ id:pid(), ref:"D-1", date:D(-20), topic:"Eigener Simulator oder Partnerbetrieb",
+    decision:"Vorerst Partnerbetrieb, eigener FSTD frühestens 2028.", maker:"u1",
+    participants:["u3","u2"], rationale:"Auslastung rechtfertigt derzeit keine eigene Anlage.",
+    impact:"Abhängigkeit von externen Slots, laufende Kosten je Stunde." }];
+  P4.docs = [];
+
+  /* 5 — das Control Center selbst, im Plan */
+  const P5 = mkProject({ key:"PCC-26", name:"Project Control Center — Einführung",
+    description:"Ablösung der Projektlisten in Excel durch eine gemeinsame Steuerung für alle laufenden Vorhaben.",
+    objectives:"Ein Stand für alle Beteiligten, keine vergessenen Aufgaben, belastbare Kennzahlen für die Leitung.",
+    scope:"In Scope: Projekte, Aufgaben, Meilensteine, Risiken, Berichte. Nicht in Scope: Zeiterfassung, Budgetbuchhaltung.",
+    status:"on_track", pm:"u1", start:D(-16), end:D(90), health:"green" });
+  P5.team = [{ user:"u1", role:"Project Manager", resp:"Fachliche Leitung, Spezifikation" },
+    { user:"u3", role:"Training Admin", resp:"Abgleich mit den bestehenden Abläufen" },
+    { user:"u6", role:"Sales", resp:"Anforderungen aus dem Vertrieb" },
+    { user:"u2", role:"Head of Training", resp:"Abnahme und Einführung" }];
+  P5.ws = [{ id:pid(), name:"Spezifikation", owner:"u1" }, { id:pid(), name:"Umsetzung", owner:"u1" },
+    { id:pid(), name:"Einführung", owner:"u3" }];
+  {
+    const [w1, w2, w3] = P5.ws;
+    mkTask(P5, { title:"Spezifikation abstimmen", ws:w1.id, assignee:"u1", status:"completed",
+      prio:"High", start:D(-16), due:D(-14), done:D(-15), progress:100 });
+    const t = mkTask(P5, { title:"Prototyp bauen und abnehmen", ws:w2.id, assignee:"u1",
+      status:"in_progress", prio:"Critical", start:D(-15), due:D(5), progress:85 });
+    mkSub(P5, t, "Datenmodell und Rechte", "completed", "u1");
+    mkSub(P5, t, "Projektakte und Berichte", "completed", "u1");
+    mkSub(P5, t, "Export und Versionsverlauf", "completed", "u1");
+    mkSub(P5, t, "Rückmeldungen einarbeiten", "in_progress", "u1");
+    mkTask(P5, { title:"Supabase-Projekt aufsetzen", ws:w2.id, assignee:"u1",
+      status:"not_started", prio:"High", start:D(6), due:D(20), progress:0,
+      description:"Region EU/Frankfurt, Schema pcc, Storage für Projektdokumente." });
+    mkTask(P5, { title:"Pilotbetrieb mit zwei Projekten", ws:w3.id, assignee:"u3",
+      status:"not_started", prio:"Medium", start:D(40), due:D(80), progress:0 });
+  }
+  P5.ms = [{ id:pid(), ref:"M-1", name:"Spezifikation freigegeben", date:D(-14), owner:"u1", status:"completed", ws:P5.ws[0].id },
+    { id:pid(), ref:"M-2", name:"Prototyp abgenommen", date:D(6), owner:"u1", status:"in_progress", ws:P5.ws[1].id },
+    { id:pid(), ref:"M-3", name:"Pilotbetrieb startet", date:D(42), owner:"u3", status:"planned", ws:P5.ws[2].id },
+    { id:pid(), ref:"M-4", name:"Vollbetrieb", date:D(88), owner:"u1", status:"planned", ws:P5.ws[2].id }];
+  P5.risks = [{ id:pid(), ref:"R-1", title:"Projektleitungen pflegen die Daten nicht",
+    description:"Der Nutzen entsteht erst, wenn alle ihre Aufgaben und Termine aktuell halten.",
+    cat:"Akzeptanz", prob:3, imp:5, owner:"u6", status:"monitoring", due:D(60),
+    mitigation:"Kurze Wege beim Pflegen, Erinnerungen statt Nachfragen, Begleitung in den ersten drei Monaten.",
+    conting:"Pflege auf Meilensteine und Risiken beschränken, Aufgaben später nachziehen." }];
+  P5.issues = [];
+  P5.decisions = [{ id:pid(), ref:"D-1", date:D(-15), topic:"Rechte in der Datenbank statt in der Oberfläche",
+    decision:"Row Level Security entscheidet, wer was sieht und ändert.", maker:"u1",
+    participants:["u2","u3"], rationale:"Prüfungen im Frontend lassen sich über die Schnittstelle umgehen.",
+    impact:"Mehr Aufwand in der Datenbank, dafür keine zweite Wahrheit im Anwendungscode." }];
+  P5.docs = [{ id:pid(), title:"Control Center Architektur", kind:"file", file:"ARCHITECTURE.md", size:"18 KB",
+    version:"1.0", owner:"u1", at:today(), description:"Technologie, Datenmodell, Rechte, Aufbewahrung." }];
+
+  /* 6 — abgeschlossen */
+  const P6 = mkProject({ key:"PHE-25", name:"Phenom Course Supervisor Staffing",
+    description:"Besetzung der Course-Supervisor-Position für das Muster Phenom.",
+    objectives:"Position dauerhaft besetzt, Vertretung geregelt.",
+    scope:"In Scope: Auswahl, Qualifikation, Übergabe.",
+    status:"completed", pm:"u2", start:D(-200), end:D(-30), health:"green" });
+  P6.team = [{ user:"u2", role:"Project Manager", resp:"Auswahl und Qualifikation" },
+    { user:"u1", role:"Sponsor", resp:"Freigabe" }];
+  P6.ws = [{ id:pid(), name:"Besetzung", owner:"u2" }];
+  mkTask(P6, { title:"Auswahlverfahren durchführen", ws:P6.ws[0].id, assignee:"u2",
+    status:"completed", prio:"High", start:D(-200), due:D(-120), done:D(-125), progress:100 });
+  mkTask(P6, { title:"Qualifikation abschließen", ws:P6.ws[0].id, assignee:"u2",
+    status:"completed", prio:"High", start:D(-120), due:D(-35), done:D(-33), progress:100 });
+  P6.ms = [{ id:pid(), ref:"M-1", name:"Position besetzt", date:D(-30), owner:"u2", status:"completed", ws:P6.ws[0].id }];
+  P6.risks = []; P6.issues = []; P6.decisions = []; P6.docs = [];
 }
-P3.ms = [{ id:pid(), ref:"M-1", name:"Kompetenzmodell freigegeben", date:D(45), owner:"u2", status:"planned", ws:P3.ws[0].id },
-  { id:pid(), ref:"M-2", name:"Antrag eingereicht", date:D(185), owner:"u6", status:"planned", ws:P3.ws[0].id }];
-P3.risks = [{ id:pid(), ref:"R-1", title:"Datenqualität der Altdaten unzureichend",
-  description:"Grading Sheets der Jahre 2024 und 2025 liegen teilweise nur auf Papier vor.",
-  cat:"Daten", prob:4, imp:3, owner:"u4", status:"open", due:D(50),
-  mitigation:"Digitalisierung priorisieren, Stichprobe prüfen.", conting:"Baseline auf ein Jahr verkürzen." }];
-P3.issues = [];
-P3.decisions = [];
-P3.docs = [];
 
-/* 4 — Flotteneinführung, verzögert */
-const P4 = mkProject({ key:"ATR-26", name:"ATR Fleet Entry",
-  description:"Aufnahme des Musters ATR in das Schulungsangebot einschließlich Kursakte, Prüfern und Simulatorzugang.",
-  objectives:"Erster ATR-Kurs im Frühjahr. Zwei eigene Prüfer.",
-  scope:"In Scope: Kursentwicklung, Prüferqualifikation, Simulatorvertrag. Nicht in Scope: Beschaffung eines eigenen FSTD.",
-  status:"delayed", pm:"u3", start:D(-150), end:D(20), health:"red" });
-P4.team = [{ user:"u3", role:"Project Manager", resp:"Gesamtsteuerung" },
-  { user:"u13", role:"Course Supervisor ATR", resp:"Kursinhalte, Prüferqualifikation" },
-  { user:"u5", role:"Training Admin", resp:"Kursakte, Verträge" }];
-P4.ws = [{ id:pid(), name:"Kursentwicklung", owner:"u13" }, { id:pid(), name:"Simulatorzugang", owner:"u3" }];
-{
-  const [w1, w2] = P4.ws;
-  mkTask(P4, { title:"Kursunterlagen ATR erstellen", ws:w1.id, assignee:"u13",
-    status:"completed", prio:"High", start:D(-140), due:D(-60), done:D(-58), progress:100 });
-  mkTask(P4, { title:"Simulatorvertrag mit Partnerbetrieb abschließen", ws:w2.id, assignee:"u3",
-    status:"blocked", prio:"Critical", start:D(-90), due:D(-25), progress:60,
-    description:"Preisverhandlung stockt, Alternativanbieter wird geprüft." });
-  mkTask(P4, { title:"Zwei Prüfer qualifizieren", ws:w1.id, assignee:"u13",
-    status:"in_progress", prio:"High", start:D(-40), due:D(-8), progress:50 });
-}
-P4.ms = [{ id:pid(), ref:"M-1", name:"Kursunterlagen fertig", date:D(-58), owner:"u13", status:"completed", ws:P4.ws[0].id },
-  { id:pid(), ref:"M-2", name:"Simulatorvertrag unterzeichnet", date:D(-25), owner:"u3", status:"delayed", ws:P4.ws[1].id },
-  { id:pid(), ref:"M-3", name:"Erster ATR-Kurs", date:D(18), owner:"u3", status:"planned", ws:P4.ws[0].id }];
-P4.risks = [{ id:pid(), ref:"R-1", title:"Kein Simulatorzugang zum geplanten Kursstart",
-  description:"Ohne Vertrag kein Slot; der Alternativanbieter hat erst ab März Kapazität.",
-  cat:"Lieferant", prob:5, imp:5, owner:"u3", status:"open", due:D(5),
-  mitigation:"Parallel mit zwei Anbietern verhandeln, Entscheidung bis Monatsende.",
-  conting:"Kursstart auf März verschieben, Kunden informieren." },
-  { id:pid(), ref:"R-2", title:"Prüferqualifikation nicht rechtzeitig abgeschlossen",
-  description:"Die Behörde benötigt vier Wochen für die Anerkennung.",
-  cat:"Behörde", prob:3, imp:4, owner:"u13", status:"open", due:D(10),
-  mitigation:"Unterlagen vollständig vorab einreichen.", conting:"Prüfer eines Partnerbetriebs einsetzen." }];
-P4.issues = [{ id:pid(), ref:"I-1", title:"Preisvorstellung des Partnerbetriebs 30 Prozent über Budget",
-  description:"Angebot liegt bei 1.950 EUR je Stunde statt der kalkulierten 1.500.",
-  owner:"u3", prio:"Critical", status:"open", due:D(3), resolution:"" }];
-P4.decisions = [{ id:pid(), ref:"D-1", date:D(-20), topic:"Eigener Simulator oder Partnerbetrieb",
-  decision:"Vorerst Partnerbetrieb, eigener FSTD frühestens 2028.", maker:"u1",
-  participants:["u3","u2"], rationale:"Auslastung rechtfertigt derzeit keine eigene Anlage.",
-  impact:"Abhängigkeit von externen Slots, laufende Kosten je Stunde." }];
-P4.docs = [];
-
-/* 5 — das Control Center selbst, im Plan */
-const P5 = mkProject({ key:"PCC-26", name:"Project Control Center — Einführung",
-  description:"Ablösung der Projektlisten in Excel durch eine gemeinsame Steuerung für alle laufenden Vorhaben.",
-  objectives:"Ein Stand für alle Beteiligten, keine vergessenen Aufgaben, belastbare Kennzahlen für die Leitung.",
-  scope:"In Scope: Projekte, Aufgaben, Meilensteine, Risiken, Berichte. Nicht in Scope: Zeiterfassung, Budgetbuchhaltung.",
-  status:"on_track", pm:"u1", start:D(-16), end:D(90), health:"green" });
-P5.team = [{ user:"u1", role:"Project Manager", resp:"Fachliche Leitung, Spezifikation" },
-  { user:"u3", role:"Training Admin", resp:"Abgleich mit den bestehenden Abläufen" },
-  { user:"u6", role:"Sales", resp:"Anforderungen aus dem Vertrieb" },
-  { user:"u2", role:"Head of Training", resp:"Abnahme und Einführung" }];
-P5.ws = [{ id:pid(), name:"Spezifikation", owner:"u1" }, { id:pid(), name:"Umsetzung", owner:"u1" },
-  { id:pid(), name:"Einführung", owner:"u3" }];
-{
-  const [w1, w2, w3] = P5.ws;
-  mkTask(P5, { title:"Spezifikation abstimmen", ws:w1.id, assignee:"u1", status:"completed",
-    prio:"High", start:D(-16), due:D(-14), done:D(-15), progress:100 });
-  const t = mkTask(P5, { title:"Prototyp bauen und abnehmen", ws:w2.id, assignee:"u1",
-    status:"in_progress", prio:"Critical", start:D(-15), due:D(5), progress:85 });
-  mkSub(P5, t, "Datenmodell und Rechte", "completed", "u1");
-  mkSub(P5, t, "Projektakte und Berichte", "completed", "u1");
-  mkSub(P5, t, "Export und Versionsverlauf", "completed", "u1");
-  mkSub(P5, t, "Rückmeldungen einarbeiten", "in_progress", "u1");
-  mkTask(P5, { title:"Supabase-Projekt aufsetzen", ws:w2.id, assignee:"u1",
-    status:"not_started", prio:"High", start:D(6), due:D(20), progress:0,
-    description:"Region EU/Frankfurt, Schema pcc, Storage für Projektdokumente." });
-  mkTask(P5, { title:"Pilotbetrieb mit zwei Projekten", ws:w3.id, assignee:"u3",
-    status:"not_started", prio:"Medium", start:D(40), due:D(80), progress:0 });
-}
-P5.ms = [{ id:pid(), ref:"M-1", name:"Spezifikation freigegeben", date:D(-14), owner:"u1", status:"completed", ws:P5.ws[0].id },
-  { id:pid(), ref:"M-2", name:"Prototyp abgenommen", date:D(6), owner:"u1", status:"in_progress", ws:P5.ws[1].id },
-  { id:pid(), ref:"M-3", name:"Pilotbetrieb startet", date:D(42), owner:"u3", status:"planned", ws:P5.ws[2].id },
-  { id:pid(), ref:"M-4", name:"Vollbetrieb", date:D(88), owner:"u1", status:"planned", ws:P5.ws[2].id }];
-P5.risks = [{ id:pid(), ref:"R-1", title:"Projektleitungen pflegen die Daten nicht",
-  description:"Der Nutzen entsteht erst, wenn alle ihre Aufgaben und Termine aktuell halten.",
-  cat:"Akzeptanz", prob:3, imp:5, owner:"u6", status:"monitoring", due:D(60),
-  mitigation:"Kurze Wege beim Pflegen, Erinnerungen statt Nachfragen, Begleitung in den ersten drei Monaten.",
-  conting:"Pflege auf Meilensteine und Risiken beschränken, Aufgaben später nachziehen." }];
-P5.issues = [];
-P5.decisions = [{ id:pid(), ref:"D-1", date:D(-15), topic:"Rechte in der Datenbank statt in der Oberfläche",
-  decision:"Row Level Security entscheidet, wer was sieht und ändert.", maker:"u1",
-  participants:["u2","u3"], rationale:"Prüfungen im Frontend lassen sich über die Schnittstelle umgehen.",
-  impact:"Mehr Aufwand in der Datenbank, dafür keine zweite Wahrheit im Anwendungscode." }];
-P5.docs = [{ id:pid(), title:"Control Center Architektur", kind:"file", file:"ARCHITECTURE.md", size:"18 KB",
-  version:"1.0", owner:"u1", at:today(), description:"Technologie, Datenmodell, Rechte, Aufbewahrung." }];
-
-/* 6 — abgeschlossen */
-const P6 = mkProject({ key:"PHE-25", name:"Phenom Course Supervisor Staffing",
-  description:"Besetzung der Course-Supervisor-Position für das Muster Phenom.",
-  objectives:"Position dauerhaft besetzt, Vertretung geregelt.",
-  scope:"In Scope: Auswahl, Qualifikation, Übergabe.",
-  status:"completed", pm:"u2", start:D(-200), end:D(-30), health:"green" });
-P6.team = [{ user:"u2", role:"Project Manager", resp:"Auswahl und Qualifikation" },
-  { user:"u1", role:"Sponsor", resp:"Freigabe" }];
-P6.ws = [{ id:pid(), name:"Besetzung", owner:"u2" }];
-mkTask(P6, { title:"Auswahlverfahren durchführen", ws:P6.ws[0].id, assignee:"u2",
-  status:"completed", prio:"High", start:D(-200), due:D(-120), done:D(-125), progress:100 });
-mkTask(P6, { title:"Qualifikation abschließen", ws:P6.ws[0].id, assignee:"u2",
-  status:"completed", prio:"High", start:D(-120), due:D(-35), done:D(-33), progress:100 });
-P6.ms = [{ id:pid(), ref:"M-1", name:"Position besetzt", date:D(-30), owner:"u2", status:"completed", ws:P6.ws[0].id }];
-P6.risks = []; P6.issues = []; P6.decisions = []; P6.docs = [];
+const DEMO = /[?&]demo=1/.test(location.search);
+/* Zuerst die Beispiele: so trifft „das erste Projekt" beim Vorführen und in
+   den Prüfungen einen gefüllten Datensatz. */
+if (DEMO) ladeBeispiele();
+ladeProjekte();
 
 /* ---------- Ableitungen ---------- */
 const pTop = p => p.tasks.filter(x => !x.parent);
@@ -2566,7 +2610,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
-const APP_VERSION = "1.7.0";
+const APP_VERSION = "1.8.0";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert

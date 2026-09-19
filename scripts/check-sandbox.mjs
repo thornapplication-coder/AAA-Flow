@@ -84,6 +84,20 @@ async function run(width, height, label, access, lang) {
     await page.waitForTimeout(150)
     const over = await overflow()
     if (over > 2) findings.push(`[${label}] Reiter ${tab} läuft ${over} px über den Rand`)
+    /* Dieser Durchlauf läuft ohne ?demo, also auf den echten Projekten — und
+       die sind leer. Genau dieser Zustand ist der erste, den das Team sieht:
+       Ein Reiter, der dabei nichts sagt, lässt ratlos zurück. */
+    const text = await page.evaluate(() => document.getElementById('main').innerText.trim().length)
+    if (text < 40) findings.push(`[${label}] Reiter ${tab} bleibt im leeren Projekt stumm (${text} Zeichen)`)
+  }
+  // Die Teilprojekte sind die einzige Struktur, die ein neues Projekt mitbringt.
+  const tl = await page.$('[data-ptab="timeline"]:visible')
+  if (tl) {
+    await tl.click()
+    await page.waitForTimeout(200)
+    const txt = await page.evaluate(() => document.getElementById('main').innerText)
+    const fehlen = ['TM Fertigstellung', 'Recurrent Training', 'SME'].filter((n) => !txt.includes(n))
+    if (fehlen.length) findings.push(`[${label}] Teilprojekte fehlen im Projektverlauf: ${fehlen.join(', ')}`)
   }
   // Übrig gebliebene Textschlüssel fallen als Rohtext auf.
   const raw = await page.evaluate(() => (document.body.innerText.match(/\b[a-z]{1,6}_[a-z0-9_]{2,}\b/g) || [])

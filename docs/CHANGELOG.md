@@ -3,6 +3,55 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.8.0 — 2026-09-19
+
+### Der Projektbestand der Academy steht
+
+Zehn Projekte, angelegt auf Anweisung der Trainingsleitung:
+
+| Schlüssel | Projekt | Teilprojekte |
+|---|---|---|
+| `PH3-26` | Phenom 300 | 6 |
+| `M2-26` | M2 | 6 |
+| `GL65-26` | Global 6000/6500 | 6 |
+| `GRT-26` | Grading Tool | — |
+| `RTG-26` | Recurrent Trainings General | — |
+| `OTG-26` | Operator Training General | — |
+| `WAG-26` | WhatsApp Group Admin/ATO | — |
+| `ATRF-26` | ATR Finding | — |
+| `NGM-26` | New Grading in Manuals | — |
+| `UKC-26` | UK CL350 | — |
+
+Die drei Musterprojekte tragen dieselben sechs Teilprojekte: TM Fertigstellung,
+All IH Fertigstellung, All SH Fertigstellung, Difference Training all Variant,
+Recurrent Training, SME.
+
+Jedes Projekt beginnt heute, hat ein offenes Ende und trägt die Trainingsleitung
+als Projektleitung im Team — ohne die ließe sich keine Aufgabe zuweisen.
+**Aufgaben, Termine, Risiken und Zuständigkeiten sind bewusst leer.** Erfundene
+Inhalte in einem Arbeitswerkzeug sind schlimmer als keine: Man hält sie für
+Planung.
+
+### Beispieldaten nur noch im Vorführmodus
+
+Die sechs erfundenen Beispielprojekte (CL650-Simulator, OM-B-Revision, EBT,
+ATR-Flotte, Control Center, Phenom-Staffing) sind nicht verschwunden, sondern
+erscheinen nur noch mit **`?demo=1`** in der Adresse. Im Alltag sieht das Team
+ausschließlich die echten Projekte; zum Vorführen und für die automatischen
+Prüfungen steht der volle Datensatz weiter bereit.
+
+Die Prüfungen sind entsprechend aufgeteilt:
+
+| Prüflauf | Datenlage |
+|---|---|
+| `check:app`, `check:layout` | Vorführmodus — die Anwendung im vollen Betrieb |
+| `check:sandbox` | echter Bestand — wie das Team die Anwendung zuerst sieht |
+| `check:logic` | beides: prüft den Bestand und schaltet den Vorführmodus gegen |
+
+Neu geprüft wird, dass jeder Reiter auch im **leeren** Projekt etwas sagt statt
+stumm zu bleiben, dass die Teilprojekte im Projektverlauf erscheinen, und dass
+ohne Vorführmodus kein einziges Beispielprojekt im Bestand steht.
+
 ## 1.7.0 — 2026-09-19
 
 ### Teilaufgaben anlegen und verteilen

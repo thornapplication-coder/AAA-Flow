@@ -13,7 +13,9 @@ import { pathToFileURL } from 'node:url'
 import { resolve, join } from 'node:path'
 import { existsSync, readdirSync } from 'node:fs'
 
-const file = pathToFileURL(resolve(process.argv[2] ?? 'sandbox/Control-Center-Sandbox.html')).href
+// Mit ?demo=1, damit jede Ansicht Inhalt trägt — leere Listen verdecken
+// Darstellungsfehler.
+const file = pathToFileURL(resolve(process.argv[2] ?? 'sandbox/Control-Center-Sandbox.html')).href + '?demo=1'
 
 function findChromium() {
   if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH
