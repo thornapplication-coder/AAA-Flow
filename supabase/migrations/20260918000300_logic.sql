@@ -51,7 +51,7 @@ declare t text;
 begin
   foreach t in array array['projects','project_members','workstreams','tasks','milestones',
                            'risks','issues','decisions','documents','raci','comments',
-                           'templates','settings','project_versions']
+                           'templates','settings','project_versions','task_dependencies']
   loop
     execute format('create trigger %I_audit after insert or update or delete on pcc.%I for each row execute function pcc.tg_audit()', t, t);
   end loop;
@@ -206,7 +206,8 @@ do $$
 declare t text;
 begin
   foreach t in array array['workstreams','tasks','milestones','risks','issues',
-                           'decisions','documents','raci','comments','project_members']
+                           'decisions','documents','raci','comments','project_members',
+                           'task_dependencies']
   loop
     execute format('create trigger %I_archived_guard before insert or update or delete on pcc.%I for each row execute function pcc.tg_archived_guard()', t, t);
   end loop;
@@ -234,6 +235,48 @@ begin
 end $$;
 create trigger milestones_cycle before insert or update on pcc.milestones
   for each row execute function pcc.tg_milestone_cycle();
+
+-- Eine Abhängigkeit verbindet zwei Aufgaben desselben Projekts und darf keinen
+-- Kreis schließen. Ein Kreis wäre kein Plan mehr, sondern eine Behauptung, die
+-- sich nicht auflösen lässt — und jede Terminrechnung liefe endlos.
+create or replace function pcc.tg_task_dep_guard()
+returns trigger
+language plpgsql as $$
+declare
+  v_pred_project uuid;
+  v_succ_project uuid;
+  v_cycle        boolean;
+begin
+  select project_id into v_pred_project from pcc.tasks where id = new.predecessor_id;
+  select project_id into v_succ_project from pcc.tasks where id = new.successor_id;
+  if v_pred_project is null or v_succ_project is null then
+    raise exception 'PCC_STATE: Eine Abhängigkeit verweist auf eine Aufgabe, die es nicht gibt'
+      using errcode = 'P0001';
+  end if;
+  if v_pred_project <> v_succ_project then
+    raise exception 'PCC_STATE: Abhängigkeiten verbinden nur Aufgaben desselben Projekts'
+      using errcode = 'P0001';
+  end if;
+  -- Das project_id der Zeile wird gesetzt, nicht geglaubt.
+  new.project_id := v_succ_project;
+
+  -- Führt vom neuen Nachfolger ein Weg zurück zum Vorgänger, schließt sich ein Kreis.
+  with recursive reach as (
+    select new.successor_id as id
+    union
+    select d.successor_id
+      from pcc.task_dependencies d
+      join reach r on r.id = d.predecessor_id
+     where d.id is distinct from new.id
+  )
+  select exists (select 1 from reach where id = new.predecessor_id) into v_cycle;
+  if v_cycle then
+    raise exception 'PCC_STATE: Diese Abhängigkeit schließt einen Kreis' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+create trigger task_deps_guard before insert or update on pcc.task_dependencies
+  for each row execute function pcc.tg_task_dep_guard();
 
 -- RACI verweist auf einen Gegenstand. Zeigt der Verweis ins Leere oder in ein
 -- fremdes Projekt, steht dort eine Verantwortung ohne Gegenstand.

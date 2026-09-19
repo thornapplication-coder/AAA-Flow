@@ -41,6 +41,22 @@ button:disabled{cursor:not-allowed}
 .brand em{font-style:normal;color:var(--navy-400)}
 .brand span{color:var(--navy-400);font-weight:400;font-size:12px;letter-spacing:.04em}
 .topbar .spacer{flex:1}
+/* Suche über alles. Sie sitzt in der Kopfzeile, weil sie zu keinem Bereich
+   gehört — und über allen. */
+.gsearch{position:relative;flex:0 1 320px;min-width:0}
+.gsearch input{width:100%;border:1px solid #24405F;background:#0F2033;color:#E8F0F8;
+  border-radius:var(--r);padding:7px 11px;font-size:13px}
+.gsearch input::placeholder{color:#7690AB}
+.ghits{position:absolute;top:calc(100% + 6px);left:0;width:min(520px,80vw);background:var(--surface);
+  border:1px solid var(--line);border-radius:8px;box-shadow:0 18px 48px rgba(12,27,46,.28);
+  max-height:min(70vh,520px);overflow-y:auto;z-index:25;color:var(--ink)}
+.ghits .gh{padding:7px 13px 4px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink-soft);background:var(--surface-2);border-bottom:1px solid var(--line)}
+.ghits button{display:block;width:100%;text-align:left;padding:9px 13px;border-bottom:1px solid #F0F4F8}
+.ghits button:hover,.ghits button:focus-visible{background:#F7FAFD}
+.ghits .t{font-size:13.5px;font-weight:600;display:block}
+.ghits .s{font-size:11.5px;color:var(--ink-soft)}
+.ghits .none{padding:16px 13px;color:var(--ink-soft);font-size:13px}
 .lang{display:flex;border:1px solid #24405F;border-radius:var(--r);overflow:hidden;flex:0 0 auto}
 .lang button{padding:5px 11px;font-size:12px;font-weight:600;color:#9DB4CC}
 .lang button.on{background:var(--navy-600);color:#fff}
@@ -309,12 +325,12 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .tlleg i.now{width:2px;height:12px;border-radius:0;background:var(--late)}
 
 /* Gantt je Projekt */
-.ggrid{min-width:760px;--gnm:264px}
+.ggrid{min-width:760px;--gnm:264px;position:relative}
 .ghead{display:flex;position:relative;border-bottom:1px solid var(--line);padding-left:var(--gnm);padding-top:14px}
 .ghead .tlnowhd b{top:0}
 .ghead span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;
   color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;padding:6px 0 6px 6px;border-left:1px solid var(--line)}
-.grow{display:flex;align-items:center;border-bottom:1px solid #F4F7FA;min-height:34px}
+.grow{display:flex;align-items:center;border-bottom:1px solid #F4F7FA;min-height:34px;background:transparent}
 .grow:last-child{border-bottom:none}
 .grow.group{background:var(--surface-2);border-bottom:1px solid var(--line);min-height:38px}
 .grow .gnm{flex:0 0 var(--gnm);padding:6px 12px 6px 0;min-width:0;font-size:13px}
@@ -349,6 +365,15 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .gms.done{background:var(--done);border-color:var(--done)}
 .gms.late{background:var(--late);border-color:var(--late)}
 .gnone{position:absolute;left:6px;top:9px;font-size:11px;color:var(--ink-faint)}
+/* Der kritische Pfad ist ein zweiter Kanal neben der Zustandsfarbe: ein
+   kräftiger Rahmen, nicht eine weitere Farbe. */
+.gbar.crit{box-shadow:0 0 0 2px var(--navy-800);border-color:var(--navy-800)}
+.glinks{position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:0}
+.grow{position:relative;z-index:1}
+.glink{fill:none;stroke:var(--navy-600);stroke-width:1.5;opacity:.75}
+.glink.bad{stroke:var(--late);stroke-dasharray:4 3;opacity:1}
+.tlleg i.crit{width:16px;height:9px;border-radius:3px;background:#EEF2F7;box-shadow:0 0 0 2px var(--navy-800)}
+.tlleg i.link{width:16px;height:2px;background:var(--navy-600);border-radius:0}
 .tlleg i.gl{width:16px;height:9px;border-radius:3px;border:1px solid var(--line-strong);background:#EEF2F7}
 .tlleg i.gl.ok{border-color:var(--done);background:var(--done)}
 .tlleg i.gl.warn{border-color:var(--work);background:var(--work)}
@@ -440,6 +465,7 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 @media(max-width:760px){
   .topbar{gap:10px;padding:0 12px}
   .brand span{display:none}
+  .gsearch{flex:0 1 128px}
   /* Auf dem Telefon reicht der Platz nicht für Name und Rolle; der Chip
      überdeckte sonst den Sprachumschalter. */
   .topbar .userchip>span{display:none}
@@ -474,6 +500,10 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">Control Center <span id="brandSub">Sandbox</span></div>
+    <div class="gsearch">
+      <input type="search" id="gq" autocomplete="off" aria-label="Suche">
+      <div class="ghits" id="ghits" hidden></div>
+    </div>
     <div class="spacer"></div>
     <div class="userchip" id="userchip"></div>
     <div class="lang">
@@ -515,6 +545,26 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- i18n ---------- */
 const I = {
 de:{
+  gs_none:"Nichts gefunden zu „{q}“.",
+  gs_ph:"Suchen …",
+  ics_h:"Offene Meilensteine und Fristen als Kalenderdatei — ganztägige Einträge, die sich in Outlook einlesen lassen.",
+  ics_all:"Alle Termine in den Kalender",
+  ics_one:"Termine dieses Projekts",
+  rep_changes:"Änderungen",
+  rep_done:"Im Zeitraum erledigt",
+  rep_next:"Anstehend (14 Tage)",
+  rep_period:"Zeitraum",
+  rep_weekly:"Wochenbericht",
+  rep_weekly_s:"Rückblick, Ausblick und was liegen geblieben ist — auf einem Blatt.",
+  rep_days:"Rückblick",
+  t_ics:"Kalenderdatei erzeugt. In Outlook über „Kalender öffnen → aus Datei\" einlesen.",
+  g_conflict_t:"{n} Verbindung(en) im Widerspruch zum Plan:",
+  g_conflict_x:"beginnt {n} Tage zu früh für {r}",
+  g_crit:"kritischer Pfad",
+  g_dep:"Beginnt nach",
+  g_dep_h:"Diese Aufgabe wartet auf den Abschluss der gewählten. Kreise weist die Anwendung ab.",
+  g_leg_link:"Abhängigkeit",
+  g_slack:"{n} Tage Puffer",
   g_groups:"Teilprojekte",
   g_leg_group:"Teilprojekt",
   g_leg_late:"überfällig oder blockiert",
@@ -831,6 +881,26 @@ de:{
   ver_t:"Versionsverlauf"
 },
 en:{
+  gs_none:"Nothing found for “{q}”.",
+  gs_ph:"Search …",
+  ics_h:"Open milestones and deadlines as a calendar file — all-day entries that Outlook can read.",
+  ics_all:"All dates to the calendar",
+  ics_one:"Dates of this project",
+  rep_changes:"Changes",
+  rep_done:"Completed in the period",
+  rep_next:"Coming up (14 days)",
+  rep_period:"Period",
+  rep_weekly:"Weekly report",
+  rep_weekly_s:"Looking back, looking ahead and what is left over — on one sheet.",
+  rep_days:"Look back",
+  t_ics:"Calendar file created. In Outlook use “Open calendar → from file”.",
+  g_conflict_t:"{n} link(s) contradict the plan:",
+  g_conflict_x:"starts {n} days too early for {r}",
+  g_crit:"critical path",
+  g_dep:"Starts after",
+  g_dep_h:"This task waits for the selected ones to finish. Cycles are rejected.",
+  g_leg_link:"dependency",
+  g_slack:"{n} days of slack",
   g_groups:"workstreams",
   g_leg_group:"workstream",
   g_leg_late:"overdue or blocked",
@@ -1359,7 +1429,7 @@ document.getElementById("modal").onclick = e => { if (e.target.id === "modal") c
    wo die Ansicht eine Liste ist.
    ========================================================================== */
 const XLS_KINDS = ["pcc_dash","pcc_projects","pcc_risks","pcc_tasks","pcc_ms",
-  "pcc_report","pcc_ptasks","pcc_prisks","pcc_pact","pcc_pdec","pcc_pgantt"];
+  "pcc_report","pcc_ptasks","pcc_prisks","pcc_pact","pcc_pdec","pcc_pgantt","pcc_weekly"];
 const fmtLong = d => d ? new Date(d).toLocaleDateString(L === "de" ? "de-AT" : "en-GB",
   { day:"2-digit", month:"2-digit", year:"numeric" }) : t("none");
 
@@ -1470,6 +1540,7 @@ function wireExports() {
 /* ---------- Render: Chrome ---------- */
 function renderTop() {
   document.getElementById("brandSub").textContent = t("sub");
+  document.getElementById("gq").placeholder = t("gs_ph");
   const u = M();
   document.getElementById("userchip").innerHTML =
     `<span><b>${esc(u.name)}</b> · ${t("pr_" + pRole())}</span>
@@ -1595,6 +1666,25 @@ function setLang(l) {
   render();
 }
 document.querySelectorAll(".topbar .lang button").forEach(b => b.onclick = () => setLang(b.dataset.l));
+/* Die Suche hängt an der Kopfzeile und wird einmal verdrahtet — sie überlebt
+   jedes Neuzeichnen des Arbeitsbereichs. */
+{
+  const inp = document.getElementById("gq");
+  inp.oninput = e => renderSearch(e.target.value);
+  inp.onkeydown = e => {
+    if (e.key === "Escape") { closeSearch(); inp.blur(); }
+    if (e.key === "Enter") {
+      const first = document.querySelector("#ghits [data-gs]");
+      if (first) first.click();
+    }
+  };
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".gsearch")) {
+      const box = document.getElementById("ghits");
+      if (box && !box.hidden) { box.hidden = true; box.innerHTML = ""; }
+    }
+  });
+}
 ["side","mobnav"].forEach(id => document.getElementById(id).addEventListener("click", e => {
   const b = e.target.closest("[data-v]"); if (!b) return;
   pv = b.dataset.v; pProject = null;
@@ -1627,7 +1717,7 @@ const PROJECTS = [];
 
 function mkProject(o) {
   const p = Object.assign({ id:pid(), ws:[], tasks:[], ms:[], risks:[], issues:[],
-    decisions:[], docs:[], team:[], versions:[], archived:false }, o);
+    decisions:[], docs:[], team:[], versions:[], links:[], archived:false }, o);
   PROJECTS.push(p);
   return p;
 }
@@ -1636,11 +1726,12 @@ function mkTask(p, o) {
     status:"not_started", prio:"Medium", progress:0, sub:[] }, o);
   p.tasks.push(tk); return tk;
 }
-function mkSub(p, parent, title, status, assignee) {
+function mkSub(p, parent, title, status, assignee, done) {
   /* Start und Frist kommen vom Elternteil: eine Teilaufgabe läuft in dessen
      Zeitraum. Ohne das stünde sie im Gantt als Punkt ohne Dauer. */
   return mkTask(p, { title, parent:parent.id, status, assignee, ws:parent.ws,
-    start:parent.start, due:parent.due, prio:parent.prio });
+    start:parent.start, due:parent.due, prio:parent.prio,
+    done:done || null, progress:status === "completed" ? 100 : 0 });
 }
 const pUser = id => user(id).name;
 
@@ -1671,14 +1762,33 @@ P1.ws = [{ id:pid(), name:"Qualifikation", owner:"u2" }, { id:pid(), name:"Instr
   mkSub(P1, t2, "Objektive Tests auswerten", "completed", "u2");
   mkSub(P1, t2, "Subjektive Tests fliegen", "in_progress", "u12");
   mkSub(P1, t2, "Einreichung Behörde", "not_started", "u2");
-  mkTask(P1, { title:"Instruktoren auf CL650 schulen", ws:w2.id, assignee:"u12",
+  const t3 = mkTask(P1, { title:"Instruktoren auf CL650 schulen", ws:w2.id, assignee:"u12",
     status:"in_progress", prio:"High", start:D(-20), due:D(30), progress:45,
     description:"Vier Instruktoren, davon zwei mit Prüferberechtigung." });
-  mkTask(P1, { title:"Kursunterlagen auf Revisionsstand bringen", ws:w3.id, assignee:"u5",
+  const t4 = mkTask(P1, { title:"Kursunterlagen auf Revisionsstand bringen", ws:w3.id, assignee:"u5",
     status:"blocked", prio:"High", start:D(-15), due:D(-3), progress:30,
     description:"Wartet auf die finale Konfigurationsliste des Herstellers." });
-  mkTask(P1, { title:"Joining Instructions für ersten Kurs", ws:w3.id, assignee:"u5",
+  const t5 = mkTask(P1, { title:"Joining Instructions für ersten Kurs", ws:w3.id, assignee:"u5",
     status:"not_started", prio:"Medium", start:D(40), due:D(60), progress:0 });
+  /* Das Projekt endet mit dem ersten Kurs. Diese Aufgabe reicht bis zum
+     Zieltermin — damit bestimmt die Kette davor den Endtermin und liegt auf
+     dem kritischen Pfad. */
+  const t6 = mkTask(P1, { title:"Ersten Kurs durchführen", ws:w3.id, assignee:"u3",
+    status:"not_started", prio:"Critical", start:D(72), due:D(75), progress:0,
+    description:"Erster Kurs am neuen FFS, mit Begleitung durch die Instruktoren." });
+  /* Was auf was wartet. Erst der Abnahmetest, dann die Einreichung; geschult
+     wird, sobald der QTG draußen ist; die Joining Instructions folgen den
+     Kursunterlagen, und der erste Kurs schließt das Projekt ab.
+     Die Schulung ist absichtlich zu früh angesetzt — so zeigt der Prototyp,
+     wie ein Widerspruch zwischen Plan und Abhängigkeit aussieht. */
+  P1.links = [
+    { from:t1.id, to:t2.id, kind:"fs", lag:0 },
+    { from:t2.id, to:t3.id, kind:"fs", lag:0 },
+    { from:t4.id, to:t5.id, kind:"fs", lag:0 },
+    { from:t2.id, to:t5.id, kind:"fs", lag:0 },
+    { from:t5.id, to:t6.id, kind:"fs", lag:0 },
+    { from:t3.id, to:t6.id, kind:"fs", lag:0 }
+  ];
 }
 P1.ms = [{ id:pid(), ref:"M-1", name:"Simulator FAT", date:D(-42), owner:"u2", status:"completed", ws:P1.ws[0].id },
   { id:pid(), ref:"M-2", name:"QTG eingereicht", date:D(12), owner:"u2", status:"in_progress", ws:P1.ws[0].id },
@@ -1732,8 +1842,10 @@ P2.ws = [{ id:pid(), name:"Struktur und Vorlagen", owner:"u2" },
   const t = mkTask(P2, { title:"Musterkapitel überarbeiten", ws:w2.id, assignee:"u11",
     status:"in_progress", prio:"Critical", start:D(-60), due:D(-5), progress:55,
     description:"Sieben Muster, je Kapitel 3 bis 9." });
-  mkSub(P2, t, "ATR", "completed", "u13");
-  mkSub(P2, t, "CL350", "completed", "u11");
+  /* Zwei Kapitel sind in den letzten Tagen fertig geworden — damit der
+     Wochenbericht zeigt, wie eine gewöhnliche Woche aussieht. */
+  mkSub(P2, t, "ATR", "completed", "u13", D(-4));
+  mkSub(P2, t, "CL350", "completed", "u11", D(-2));
   mkSub(P2, t, "CL650", "in_progress", "u12");
   mkSub(P2, t, "C525", "not_started", "u9");
   mkSub(P2, t, "M2, Phenom, XLS", "not_started", "u10");
@@ -2156,6 +2268,68 @@ function timelineHTML(ps, clickable, legend) {
    (erledigt, in Arbeit, überfällig, offen) — sie steht nie allein, jede Zeile
    trägt ihren Titel und der Balken seinen Fortschritt.
    ========================================================================== */
+/* ---------- Abhängigkeiten: Widerspruch und kritischer Pfad ---------- */
+/* Dieselbe Rechnung wie pcc.critical_path() in der Datenbank — rückwärts vom
+   Projektende: Wie lange darf eine Aufgabe spätestens laufen, ohne ihre
+   Nachfolger zu verschieben? Ohne Puffer liegt sie auf dem kritischen Pfad. */
+const dayDiff = (a, b) => Math.round((new Date(a) - new Date(b)) / 864e5);
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return iso(x); };
+
+/* Der früheste Tag, an dem der Nachfolger nach dieser Verbindung beginnen darf. */
+function linkEarliest(p, l) {
+  const from = p.tasks.find(x => x.id === l.from);
+  if (!from) return null;
+  const base = l.kind === "ss" ? from.start : from.due;
+  return base ? addDays(base, l.lag || 0) : null;
+}
+/* Wo widerspricht der Plan einer Verbindung? */
+function linkConflict(p, l) {
+  const to = p.tasks.find(x => x.id === l.to);
+  const earliest = linkEarliest(p, l);
+  if (!to || !to.start || !earliest) return 0;
+  return Math.max(0, dayDiff(earliest, to.start));
+}
+const pConflicts = p => (p.links || []).map(l => ({ l, days:linkConflict(p, l) }))
+  .filter(x => x.days > 0);
+
+function pSchedule(p) {
+  const span = x => (x.start && x.due) ? Math.max(0, dayDiff(x.due, x.start)) : 0;
+  const byId = {};
+  p.tasks.forEach(x => { if (x.due) byId[x.id] = x; });
+  const links = (p.links || []).filter(l => byId[l.from] && byId[l.to]);
+  const horizon = p.end || p.tasks.reduce((a, x) => (x.due && x.due > a) ? x.due : a, p.start);
+
+  const lateFinish = {};
+  const set = (id, v) => { if (!lateFinish[id] || v < lateFinish[id]) lateFinish[id] = v; };
+  // Aufgaben ohne Nachfolger dürfen bis zum Projektende laufen.
+  Object.keys(byId).forEach(id => {
+    if (!links.some(l => l.from === id)) set(id, horizon);
+  });
+  /* Rückwärts durch das Netz. Die Schleife läuft so oft, wie das Netz tief
+     sein kann — Kreise gibt es nicht, also endet sie. */
+  for (let round = 0; round < p.tasks.length + 2; round++) {
+    let changed = false;
+    links.forEach(l => {
+      const succ = byId[l.to], pred = byId[l.from];
+      const lf = lateFinish[l.to];
+      if (!lf) return;
+      const lateStart = addDays(lf, -span(succ));
+      const cand = l.kind === "ss"
+        ? addDays(lateStart, -(l.lag || 0) + span(pred))
+        : addDays(lateStart, -(l.lag || 0));
+      if (!lateFinish[l.from] || cand < lateFinish[l.from]) { lateFinish[l.from] = cand; changed = true; }
+    });
+    if (!changed) break;
+  }
+  const out = {};
+  Object.keys(byId).forEach(id => {
+    if (!lateFinish[id]) return;
+    const slack = dayDiff(lateFinish[id], byId[id].due);
+    out[id] = { lateFinish:lateFinish[id], slack, critical:slack <= 0 };
+  });
+  return out;
+}
+
 function gWindow(p) {
   const ds = [today()];
   if (p.start) ds.push(p.start);
@@ -2192,6 +2366,8 @@ const gCls = x => pTaskOverdue(x) ? "bad"
 
 function ganttHTML(p, forPrint) {
   const w = gWindow(p);
+  const sched = pSchedule(p);
+  const conflicts = pConflicts(p);
   const mName = d => d.toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { month:"short" }).toUpperCase();
   const nowPct = tlPct(today(), w);
   const pct = d => tlPct(d, w);
@@ -2207,8 +2383,12 @@ function ganttHTML(p, forPrint) {
        Gezeigt wird sie nur, wenn der gefüllte Teil sie auch fasst: ein
        abgeschnittenes „3…" liest sich wie ein Fehler. */
     const room = width * done / 100 >= 3.2;
-    return `<div class="gbar ${cls}" style="left:${a}%;width:${width}%"
-      title="${esc(gTip(x))}">${done > 0
+    const sc = sched[x.id];
+    /* Auf dem kritischen Pfad bekommt der Balken einen kräftigen Rahmen — die
+       Farbe bleibt der Zustandsfarbe vorbehalten, sonst hieße Rot zweierlei. */
+    const crit = sc && sc.critical && !pTaskDone(x) ? " crit" : "";
+    return `<div class="gbar ${cls}${crit}" data-gid="${x.id}" style="left:${a}%;width:${width}%"
+      title="${esc(gTip(x) + (sc ? " · " + (sc.critical ? t("g_crit") : t("g_slack", { n:sc.slack })) : ""))}">${done > 0
         ? `<i style="width:${done}%">${room && done < 100 ? `<b>${done}%</b>` : ""}</i>` : ""}</div>`;
   };
   const gTip = x => [x.ref ? x.ref + " " + x.title : x.title,
@@ -2265,12 +2445,61 @@ function ganttHTML(p, forPrint) {
   });
 
   if (!rows.length) return `<p class="muted">${t("p_none")}</p>`;
-  return `<div class="tl"><div class="ggrid${forPrint ? " forprint" : ""}">
+  /* Ein Widerspruch ist eine Aussage über den Plan, keine Verzierung: er steht
+     über dem Diagramm, nicht nur als Farbe darin. */
+  const warn = conflicts.length ? `<div class="notice warn" style="margin-bottom:10px">
+    <b>${t("g_conflict_t", { n:conflicts.length })}</b> ${conflicts.map(({l, days}) => {
+      const a = p.tasks.find(x => x.id === l.from), b = p.tasks.find(x => x.id === l.to);
+      return esc(`${b.ref} ${b.title} ${t("g_conflict_x", { n:days, r:a.ref })}`);
+    }).join(" · ")}</div>` : "";
+  return warn + `<div class="tl"><div class="ggrid${forPrint ? " forprint" : ""}" data-gantt="${p.id}">
     <div class="ghead">${w.months.map(m =>
       `<span>${mName(m)}${m.getMonth() === 0 ? " " + m.getFullYear() : ""}</span>`).join("")}
       <div class="tlnowhd" style="left:calc(var(--gnm) + (100% - var(--gnm)) * ${nowPct / 100})"><b>${t("tl_now")}</b></div></div>
     ${rows.join("")}
+    <svg class="glinks" aria-hidden="true"></svg>
   </div>${gLegend()}</div>`;
+}
+
+/* Die Pfeile werden nach dem Einfügen gezeichnet: erst dann stehen die Balken
+   an ihrem Platz, und nur gemessene Koordinaten treffen ihn auch nach einer
+   Änderung am Stil. */
+function drawGanttLinks() {
+  document.querySelectorAll("[data-gantt]").forEach(grid => {
+    const p = pById(grid.dataset.gantt);
+    const svg = grid.querySelector(".glinks");
+    if (!p || !svg) return;
+    const box = grid.getBoundingClientRect();
+    svg.setAttribute("viewBox", `0 0 ${grid.scrollWidth} ${grid.scrollHeight}`);
+    svg.setAttribute("width", grid.scrollWidth);
+    svg.setAttribute("height", grid.scrollHeight);
+    const at = id => {
+      const el = grid.querySelector(`[data-gid="${id}"]`);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { x1:r.left - box.left, x2:r.right - box.left, y:r.top - box.top + r.height / 2 };
+    };
+    const paths = (p.links || []).map(l => {
+      const a = at(l.from), b = at(l.to);
+      if (!a || !b) return "";
+      const bad = linkConflict(p, l) > 0;
+      // Orthogonal: aus dem Vorgänger heraus, auf die Zeile des Nachfolgers,
+      // von links in ihn hinein — so wie ein Gantt es seit jeher zeichnet.
+      const sx = l.kind === "ss" ? a.x1 : a.x2;
+      const out = sx + 9;
+      const inx = b.x1 - 9;
+      const d = out <= inx
+        ? `M ${sx} ${a.y} H ${out} V ${b.y} H ${b.x1 - 4}`
+        : `M ${sx} ${a.y} H ${out} V ${(a.y + b.y) / 2} H ${inx} V ${b.y} H ${b.x1 - 4}`;
+      return `<path d="${d}" class="glink${bad ? " bad" : ""}" marker-end="url(#gArrow${bad ? "Bad" : ""})"/>`;
+    }).join("");
+    svg.innerHTML = `<defs>
+      <marker id="gArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0 0 L8 4 L0 8 z" fill="var(--navy-600)"/></marker>
+      <marker id="gArrowBad" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0 0 L8 4 L0 8 z" fill="var(--late)"/></marker>
+    </defs>${paths}`;
+  });
 }
 
 function gLegend() {
@@ -2278,7 +2507,8 @@ function gLegend() {
   return `<div class="tlleg">
     ${it("gl ok", "ts_completed")}${it("gl warn", "ts_in_progress")}${it("gl bad", "g_leg_late")}
     ${it("gl open", "ts_not_started")}${it("gl bracket", "g_leg_group")}
-    ${it("dot", "tl_leg_ms")}${it("now", "tl_leg_now")}</div>`;
+    ${it("dot", "tl_leg_ms")}${it("crit", "g_crit")}${it("link", "g_leg_link")}
+    ${it("now", "tl_leg_now")}</div>`;
 }
 
 /* ---------- Dashboard ---------- */
@@ -2621,6 +2851,21 @@ function pccReports() {
         <span class="rt hdacts">
           <button class="btn-ghost" data-prep="pdf|${p.id}">${t("exp_pdf")}</button>
           <button class="btn-ghost" data-prep="xls|${p.id}">${t("exp_xls")}</button></span></li>`).join("")}</ul></div>
+    <div class="pcard"><header><h2>${t("rep_weekly")}</h2></header><div class="inner">
+      <p class="muted" style="margin-bottom:10px">${t("rep_weekly_s")}</p>
+      <div class="hdacts">
+        <label class="co" for="repdays">${t("rep_days")}</label>
+        <select id="repdays" style="border:1px solid var(--line-strong);border-radius:6px;padding:6px 9px">
+          ${[7,14,30].map(n => `<option value="${n}" ${REP_DAYS === n ? "selected" : ""}>${n} ${t("days")}</option>`).join("")}
+        </select>
+        ${expBtns("pcc_weekly")}</div></div></div>
+
+    <div class="pcard"><header><h2>${t("pn_milestones")} · ${t("ics_all")}</h2></header><div class="inner">
+      <p class="muted" style="margin-bottom:10px">${t("ics_h")}</p>
+      <div class="hdacts">
+        <button class="btn-ghost" id="icsall">${t("ics_all")}</button>
+      </div></div></div>
+
     <div class="pcard"><header><h2>${t("rep_lists")}</h2></header>
       <ul class="plist">${[["pcc_projects","pn_projects"],["pcc_risks","pn_risks"],
         ["pcc_tasks","pn_tasks"],["pcc_ms","pn_milestones"]].map(([k,lb]) => `<li>
@@ -2859,7 +3104,7 @@ function pTabTimeline(p) {
      lässt, ohne den Balken zu deuten. */
   return `<div class="pcard"><header><h2>${t("g_t")}</h2>
       <span class="co">${p.ws.length} ${t("g_groups")} · ${p.tasks.length} ${t("pn_tasks")}</span>
-      <span class="hdacts">${expBtns("pcc_pgantt")}</span></header>
+      <span class="hdacts"><button class="btn-ghost" id="picsproj">${t("ics_one")}</button>${expBtns("pcc_pgantt")}</span></header>
     <div class="inner">${ganttHTML(p)}</div></div>
     <div class="pcard"><header><h2>${t("pn_milestones")}</h2>
       <span class="co">${ms.length} ${t("results")}</span></header>
@@ -3078,7 +3323,7 @@ function pDialogNewTask(p) {
   openDialog({
     title:t("col_task"), text:"", okLabel:t("create"),
     values:{ title:"", ws:p.ws[0] ? p.ws[0].id : "", assignee:me, prio:"Medium",
-             due:addBusinessDays(today(), 10), description:"" },
+             due:addBusinessDays(today(), 10), deps:[], description:"" },
     build: () => [
       { name:"title", label:t("col_title"), type:"text", req:true },
       { name:"ws", label:t("col_ws"), type:"select", half:true, options:p.ws.map(w => ({ v:w.id, l:w.name })) },
@@ -3086,12 +3331,17 @@ function pDialogNewTask(p) {
         p.team.map(m => ({ v:m.user, l:user(m.user).name })) },
       { name:"prio", label:t("col_prio"), type:"select", half:true, options:P_PRIO.map(x => ({ v:x, l:x })) },
       { name:"due", label:t("col_due"), type:"date", half:true },
+      { name:"deps", label:t("g_dep"), type:"checks", hint:t("g_dep_h"),
+        options:pTop(p).filter(y => !pTaskDone(y)).map(y => ({ v:y.id, l:y.ref + " " + y.title })) },
       { name:"description", label:t("f_desc"), type:"textarea" }
     ],
     validate: v => (v.title || "").trim().length < 3 ? [{ f:"title", m:t("e_pname") }] : [],
     onSubmit: v => {
       const x = mkTask(p, { title:v.title.trim(), ws:v.ws, assignee:v.assignee, prio:v.prio,
         due:v.due, description:v.description, status:"not_started", start:today() });
+      /* Die gewählten Vorgänger werden verknüpft. Ein Kreis kann dabei nicht
+         entstehen: die Aufgabe ist neu, also zeigt noch nichts auf sie. */
+      (v.deps || []).forEach(id => p.links.push({ from:id, to:x.id, kind:"fs", lag:0 }));
       plg(p, me, { k:"ev_tasknew", x:x.title });
       toast(t("t_ptask")); commit(); render();
     }
@@ -3197,7 +3447,13 @@ function renderPcc(m) {
 function wirePcc() {
   const q = id => document.getElementById(id);
   wireExports();
+  /* Die Pfeile brauchen die fertige Seite: sie werden gemessen, nicht geraten. */
+  if (document.querySelector("[data-gantt]")) requestAnimationFrame(drawGanttLinks);
   if (q("pnew")) q("pnew").onclick = pDialogNewProject;
+  if (q("repdays")) q("repdays").onchange = e => { REP_DAYS = +e.target.value; renderMain(); };
+  if (q("icsall")) q("icsall").onclick = () => downloadIcs(pFiltered(), "control-center.ics");
+  if (q("picsproj")) q("picsproj").onclick = () =>
+    downloadIcs([pById(pProject)], pById(pProject).key.toLowerCase() + ".ics");
   if (q("pback")) q("pback").onclick = () => { pProject = null; pv = pv === "dash" ? "dash" : "projects"; render(); };
   if (q("pedit")) q("pedit").onclick = () => pDialogEditProject(pById(pProject));
   if (q("pnewtask")) q("pnewtask").onclick = () => pDialogNewTask(pById(pProject));
@@ -3264,6 +3520,150 @@ function pFilterDesc() {
   if (PF.status) d.push(t("col_status") + ": " + t("ps_" + PF.status));
   if (PF.pm) d.push(t("col_pm") + ": " + pUser(PF.pm));
   return d.length ? d.join(" · ") : t("exp_nofilter");
+}
+
+/* ---------- Suche über alles ---------- */
+/* Dieselben Gegenstände wie pcc.search() in der Datenbank. Gesucht wird im
+   Titel und in der Referenz; was der Zugang nicht sehen darf, kommt nicht
+   zurück — im Prototyp sind das archivierte Projekte für den Lesezugang. */
+function gSearch(q) {
+  const s = (q || "").trim().toLowerCase();
+  if (s.length < 2) return [];
+  const hit = (kind, p, ref, label, context, id, tab) =>
+    ({ kind, p, ref, label, context, id, tab,
+       rank:(label || "").toLowerCase().indexOf(s) === 0 ? 0
+          : (ref || "").toLowerCase() === s ? 0 : 1 });
+  const has = (...v) => v.some(x => (x || "").toLowerCase().includes(s));
+  const out = [];
+  pVisible().forEach(p => {
+    if (has(p.name, p.key)) out.push(hit("project", p, p.key, p.name, p.description, null, "overview"));
+    p.ws.forEach(w => { if (has(w.name))
+      out.push(hit("workstream", p, null, w.name, "", w.id, "timeline")); });
+    p.tasks.forEach(x => { if (has(x.title, x.ref))
+      out.push(hit("task", p, x.ref, x.title, x.description, x.id, "tasks")); });
+    p.ms.forEach(m => { if (has(m.name, m.ref))
+      out.push(hit("milestone", p, m.ref, m.name, fmtLong(m.date), m.id, "timeline")); });
+    p.risks.forEach(r => { if (has(r.title, r.ref))
+      out.push(hit("risk", p, r.ref, r.title, r.mitigation, r.id, "risks")); });
+    p.issues.forEach(i => { if (has(i.title, i.ref))
+      out.push(hit("issue", p, i.ref, i.title, i.description, i.id, "issues")); });
+    p.decisions.forEach(d => { if (has(d.topic, d.decision, d.ref))
+      out.push(hit("decision", p, d.ref, d.topic, d.decision, d.id, "decisions")); });
+    (p.docs || []).filter(d => !d.deleted).forEach(d => { if (has(d.title))
+      out.push(hit("document", p, null, d.title, d.description, d.id, "docs")); });
+  });
+  return out.sort((a,b) => a.rank - b.rank || a.label.localeCompare(b.label)).slice(0, 40);
+}
+
+const GS_LABEL = { project:"pn_projects", workstream:"g_groups", task:"pn_tasks", milestone:"pn_milestones",
+  risk:"pn_risks", issue:"pn_issues", decision:"tab_dec", document:"tab_docs" };
+
+function renderSearch(q) {
+  const box = document.getElementById("ghits");
+  if (!box) return;
+  const hits = gSearch(q);
+  if ((q || "").trim().length < 2) { box.hidden = true; box.innerHTML = ""; return; }
+  if (!hits.length) {
+    box.hidden = false;
+    box.innerHTML = `<div class="none">${t("gs_none", { q:esc(q) })}</div>`;
+    return;
+  }
+  const groups = {};
+  hits.forEach(h => { (groups[h.kind] = groups[h.kind] || []).push(h); });
+  box.hidden = false;
+  box.innerHTML = Object.keys(groups).map(k => `<div class="gh">${t(GS_LABEL[k])}</div>` +
+    groups[k].map((h, i) => `<button data-gs="${h.p.id}|${h.tab}">
+      <span class="t">${h.ref ? esc(h.ref) + " " : ""}${esc(h.label)}</span>
+      <span class="s">${esc(h.p.key)} · ${esc(h.p.name)}${
+        h.context ? " · " + esc(String(h.context).slice(0, 70)) : ""}</span>
+    </button>`).join("")).join("");
+  box.querySelectorAll("[data-gs]").forEach(b => b.onclick = () => {
+    const [id, tab] = b.dataset.gs.split("|");
+    closeSearch();
+    pProject = id; pTab = tab; pv = "projects"; render();
+  });
+}
+function closeSearch() {
+  const box = document.getElementById("ghits"), inp = document.getElementById("gq");
+  if (box) { box.hidden = true; box.innerHTML = ""; }
+  if (inp) inp.value = "";
+}
+
+/* ---------- Kalender (ICS) ---------- */
+/* Dieselben Regeln wie pcc.calendar(): offene Meilensteine und Fristen,
+   ganztägig, Ende am Folgetag — sonst zeigt Outlook den letzten Tag nicht. */
+function icsText(ps) {
+  const pad = d => d.replace(/-/g, "");
+  const esc2 = v => String(v || "").replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\;");
+  const next = d => addDays(d, 1).replace(/-/g, "");
+  const ev = [];
+  ps.forEach(p => {
+    p.ms.filter(m => m.status !== "completed").forEach(m => ev.push({
+      id:m.id, day:m.date, sum:`${p.key} · ${m.ref} ${m.name}`,
+      note:`${t("pn_milestones")} · ${m.owner ? pUser(m.owner) : t("none")} · ${t("ms_" + m.status)}` }));
+    p.tasks.filter(x => x.due && !pTaskDone(x)).forEach(x => ev.push({
+      id:x.id, day:x.due, sum:`${p.key} · ${x.ref} ${x.title}`,
+      note:`${t("col_due")} · ${x.assignee ? pUser(x.assignee) : t("none")} · ${t("ts_" + x.status)}` }));
+  });
+  ev.sort((a,b) => a.day < b.day ? -1 : 1);
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0,15) + "Z";
+  return ["BEGIN:VCALENDAR", "VERSION:2.0",
+    "PRODID:-//Aviation Academy Austria//Project Control Center//DE",
+    "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "X-WR-CALNAME:Project Control Center"]
+    .concat(ev.flatMap(e => ["BEGIN:VEVENT", `UID:${e.id}@control-center`,
+      `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${pad(e.day)}`, `DTEND;VALUE=DATE:${next(e.day)}`,
+      `SUMMARY:${esc2(e.sum)}`, `DESCRIPTION:${esc2(e.note)}`, "END:VEVENT"]))
+    .concat(["END:VCALENDAR"]).join("\r\n");
+}
+function downloadIcs(ps, name) {
+  const blob = new Blob([icsText(ps)], { type:"text/calendar;charset=utf-8" });
+  docSave(name, blob);
+  toast(t("t_ics"));
+}
+
+/* ---------- Wochenbericht ---------- */
+/* Rückblick und Ausblick in einem Blatt: was sich geändert hat, was ansteht
+   und was liegen geblieben ist. Ein Bericht, der nur zurückschaut, beantwortet
+   die Frage der Leitungsrunde nur halb. */
+let REP_DAYS = 7;
+function weeklyDef() {
+  const since = addDays(today(), -REP_DAYS);
+  const ps = pFiltered();
+  const inRange = ts => ts && ts.slice(0,10) >= since;
+  const log = PLOG.filter(e => inRange(e.ts) && (!e.project || ps.some(p => p.id === e.project)));
+  const done = [], soon = [], late = [], crit = [];
+  ps.forEach(p => {
+    p.tasks.filter(x => x.done && inRange(x.done)).forEach(x => done.push({ p, x }));
+    p.tasks.filter(x => pTaskOverdue(x)).forEach(x => late.push({ p, x }));
+    p.tasks.filter(x => !pTaskDone(x) && x.due && daysTo(x.due) >= 0 && daysTo(x.due) <= 14)
+      .forEach(x => soon.push({ p, x }));
+    p.ms.filter(m => m.status !== "completed" && daysTo(m.date) >= 0 && daysTo(m.date) <= 14)
+      .forEach(m => soon.push({ p, m }));
+    pOpenRisks(p).filter(r => rScore(r) >= 15).forEach(r => crit.push({ p, r }));
+  });
+  soon.sort((a,b) => ((a.x || a.m).due || (a.x || a.m).date) < ((b.x || b.m).due || (b.x || b.m).date) ? -1 : 1);
+  late.sort((a,b) => daysTo(a.x.due) - daysTo(b.x.due));
+  crit.sort((a,b) => rScore(b.r) - rScore(a.r));
+  return { title:t("rep_weekly"), meta:[[t("rep_period"), fmtLong(since) + " – " + fmtLong(today())],
+      [t("exp_filter"), pFilterDesc()],
+      [t("rep_changes"), log.length], [t("k_otasks"), late.length]],
+    sections:[
+      { h:t("rep_done"), cols:[t("f_ref"), t("col_task"), t("col_project"), t("col_assignee"), t("col_date")],
+        rows:done.map(({p,x}) => [x.ref, x.title, p.key, x.assignee ? pUser(x.assignee) : "", fmtLong(x.done)]) },
+      { h:t("rep_next"), cols:[t("col_date"), t("col_title"), t("col_project"), t("col_owner"), t("col_status")],
+        rows:soon.map(o => o.x
+          ? [fmtLong(o.x.due), o.x.ref + " " + o.x.title, o.p.key,
+             o.x.assignee ? pUser(o.x.assignee) : "", t("ts_" + o.x.status)]
+          : [fmtLong(o.m.date), "◆ " + o.m.ref + " " + o.m.name, o.p.key,
+             o.m.owner ? pUser(o.m.owner) : "", t("ms_" + o.m.status)]) },
+      { h:t("c_overdue"), cols:[t("f_ref"), t("col_task"), t("col_project"), t("col_assignee"), t("col_due"), t("p_days")],
+        rows:late.map(({p,x}) => [x.ref, x.title, p.key, x.assignee ? pUser(x.assignee) : "",
+          fmtLong(x.due), Math.abs(daysTo(x.due))]) },
+      { h:t("c_crit"), cols:[t("f_ref"), t("col_title"), t("col_project"), t("col_score"), t("col_owner"), t("f_mit")],
+        rows:crit.map(({p,r}) => [r.ref, r.title, p.key, rScore(r), pUser(r.owner), r.mitigation || ""]) },
+      { h:t("rep_changes"), cols:[t("exp_when"), t("exp_who"), t("col_project"), t("exp_what")],
+        rows:log.slice(0,80).map(e => [fmtLong(e.ts.slice(0,10)), pUser(e.who),
+          (pById(e.project) || {}).key || "", evText(e.txt)]) }] };
 }
 
 function pccDoc(kind) {
@@ -3336,6 +3736,7 @@ function pccDoc(kind) {
       sections:[{ cols:[t("col_date"), t("pn_milestones"), t("col_project"), t("col_owner"), t("col_status")],
         rows:rows.map(({p,m}) => [fmtLong(m.date), m.name, p.key, pUser(m.owner), t("ms_" + m.status)]) }] };
   }
+  if (kind === "pcc_weekly") return weeklyDef();
   if (kind === "pcc_pgantt") {
     /* Im Ausdruck steht das Gantt als Bild und als Tabelle: das Bild zeigt die
        Lage zueinander, die Tabelle lässt sich weiterverarbeiten. */

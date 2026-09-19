@@ -12,7 +12,8 @@ revoke all on schema pcc from anon;
 -- sieht, entscheidet die Policy.
 grant select on all tables in schema pcc to authenticated;
 grant insert, update, delete on pcc.project_members, pcc.workstreams, pcc.tasks,
-      pcc.milestones, pcc.risks, pcc.issues, pcc.decisions, pcc.raci to authenticated;
+      pcc.milestones, pcc.risks, pcc.issues, pcc.decisions, pcc.raci,
+      pcc.task_dependencies to authenticated;
 -- Dokumente und Kommentare verschwinden nie hart: pcc.delete_document() und
 -- pcc.delete_comment() setzen den Löschvermerk. Ein Delete-Recht gäbe es hier
 -- also nur zum Schein — die Policies lassen es ohnehin nicht zu.
@@ -23,17 +24,16 @@ grant update on pcc.settings to authenticated;
 revoke all on all tables in schema pcc from anon;
 grant usage on all sequences in schema pcc to authenticated;
 
+-- Jede Tabelle des Schemas, nicht eine gepflegte Liste: eine neue Tabelle
+-- stand sonst so lange offen, bis jemand sie nachträgt. Wer keine Policy
+-- bekommt, ist damit vollständig dicht — das ist die sichere Richtung.
 do $$
-declare t text;
+declare t record;
 begin
-  foreach t in array array['templates','projects','project_members','workstreams','tasks',
-                           'milestones','risks','issues','decisions','raci','documents',
-                           'comments','mentions','notifications','version_triggers',
-                           'project_versions','version_changes','ref_counters','settings',
-                           'changelog']
+  for t in select tablename from pg_tables where schemaname = 'pcc' order by tablename
   loop
-    execute format('alter table pcc.%I enable row level security', t);
-    execute format('alter table pcc.%I force row level security', t);
+    execute format('alter table pcc.%I enable row level security', t.tablename);
+    execute format('alter table pcc.%I force row level security', t.tablename);
   end loop;
 end $$;
 
@@ -81,7 +81,7 @@ do $$
 declare t text;
 begin
   foreach t in array array['projects','project_members','workstreams','tasks','milestones',
-                           'risks','issues','decisions','raci']
+                           'risks','issues','decisions','raci','task_dependencies']
   loop
     -- Projekte tragen die Kennung in id, alles Übrige in project_id.
     execute format(

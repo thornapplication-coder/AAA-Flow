@@ -3,6 +3,64 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.3.0 — 2026-09-19
+
+Vier Bausteine, vom Auftraggeber aus einer Auswahl bestimmt.
+
+### Abhängigkeiten und kritischer Pfad
+
+- **Was auf was wartet:** neue Tabelle `pcc.task_dependencies` mit zwei Arten —
+  „erst wenn das fertig ist" und „beides zugleich beginnen" — samt Vorlaufzeit.
+  Die übrigen Lehrbuchformen kommen im Trainingsbetrieb nicht vor und wären nur
+  eine Quelle für Fehleingaben.
+- **Ein Trigger schließt Kreise aus** und lässt nur Aufgaben desselben Projekts
+  verbinden. Ein Kreis wäre kein Plan, sondern eine Behauptung, die sich nicht
+  auflösen lässt — und jede Terminrechnung liefe endlos.
+- **`pcc.critical_path()`** rechnet rückwärts vom Zieltermin: wie viel Puffer
+  hat eine Aufgabe, bevor sie ihre Nachfolger und damit das Projektende
+  verschiebt? Ohne Puffer liegt sie auf dem kritischen Pfad.
+- **`pcc.v_task_links`** weist aus, wo der Plan einer Verbindung widerspricht —
+  der Nachfolger beginnt, bevor der Vorgänger fertig sein kann — und um wie
+  viele Tage.
+- **Im Gantt:** Pfeile zwischen den Balken, der kritische Pfad mit kräftigem
+  Rahmen (nicht mit einer weiteren Farbe — Rot heißt schon Verzug), Widersprüche
+  rot gestrichelt und als Hinweis über dem Diagramm. Im Aufgabendialog lassen
+  sich Vorgänger auswählen.
+
+### Wochenbericht auf Knopfdruck
+
+- **`pcc.changes_since()`** beantwortet die Frage jeder Leitungsrunde aus dem
+  Audit-Trail: was hat sich seit einem Stichtag geändert, wann und durch wen.
+  Statuswechsel und Terminverschiebungen stehen mit Vorher und Nachher da.
+- **Der Bericht schaut in beide Richtungen:** im Zeitraum erledigt, anstehend in
+  vierzehn Tagen, überfällig, kritische Risiken, dann die Änderungen. Ein
+  Bericht, der nur zurückblickt, beantwortet die Frage nur halb. Rückblick
+  wählbar über sieben, vierzehn oder dreißig Tage; PDF und Excel.
+
+### Globale Suche
+
+- **`pcc.search()`** über Projekte, Teilprojekte, Aufgaben, Meilensteine,
+  Risiken, Probleme, Entscheidungen und Dokumente. Was der Fragende nicht lesen
+  darf, kommt nicht zurück. `pg_trgm` sortiert nach Ähnlichkeit, sodass auch ein
+  Tippfehler noch trifft.
+- **Im Prototyp** ein Suchfeld in der Kopfzeile: gruppierte Treffer, Eingabetaste
+  springt zum ersten, Klick öffnet den Fundort im richtigen Reiter.
+
+### Termine im Kalender
+
+- **`pcc.calendar()`** gibt offene Meilensteine und Aufgabenfristen als
+  iCalendar-Text aus — ganztägige Einträge, deren Ende auf den Folgetag fällt,
+  weil Outlook sonst den letzten Tag verschluckt. Wahlweise je Projekt oder über
+  alle.
+
+### Nebenbei behoben
+
+- **Eine Lücke im Rechteschutz:** Die Liste der Tabellen, für die Row Level
+  Security eingeschaltet wird, war von Hand gepflegt — und die neue Tabelle
+  fehlte darin. Sie stand damit offen. Jetzt läuft die Migration über *jede*
+  Tabelle des Schemas, und ein Test wacht darüber. Aufgefallen ist es, weil eine
+  Zusicherung für den Lesezugang nicht scheiterte, wo sie es sollte.
+
 ## 1.2.0 — 2026-09-19
 
 ### Gantt je Projekt

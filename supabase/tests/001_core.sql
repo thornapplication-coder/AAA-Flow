@@ -67,10 +67,18 @@ grant execute on all functions in schema test to authenticated;
 -- -----------------------------------------------------------------------------
 select test.ok((select count(*) from pcc.version_triggers where active) = 8, 'Acht Versionsauslöser konfiguriert');
 select test.ok((select count(*) from pcc.settings) >= 5, 'Einstellungen vorhanden');
-select test.ok((select count(*) from pcc.changelog) = 3, 'Der Changelog führt alle Fassungen');
+select test.ok((select count(*) from pcc.changelog) = 4, 'Der Changelog führt alle Fassungen');
 select test.ok((select value ->> 'mode' from pcc.settings where key = 'retention') = 'unlimited',
                'Aufbewahrung steht auf unbegrenzt (Entscheidung vom 18.09.2026)');
 select test.ok((select count(*) from pcc.templates where active) = 1, 'Eine Projektvorlage im Seed');
+-- Keine Tabelle des Schemas darf ohne Row Level Security dastehen. Eine feste
+-- Liste hatte genau hier schon einmal eine Lücke gelassen.
+select test.ok((select count(*) from pg_tables t
+                 join pg_class c on c.relname = t.tablename
+                 join pg_namespace n on n.oid = c.relnamespace and n.nspname = 'pcc'
+                where t.schemaname = 'pcc'
+                  and not (c.relrowsecurity and c.relforcerowsecurity)) = 0,
+               'Jede Tabelle in pcc steht unter Row Level Security');
 
 -- -----------------------------------------------------------------------------
 -- 2. Zwei Zugänge, viele Personen (Abschnitt 4, Fassung vom 19.09.2026)
@@ -741,6 +749,154 @@ select test.login('viewer');
 select test.ok((select count(*) from pcc.v_gantt where project_id = test.pid('p1')) > 0,
                'Der Lesezugang sieht das Gantt');
 select test.logout();
+
+-- -----------------------------------------------------------------------------
+-- 16. Abhaengigkeiten und kritischer Pfad (Auftrag vom 19.09.2026)
+-- -----------------------------------------------------------------------------
+select test.login('team');
+-- Eine Kette: gt1 (heute-10 bis heute+20) -> gt3 -> gt4, alle im selben Teilprojekt
+with ins as (
+  insert into pcc.tasks (project_id, workstream_id, title, start_date, due_date, status)
+  values (test.pid('p1'), test.pid('ws2'), 'Schulung vorbereiten',
+          current_date + 21, current_date + 35, 'not_started')
+  returning id)
+insert into test_ids (key, id) select 'gt3', id from ins;
+with ins as (
+  insert into pcc.tasks (project_id, workstream_id, title, start_date, due_date, status)
+  values (test.pid('p1'), test.pid('ws2'), 'Schulung durchfuehren',
+          current_date + 36, current_date + 50, 'not_started')
+  returning id)
+insert into test_ids (key, id) select 'gt4', id from ins;
+
+insert into pcc.task_dependencies (project_id, predecessor_id, successor_id)
+values (test.pid('p1'), test.pid('gt1'), test.pid('gt3')),
+       (test.pid('p1'), test.pid('gt3'), test.pid('gt4'));
+select test.ok((select count(*) from pcc.v_task_links where project_id = test.pid('p1')) = 2,
+               'Zwei Abhängigkeiten stehen als Kanten da');
+
+-- Eine Aufgabe wartet nicht auf sich selbst
+select test.fails(format('insert into pcc.task_dependencies (project_id, predecessor_id, successor_id)
+                          values (%L, %L, %L)', test.pid('p1'), test.pid('gt1'), test.pid('gt1')),
+                  'PCC_STATE', 'Eine Aufgabe wartet nicht auf sich selbst');
+-- Und der Kreis bleibt zu
+select test.fails(format('insert into pcc.task_dependencies (project_id, predecessor_id, successor_id)
+                          values (%L, %L, %L)', test.pid('p1'), test.pid('gt4'), test.pid('gt1')),
+                  'PCC_STATE', 'Eine Abhängigkeit schließt keinen Kreis');
+-- Auch nicht über zwei Ecken zurueck
+select test.fails(format('insert into pcc.task_dependencies (project_id, predecessor_id, successor_id)
+                          values (%L, %L, %L)', test.pid('p1'), test.pid('gt3'), test.pid('gt1')),
+                  'PCC_STATE', 'Auch der kurze Kreis fällt auf');
+-- Aufgaben aus fremden Projekten lassen sich nicht verbinden
+select test.fails(format('insert into pcc.task_dependencies (project_id, predecessor_id, successor_id)
+                          values (%L, %L, %L)', test.pid('p1'), test.pid('gt1'), test.pid('t3')),
+                  'PCC_STATE', 'Abhängigkeiten bleiben im Projekt');
+
+-- Der Widerspruch faellt auf: der Nachfolger beginnt, bevor der Vorgaenger endet
+insert into pcc.task_dependencies (project_id, predecessor_id, successor_id)
+values (test.pid('p1'), test.pid('gt3'), test.pid('gt2'));
+select test.ok((select conflict from pcc.v_task_links
+                where successor_id = test.pid('gt2')) = true,
+               'Ein Nachfolger, der zu früh beginnt, wird als Widerspruch ausgewiesen');
+select test.ok((select conflict_days from pcc.v_task_links
+                where successor_id = test.pid('gt2')) > 0,
+               'Und die Sicht sagt, um wie viele Tage');
+select test.ok((select count(*) from pcc.v_task_links
+                where project_id = test.pid('p1') and conflict) = 1,
+               'Die übrigen Verbindungen sind widerspruchsfrei');
+
+-- Der kritische Pfad: die Kette bis zum Projektende hat keinen Puffer
+select test.ok((select count(*) from pcc.critical_path(test.pid('p1'))) > 0,
+               'Die Terminrechnung liefert ein Ergebnis');
+-- Solange die Kette vor dem Projektende ausläuft, hat sie Puffer — und jedes
+-- frühere Glied nie weniger als das spätere.
+select test.ok((select slack_days from pcc.critical_path(test.pid('p1'))
+                where task_id = test.pid('gt4')) > 0,
+               'Eine Kette, die vor dem Projektende endet, hat Puffer');
+-- Reicht das letzte Glied bis zum Projektende, wird es kritisch.
+update pcc.tasks
+   set due_date = (select target_end_date from pcc.projects where id = test.pid('p1'))
+ where id = test.pid('gt4');
+select test.ok((select is_critical from pcc.critical_path(test.pid('p1'))
+                where task_id = test.pid('gt4')) = true,
+               'Was bis zum Projektende läuft, liegt auf dem kritischen Pfad');
+select test.ok((select slack_days from pcc.critical_path(test.pid('p1'))
+                where task_id = test.pid('gt3')) < 5,
+               'Das Glied davor liegt dicht dahinter — nur die Lücke dazwischen ist Puffer');
+select test.ok((select slack_days from pcc.critical_path(test.pid('p1'))
+                where task_id = test.pid('gt1')) >= (select slack_days from pcc.critical_path(test.pid('p1'))
+                where task_id = test.pid('gt3')),
+               'Ein früheres Glied hat nie weniger Puffer als ein späteres');
+-- Eine Aufgabe ohne Verbindung hängt allein am Projektende.
+select test.ok((select slack_days from pcc.critical_path(test.pid('p1'))
+                where task_id = test.pid('t1')) > 0,
+               'Was mit nichts verbunden ist, hat den Puffer bis zum Projektende');
+select test.logout();
+
+select test.login('viewer');
+select test.ok((select count(*) from pcc.v_task_links where project_id = test.pid('p1')) = 3,
+               'Der Lesezugang sieht die Abhängigkeiten');
+select test.fails(format('insert into pcc.task_dependencies (project_id, predecessor_id, successor_id)
+                          values (%L, %L, %L)', test.pid('p1'), test.pid('gt1'), test.pid('gt4')),
+                  'row-level security', 'Der Lesezugang verknüpft nichts');
+select test.logout();
+
+-- -----------------------------------------------------------------------------
+-- 17. Wochenbericht, Suche und Kalender (Auftrag vom 19.09.2026)
+-- -----------------------------------------------------------------------------
+select test.login('team');
+-- Was hat sich geaendert? Der Trail weiss es.
+select test.ok((select count(*) from pcc.changes_since(now() - interval '1 hour')) > 0,
+               'Der Bericht findet die Änderungen der letzten Stunde');
+select test.ok((select count(*) from pcc.changes_since(now() + interval '1 hour')) = 0,
+               'Und für die Zukunft nichts');
+select test.ok((select count(*) from pcc.changes_since(now() - interval '1 hour', test.pid('p1')))
+               <= (select count(*) from pcc.changes_since(now() - interval '1 hour')),
+               'Auf ein Projekt eingegrenzt wird die Liste nicht länger');
+select test.ok((select count(*) from pcc.changes_since(now() - interval '1 hour')
+                where entity = 'pcc.tasks' and action = 'insert') > 0,
+               'Neue Aufgaben stehen im Bericht');
+-- Ein Statuswechsel wird als Weg von A nach B ausgewiesen
+select test.ok((select count(*) from pcc.changes_since(now() - interval '1 hour')
+                where detail like '%→%') > 0,
+               'Ein Wechsel steht mit Vorher und Nachher da');
+
+-- Suche
+select test.ok((select count(*) from pcc.search('Qualification')) > 0,
+               'Die Suche findet eine Aufgabe über ihren Titel');
+select test.ok((select kind from pcc.search('SIM-26') limit 1) = 'project',
+               'Ein Projektschlüssel führt zum Projekt');
+select test.ok((select count(*) from pcc.search('a')) = 0,
+               'Ein einzelner Buchstabe löst keine Suche aus');
+select test.ok((select count(*) from pcc.search('Zusammenhangloses Kauderwelsch')) = 0,
+               'Was es nicht gibt, wird nicht gefunden');
+select test.ok((select count(*) from pcc.search('Abnahmeprotokoll')) > 0,
+               'Auch Dokumente und Aufgaben mit gleichem Wortstamm kommen zurück');
+
+-- Kalender
+select test.ok(pcc.calendar(test.pid('p1')) like 'BEGIN:VCALENDAR%',
+               'Der Kalender beginnt wie ein iCalendar');
+select test.ok(pcc.calendar(test.pid('p1')) like '%END:VCALENDAR',
+               'Und endet auch so');
+select test.ok((select count(*) from regexp_matches(pcc.calendar(test.pid('p1')), 'BEGIN:VEVENT', 'g')) > 0,
+               'Er enthält Termine');
+-- Erledigtes gehoert nicht in den Kalender
+select test.ok(pcc.calendar(test.pid('p1')) not like '%Simulator FAT%',
+               'Ein erreichter Meilenstein steht nicht mehr im Kalender');
+select test.logout();
+
+select test.login('viewer');
+select test.ok((select count(*) from pcc.search('Qualification')) > 0,
+               'Der Lesezugang sucht mit');
+select test.ok(pcc.calendar() like 'BEGIN:VCALENDAR%',
+               'Und bekommt den Kalender über alle Projekte');
+select test.logout();
+
+-- Ohne Anmeldung gibt keine der drei Funktionen etwas heraus
+select test.ok((select count(*) from pcc.search('Qualification')) = 0,
+               'Ohne Anmeldung findet die Suche nichts');
+select test.ok((select count(*) from pcc.changes_since(now() - interval '1 hour')) = 0,
+               'Ohne Anmeldung gibt es keinen Bericht');
+select test.ok(pcc.calendar() is null, 'Ohne Anmeldung keinen Kalender');
 
 select test.ok(true, 'Alle Prüfungen des Control Centers bestanden');
 rollback;

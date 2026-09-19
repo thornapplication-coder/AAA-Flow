@@ -34,6 +34,11 @@ create type pcc.milestone_status as enum ('planned', 'in_progress', 'completed',
 create type pcc.risk_status as enum ('open', 'monitoring', 'mitigated', 'closed', 'accepted');
 create type pcc.issue_status as enum ('open', 'in_progress', 'blocked', 'resolved', 'closed');
 create type pcc.progress_mode as enum ('manual', 'derived');
+-- Abhängigkeiten zwischen Aufgaben (19.09.2026). Zwei Arten reichen für die
+-- Praxis: „erst wenn das fertig ist" und „beides zugleich beginnen". Die
+-- übrigen Lehrbuchformen (Ende-Ende, Anfang-Ende) kommen im Trainingsbetrieb
+-- nicht vor und wären nur eine Quelle für Fehleingaben.
+create type pcc.dependency_kind as enum ('finish_start', 'start_start');
 create type pcc.document_kind as enum ('file', 'link');
 -- Abschnitt 7a: Upload landet in Quarantäne und ist bis zur Prüfung nicht ladbar.
 create type pcc.scan_state as enum ('pending', 'clean', 'infected');
@@ -257,6 +262,32 @@ create index tasks_assignee_idx on pcc.tasks (assignee_user_id, status);
 create index tasks_due_idx on pcc.tasks (due_date) where status not in ('completed', 'cancelled');
 create index tasks_parent_idx on pcc.tasks (parent_task_id);
 create index tasks_workstream_idx on pcc.tasks (workstream_id);
+
+-- -----------------------------------------------------------------------------
+-- Abhängigkeiten zwischen Aufgaben
+-- Sie sind der Unterschied zwischen einem Bild und einem Plan: erst mit ihnen
+-- lässt sich sagen, was eine Verzögerung nach sich zieht.
+-- -----------------------------------------------------------------------------
+create table pcc.task_dependencies (
+  id             uuid primary key default gen_random_uuid(),
+  project_id     uuid not null references pcc.projects (id) on delete cascade,
+  predecessor_id uuid not null references pcc.tasks (id) on delete cascade,
+  successor_id   uuid not null references pcc.tasks (id) on delete cascade,
+  kind           pcc.dependency_kind not null default 'finish_start',
+  -- Puffer in Arbeitstagen, den der Nachfolger zusätzlich abwarten soll.
+  lag_days       smallint not null default 0 check (lag_days between -365 and 365),
+  note           text,
+  created_at     timestamptz not null default now(),
+  created_by     uuid references public.users (id),
+  -- Eine Verbindung gibt es einmal, nicht dreimal.
+  unique (predecessor_id, successor_id),
+  -- Eine Aufgabe wartet nicht auf sich selbst.
+  check (predecessor_id <> successor_id)
+);
+comment on table pcc.task_dependencies is 'Was auf was wartet. Kreise verhindert ein Trigger, projektfremde Verweise ebenso.';
+create index task_deps_pred_idx on pcc.task_dependencies (predecessor_id);
+create index task_deps_succ_idx on pcc.task_dependencies (successor_id);
+create index task_deps_project_idx on pcc.task_dependencies (project_id);
 
 create table pcc.milestones (
   id                      uuid primary key default gen_random_uuid(),

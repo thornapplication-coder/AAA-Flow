@@ -98,5 +98,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'Two accounts instead of five roles, files on tasks, instant saving, exports stamped with their state.'),
   ('1.2.0', date '2026-09-19',
    'Gantt je Projekt: Teilprojekte, Aufgaben, Teilaufgaben und Meilensteine auf einer Zeitachse.',
-   'Gantt per project: workstreams, tasks, subtasks and milestones on one timeline.')
+   'Gantt per project: workstreams, tasks, subtasks and milestones on one timeline.'),
+  ('1.3.0', date '2026-09-19',
+   'Abhängigkeiten und kritischer Pfad, Wochenbericht, globale Suche, Termine als Kalenderdatei.',
+   'Dependencies and critical path, weekly report, global search, dates as a calendar file.')
 on conflict (version) do nothing;

@@ -42,6 +42,13 @@ Rest. Was die Oberfläche nicht anbietet, gibt auch die API nicht heraus.
 - **Gantt je Projekt:** Teilprojekte als Klammer über ihre Aufgaben,
   Teilaufgaben eingerückt, Meilensteine als Raute — die Sicht `pcc.v_gantt`
   liefert die Zeilen samt abgeleiteter Termine und Fortschritte.
+- **Abhängigkeiten und kritischer Pfad:** was auf was wartet
+  (`pcc.task_dependencies`, kreisfrei per Trigger), wo der Plan dem
+  widerspricht (`pcc.v_task_links`) und welche Aufgaben keinen Puffer mehr
+  haben (`pcc.critical_path()`).
+- **Drei Auswertungen aus vorhandenen Daten:** `pcc.changes_since()` für den
+  Wochenbericht, `pcc.search()` für die Suche über alles, `pcc.calendar()` für
+  offene Termine als Kalenderdatei.
 - **Gerechnet statt gepflegt:** Fortschritt, Gesamtlage und Risk Score kommen
   aus der Datenbank. Der Score ist eine generierte Spalte und von Hand nicht
   setzbar.

@@ -219,9 +219,46 @@ Datenbank, damit sie nicht je Oberfläche anders ausfallen:
 
 Was die Darstellung **nicht** tut: eine Dauer erfinden. Eine Aufgabe ohne
 Termin wird als solche ausgewiesen statt mit einem Balken versehen.
-Abhängigkeiten zwischen Aufgaben zeichnet das Gantt nicht — das Datenmodell
-kennt sie nur zwischen Meilensteinen (`depends_on_milestone_id`), und eine
-gezeichnete Linie, hinter der keine Angabe steht, wäre eine Behauptung.
+
+### Abhängigkeiten und kritischer Pfad (19.09.2026)
+
+`pcc.task_dependencies` hält fest, was auf was wartet — in zwei Arten:
+`finish_start` („erst wenn das fertig ist") und `start_start` („beides zugleich
+beginnen"), jeweils mit Vorlaufzeit in `lag_days`. Ende-Ende und Anfang-Ende
+fehlen bewusst: sie kommen im Trainingsbetrieb nicht vor und wären nur eine
+Quelle für Fehleingaben.
+
+Zwei Riegel sichern die Angaben ab, beide im Trigger `pcc.tg_task_dep_guard()`:
+Eine Verbindung bleibt im Projekt, und sie schließt keinen Kreis. Ein Kreis wäre
+kein Plan mehr, sondern eine Behauptung, die sich nicht auflösen lässt — und
+jede Terminrechnung liefe endlos.
+
+Daraus folgen zwei Auswertungen:
+
+| Was | Wo | Aussage |
+|---|---|---|
+| **Widerspruch** | `pcc.v_task_links` | Der Nachfolger beginnt früher, als die Verbindung erlaubt — mit der Zahl der Tage |
+| **Puffer und kritischer Pfad** | `pcc.critical_path(projekt)` | Rückwärts vom Zieltermin: wie viel Luft hat eine Aufgabe, bevor sie das Projektende verschiebt? Ohne Luft ist sie kritisch |
+
+Die Rückwärtsrechnung sammelt je Weg einen Kandidaten und nimmt außen den
+frühesten — die übliche Rückwärtsrechnung, nur in SQL. Der Prototyp rechnet
+dasselbe in JavaScript nach; weicht er ab, gilt die Datenbank.
+
+Im Gantt stehen die Verbindungen als Pfeile, der kritische Pfad bekommt einen
+kräftigen Rahmen — **keine** weitere Farbe: Rot heißt dort schon Verzug, und
+eine Farbe mit zwei Bedeutungen sagt nichts mehr.
+
+### Drei Auswertungen, die aus vorhandenen Daten entstehen (19.09.2026)
+
+| Funktion | Beantwortet |
+|---|---|
+| `pcc.changes_since(stichtag, projekt?)` | Was hat sich seit dem letzten Bericht geändert — Grundlage des Wochenberichts. Statuswechsel und Terminverschiebungen mit Vorher und Nachher, aus dem Audit-Trail |
+| `pcc.search(text)` | Suche über Projekte, Teilprojekte, Aufgaben, Meilensteine, Risiken, Probleme, Entscheidungen und Dokumente. `pg_trgm` sortiert nach Ähnlichkeit; was der Fragende nicht lesen darf, kommt nicht zurück |
+| `pcc.calendar(projekt?)` | Offene Meilensteine und Fristen als iCalendar-Text. Ganztägige Einträge enden auf dem Folgetag, sonst verschluckt Outlook den letzten Tag |
+
+Alle drei sind `security definer` und prüfen selbst, ob der Fragende angemeldet
+ist und das Projekt lesen darf — sie umgehen die Policies nicht, sie tragen sie
+nach.
 
 Technisch heißt das: die SELECT-Policy ruft `pcc.can_read()` — angemeldet
 genügt. Die schreibenden Policies prüfen `pcc.can_edit()`: Teamzugang und

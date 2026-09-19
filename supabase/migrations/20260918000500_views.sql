@@ -155,6 +155,33 @@ left join public.users u on u.id = a.user_id
 left join pcc.projects p on p.id = a.project_id;
 
 -- -----------------------------------------------------------------------------
+-- Abhängigkeiten als Kanten, mit Widerspruchsprüfung (19.09.2026)
+-- Eine Verbindung ist dann etwas wert, wenn sie auffällt, sobald der Plan ihr
+-- widerspricht: „erst wenn das fertig ist" und der Nachfolger beginnt vorher.
+-- -----------------------------------------------------------------------------
+create view pcc.v_task_links with (security_invoker = true) as
+select
+  d.id, d.project_id, d.kind, d.lag_days, d.note,
+  d.predecessor_id, pre.ref as predecessor_ref, pre.title as predecessor_title,
+  pre.start_date as predecessor_start, pre.due_date as predecessor_due, pre.status as predecessor_status,
+  d.successor_id, suc.ref as successor_ref, suc.title as successor_title,
+  suc.start_date as successor_start, suc.due_date as successor_due, suc.status as successor_status,
+  -- Der früheste Tag, an dem der Nachfolger nach dieser Verbindung beginnen darf.
+  case when d.kind = 'finish_start' then pre.due_date + d.lag_days
+       else pre.start_date + d.lag_days end as earliest_start,
+  -- Widerspruch: der Nachfolger ist früher angesetzt, als die Verbindung erlaubt.
+  case when suc.start_date is null then false
+       when d.kind = 'finish_start' then suc.start_date < pre.due_date + d.lag_days
+       else suc.start_date < pre.start_date + d.lag_days end as conflict,
+  case when suc.start_date is null then 0
+       when d.kind = 'finish_start' then greatest(0, (pre.due_date + d.lag_days) - suc.start_date)
+       else greatest(0, (pre.start_date + d.lag_days) - suc.start_date) end as conflict_days
+from pcc.task_dependencies d
+join pcc.tasks pre on pre.id = d.predecessor_id
+join pcc.tasks suc on suc.id = d.successor_id;
+comment on view pcc.v_task_links is 'Abhängigkeiten zwischen Aufgaben samt frühestem zulässigem Beginn und Hinweis, wo der Plan ihnen widerspricht.';
+
+-- -----------------------------------------------------------------------------
 -- Gantt je Projekt (Auftrag vom 19.09.2026)
 -- Eine Zeile je Balken: Teilprojekte als Klammer über ihre Aufgaben, darunter
 -- die Aufgaben mit ihren Terminen, dazu die Meilensteine als Punkt. Ein
@@ -253,7 +280,7 @@ order by name;
 grant select on all tables in schema pcc to authenticated;
 revoke all on pcc.v_projects, pcc.v_tasks, pcc.v_milestones, pcc.v_risks,
   pcc.v_issues, pcc.v_dashboard, pcc.v_overdue_tasks, pcc.v_upcoming_milestones,
-  pcc.v_risk_matrix, pcc.v_activity, pcc.v_versions, pcc.v_gantt,
+  pcc.v_risk_matrix, pcc.v_activity, pcc.v_versions, pcc.v_gantt, pcc.v_task_links,
   pcc.v_notifications, pcc.v_people from anon;
 
 -- -----------------------------------------------------------------------------

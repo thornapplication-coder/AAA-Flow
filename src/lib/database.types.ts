@@ -54,6 +54,18 @@ export type GanttRow = {
   progress: number; open_count: number; sort_order: number; depth: number
 }
 
+// Eine Kante aus pcc.v_task_links: was auf was wartet, samt frühestem
+// zulässigem Beginn und dem Hinweis, wo der Plan ihr widerspricht.
+export type TaskLink = {
+  id: string; project_id: string
+  kind: 'finish_start' | 'start_start'; lag_days: number; note: string | null
+  predecessor_id: string; predecessor_ref: string; predecessor_title: string
+  predecessor_start: string | null; predecessor_due: string | null; predecessor_status: TaskStatus
+  successor_id: string; successor_ref: string; successor_title: string
+  successor_start: string | null; successor_due: string | null; successor_status: TaskStatus
+  earliest_start: string | null; conflict: boolean; conflict_days: number
+}
+
 export type Project = {
   id: string; key: string; name: string; description: string | null
   objectives: string | null; scope: string | null
@@ -205,8 +217,35 @@ export type Database = {
       v_projects: View<ProjectOverview>
       v_dashboard: View<DashboardTotals>
       v_gantt: View<GanttRow>
+      v_task_links: View<TaskLink>
     }
-    Functions: Record<string, never>
+    Functions: {
+      // Terminrechnung: Puffer je Aufgabe und der kritische Pfad.
+      critical_path: {
+        Args: { p_project_id: string }
+        Returns: { task_id: string; late_finish: string; slack_days: number; is_critical: boolean }[]
+      }
+      // Grundlage des Wochenberichts.
+      changes_since: {
+        Args: { p_since: string; p_project_id?: string | null }
+        Returns: {
+          at: string; project_id: string | null; project_key: string | null
+          entity: string; action: string; label: string | null
+          detail: string | null; person: string | null
+        }[]
+      }
+      // Suche über alles, was einen Namen trägt.
+      search: {
+        Args: { p_query: string; p_limit?: number }
+        Returns: {
+          kind: 'project' | 'workstream' | 'task' | 'milestone' | 'risk' | 'issue' | 'decision' | 'document'
+          id: string; project_id: string; project_key: string
+          ref: string | null; label: string; context: string | null; rank: number
+        }[]
+      }
+      // Offene Termine als iCalendar-Text.
+      calendar: { Args: { p_project_id?: string | null }; Returns: string }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }
