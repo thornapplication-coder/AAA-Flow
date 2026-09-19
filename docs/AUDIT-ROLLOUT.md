@@ -59,6 +59,15 @@ dafür fertig und geprüft.
 - Drei Bildschirmbreiten ohne Überlauf, englische Fassung ohne deutsche Reste.
 - Audit-Trail in der Datenbank unveränderlich; Versionen nur über Funktionen.
 
+### Nachgezogen in 1.6.1
+
+| Befund | Schwere | Behebung |
+|---|---|---|
+| Überschrift „Kritische Risiken" lag quer über dem Erklärungstext daneben; das Feld war auf null Breite zusammengefallen (`min-width: 0`). Ab 1280 px aufwärts, nicht nur auf dem Telefon | mittel — unleserlich | Titel und Erklärung behalten ihre Mindestbreite, der Kartenkopf bricht um |
+| In der Kopfzeile schob der Personenchip Name und Knöpfe über den Sprachumschalter, ab 834 px | mittel | nur der Name schrumpft, mit Auslassungspunkten; ab 1100 px Initialen statt Beschriftung |
+| Die waagerecht scrollende Reiterleiste sah am Telefon abgeschnitten aus | niedrig | Verlauf am rechten Rand als Hinweis, verschwindet am Ende der Leiste |
+| Keine Prüfung erkannte überlagerte Schrift — der Überlaufstest sah nur die Seitenbreite | **hoch — die Prüfkette hatte eine Lücke** | `check:layout`: 1.584 Geometrieprüfungen auf elf Geräteklassen in beiden Sprachen, in `verify` und CI; gegengeprüft gegen beide Fehler |
+
 ### Nachgezogen in 1.6.0
 
 - Excel-Ausgabe war eine Textdatei zum Einfügen; jetzt eine echte `.xlsx` mit einem Blatt je Abschnitt (Prüfung im Logik- und im Funktionstest).
