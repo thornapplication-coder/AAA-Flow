@@ -101,5 +101,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'Gantt per project: workstreams, tasks, subtasks and milestones on one timeline.'),
   ('1.3.0', date '2026-09-19',
    'Abhängigkeiten und kritischer Pfad, Wochenbericht, globale Suche, Termine als Kalenderdatei.',
-   'Dependencies and critical path, weekly report, global search, dates as a calendar file.')
+   'Dependencies and critical path, weekly report, global search, dates as a calendar file.'),
+  ('1.4.0', date '2026-09-19',
+   'Risikomatrix mit ausgeschriebenen Skalen und Handlungsempfehlung, Funktionsdurchlauf durch die ganze Anwendung.',
+   'Risk matrix with written-out scales and recommended actions, full functional walkthrough of the application.')
 on conflict (version) do nothing;

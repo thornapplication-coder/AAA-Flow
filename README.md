@@ -99,6 +99,7 @@ docs/                         Architektur und Changelog
 index.html                    Einstiegsseite der Anwendung
 public/                       Statisches Beiwerk: Symbole für Browser und Installation
 sandbox/                      Klickbarer Prototyp mit Demodaten, ohne Backend
+scripts/check-app.mjs         Funktionsdurchlauf: jeder Knopf, Dialog, Export, beide Zugänge
 scripts/check-sandbox.mjs     Prototyp in drei Bildschirmbreiten auf Fehler und Überlauf prüfen
 scripts/db-check.sh           Migrationen + Seed + Tests gegen eine lokale PostgreSQL-Instanz
 scripts/local/auth_shim.sql   Ersatz für auth.users und auth.uid(), nur für db-check
@@ -125,7 +126,15 @@ cp .env.example .env            # Supabase-URL und Anon-Key eintragen
 npm run dev                     # http://localhost:5173
 npm run typecheck
 npm run build
+npm run check:sandbox           # drei Bildschirmbreiten, beide Sprachen
+npm run check:app               # jeder Knopf, Dialog und Export, beide Zugänge
 ```
+
+> **Vor jeder Weitergabe an das Team:** `npm run check:app`. Der Durchlauf
+> klickt sich durch die ganze Anwendung — Anmeldung, alle Bereiche, alle Reiter,
+> alle Dialoge samt Pflichtfeldern, Ausgaben, Suche, Kalender, Zeitreise,
+> Speicherung über einen Neustart hinweg und die Rechte des Lesezugangs — und
+> meldet jeden Laufzeitfehler und jeden Knopf ohne Wirkung.
 
 Datenbank prüfen, ohne Supabase-Projekt (legt die Datenbank `pcc_check` an und
 spielt Migrationen, Seed und Tests ein):

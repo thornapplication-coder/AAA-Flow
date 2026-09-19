@@ -34,6 +34,9 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run check:sandbox
+      # Der Funktionsdurchlauf: jeder Knopf, jeder Dialog, jede Ausgabe, beide
+      # Zugänge, Speicherung und Rechte. Läuft vor jeder Weitergabe ans Team.
+      - run: npm run check:app
 
   database:
     name: Migrationen, Seed und SQL-Tests

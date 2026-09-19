@@ -37,13 +37,14 @@ button:disabled{cursor:not-allowed}
 /* ---------- Chrome ---------- */
 .app{display:grid;grid-template-columns:212px minmax(0,1fr);grid-template-rows:56px auto 1fr;height:100vh;max-width:100vw}
 .topbar{grid-column:1/-1;background:var(--navy-900);display:flex;align-items:center;gap:14px;padding:0 16px;color:#fff}
-.brand{display:flex;align-items:baseline;gap:9px;font-weight:600;letter-spacing:-.01em;font-size:16px;white-space:nowrap}
+.brand{display:flex;align-items:baseline;gap:9px;font-weight:600;letter-spacing:-.01em;font-size:16px;
+  white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
 .brand em{font-style:normal;color:var(--navy-400)}
 .brand span{color:var(--navy-400);font-weight:400;font-size:12px;letter-spacing:.04em}
 .topbar .spacer{flex:1}
 /* Suche über alles. Sie sitzt in der Kopfzeile, weil sie zu keinem Bereich
    gehört — und über allen. */
-.gsearch{position:relative;flex:0 1 320px;min-width:0}
+.gsearch{position:relative;flex:1 1 180px;min-width:0;max-width:320px}
 .gsearch input{width:100%;border:1px solid #24405F;background:#0F2033;color:#E8F0F8;
   border-radius:var(--r);padding:7px 11px;font-size:13px}
 .gsearch input::placeholder{color:#7690AB}
@@ -241,7 +242,9 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .sandbar .saved{color:#9CCFA8;font-size:11.5px;white-space:nowrap}
 .topbar .userchip{display:flex;align-items:center;gap:9px;color:#C6D8E8;font-size:12.5px;white-space:nowrap;min-width:0}
 .topbar .userchip b{color:#fff;font-weight:600}
-.topbar .userchip .sw{border:1px solid #24405F;border-radius:var(--r);color:#9DB4CC;padding:5px 10px;font-size:12px}
+.topbar .userchip .sw{border:1px solid #24405F;border-radius:var(--r);color:#9DB4CC;padding:5px 10px;
+  font-size:12px;white-space:nowrap;flex:0 0 auto}
+.topbar .userchip .sw .ini2{display:none;font-weight:700;letter-spacing:.02em}
 .topbar .userchip .sw:hover{background:var(--navy-700);color:#fff}
 
 /* ---------- Kennzahlen, Projektansicht ---------- */
@@ -387,6 +390,31 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .ggrid.forprint .grow{page-break-inside:avoid;break-inside:avoid}
 
 /* Risk-Matrix */
+.mxhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.mxtoggle{color:var(--navy-600);font-size:12.5px;text-decoration:underline;white-space:nowrap}
+/* Die Erklärung steht neben der Matrix, nicht darunter: wer eine Stufe
+   einträgt, soll nicht scrollen müssen, um ihre Bedeutung zu lesen. */
+.mxexpl{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+  padding:14px 16px;margin-bottom:14px}
+.mxexpl h4{font-size:12.5px;font-weight:600;margin-bottom:6px}
+.mxexpl .mxsub{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;margin:9px 0 3px}
+.mxexpl ul{list-style:none;font-size:12.5px;line-height:1.55}
+.mxexpl li{color:var(--ink-soft)}
+.mxlvl{border-collapse:collapse;width:100%}
+.mxlvl td{border:none;padding:3px 8px 3px 0;font-size:12.5px;vertical-align:top;color:var(--ink-soft)}
+.mxlvl td:first-child{width:56px}
+.mxlvl b{color:var(--ink)}
+.mxkey{display:inline-block;min-width:46px;text-align:center;border-radius:4px;
+  font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 5px}
+.mxkey.l{background:#E9F3ED;color:var(--done)}
+.mxkey.m{background:#FBF0DC;color:var(--work)}
+.mxkey.h{background:#F7DED7;color:var(--late)}
+.mxkey.x{background:#EFC9C0;color:#7C2D20}
+/* Jede Zelle ist ein Knopf — die Fläche füllt sie ganz aus, damit der Finger
+   sie auch trifft. */
+.rmx td button{width:100%;height:100%;min-height:38px;font:inherit;color:inherit;font-weight:600}
+.rmx td.sel{outline:2px solid var(--navy-800);outline-offset:-2px}
 .rmx{border-collapse:collapse;width:auto}
 .rmx td,.rmx th{border:1px solid var(--line);padding:0;text-align:center}
 .rmx th{background:var(--surface-2);font-size:10.5px;color:var(--ink-soft);padding:4px 6px;font-weight:600}
@@ -430,7 +458,9 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 /* ---------- Toast ---------- */
 .toast .undo{margin-left:10px;text-decoration:underline;color:#BFD6EC;font-weight:600}
 .toast{position:fixed;left:50%;bottom:70px;transform:translate(-50%,14px);background:var(--navy-900);color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;z-index:30;max-width:min(560px,92vw);box-shadow:0 10px 30px rgba(12,27,46,.35)}
-.toast.on{opacity:1;transform:translate(-50%,0)}
+/* Sichtbar heißt auch anfassbar: ohne pointer-events blieb der Knopf
+   „Rückgängig" im Toast wirkungslos — er sah nur so aus. */
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast.bad{background:#7C2D20}
 
 /* ---------- Tabellenaktionen und Formularfelder ---------- */
@@ -467,9 +497,17 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
   .brand span{display:none}
   .gsearch{flex:0 1 128px}
   /* Auf dem Telefon reicht der Platz nicht für Name und Rolle; der Chip
-     überdeckte sonst den Sprachumschalter. */
+     überdeckte sonst den Sprachumschalter. Der Personenwechsel schrumpft auf
+     die Initialen — er bleibt erreichbar, nimmt aber keine Zeile mehr ein. */
+  .topbar{gap:8px}
   .topbar .userchip>span{display:none}
-  .topbar .userchip .sw{flex:0 0 auto}
+  .topbar .userchip{gap:6px}
+  .topbar .userchip .sw{flex:0 0 auto;padding:5px 8px}
+  .topbar .userchip .sw .lbl{display:none}
+  .topbar .userchip .sw .ini2{display:inline}
+  .brand{font-size:14px}
+  .lang button{padding:5px 8px}
+  .gsearch{flex:1 1 60px}
   /* Die Sandbox-Leiste bricht hier auf zwei Zeilen um und wurde höher als der
      bisherige Abstand. */
   .main{padding:14px 12px 150px}
@@ -545,6 +583,37 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- i18n ---------- */
 const I = {
 de:{
+  solo_ok:"Verstanden",
+  solo_s:"Dieser Prototyp speichert auf diesem Gerät, nicht in einer gemeinsamen Datenbank. Jede Person sieht ihren eigenen Stand — Änderungen der Kolleginnen und Kollegen erscheinen hier nicht. Für das gemeinsame Arbeiten im Team ist die Supabase-Instanz nötig; die Datenbank dafür ist fertig und geprüft.",
+  solo_t:"Zum Ausprobieren, noch nicht zum gemeinsamen Arbeiten.",
+  mx_act:"Was daraus folgt",
+  mx_act1:"Hinnehmen. Im Blick behalten, keine eigene Maßnahme.",
+  mx_act2:"Maßnahme festlegen und eine verantwortliche Person benennen.",
+  mx_act3:"Maßnahme umsetzen und nachhalten; gehört in den Wochenbericht.",
+  mx_act4:"Sofort in die Leitungsrunde. Maßnahme und Rückfallebene festlegen.",
+  mx_cells:"Die Zahl in einem Feld ist die Anzahl der Risiken darin. Ein Klick zeigt sie unten.",
+  mx_expl:"So lesen Sie die Matrix",
+  mx_imp1:"1 — unwesentlich: etwas Mehraufwand, kein Termin in Gefahr",
+  mx_imp2:"2 — gering: Verschiebung um Tage, niemand außerhalb merkt es",
+  mx_imp3:"3 — spürbar: ein Meilenstein verschiebt sich oder es wird teurer",
+  mx_imp4:"4 — schwer: Projektziel in Gefahr, ein Kurs oder Behördentermin platzt",
+  mx_imp5:"5 — kritisch: Qualifikation, Zulassung oder Betrieb sind betroffen",
+  mx_lvl1:"gering",
+  mx_lvl2:"mittel",
+  mx_lvl3:"hoch",
+  mx_lvl4:"kritisch",
+  mx_prob1:"1 — sehr unwahrscheinlich: in diesem Projekt kaum vorstellbar",
+  mx_prob2:"2 — unwahrscheinlich: kommt vor, aber selten",
+  mx_prob3:"3 — möglich: kann im Projektverlauf eintreten",
+  mx_prob4:"4 — wahrscheinlich: tritt ohne Gegenmaßnahme voraussichtlich ein",
+  mx_prob5:"5 — fast sicher: tritt ein, wenn nichts geschieht",
+  mx_scale:"Die beiden Skalen",
+  mx_show:"Erklärung einblenden",
+  mx_hide:"Erklärung ausblenden",
+  mx_val:"Risikowert",
+  mx_cell:"{n} Risiko/Risiken · Wert {v} · {l}",
+  mx_none:"Kein Risiko in diesem Feld",
+  mx_clear:"Auswahl aufheben",
   gs_none:"Nichts gefunden zu „{q}“.",
   gs_ph:"Suchen …",
   ics_h:"Offene Meilensteine und Fristen als Kalenderdatei — ganztägige Einträge, die sich in Outlook einlesen lassen.",
@@ -881,6 +950,37 @@ de:{
   ver_t:"Versionsverlauf"
 },
 en:{
+  solo_ok:"Understood",
+  solo_s:"This prototype saves on this device, not in a shared database. Everyone sees their own state — changes made by colleagues do not appear here. Working together needs the Supabase instance; the database for it is finished and tested.",
+  solo_t:"For trying out, not yet for working together.",
+  mx_act:"What follows from it",
+  mx_act1:"Accept. Keep an eye on it, no action of its own.",
+  mx_act2:"Define a measure and name someone responsible.",
+  mx_act3:"Carry out the measure and follow it up; belongs in the weekly report.",
+  mx_act4:"Straight to management. Define a measure and a fallback.",
+  mx_cells:"The number in a cell is how many risks sit there. A click shows them below.",
+  mx_expl:"How to read the matrix",
+  mx_imp1:"1 — negligible: some extra work, no date at risk",
+  mx_imp2:"2 — minor: a shift of days, nobody outside notices",
+  mx_imp3:"3 — noticeable: a milestone moves or it gets more expensive",
+  mx_imp4:"4 — severe: the project goal is at risk, a course or authority date falls through",
+  mx_imp5:"5 — critical: qualification, approval or operations are affected",
+  mx_lvl1:"low",
+  mx_lvl2:"medium",
+  mx_lvl3:"high",
+  mx_lvl4:"critical",
+  mx_prob1:"1 — very unlikely: hardly conceivable in this project",
+  mx_prob2:"2 — unlikely: happens, but rarely",
+  mx_prob3:"3 — possible: may occur during the project",
+  mx_prob4:"4 — likely: expected to occur without a countermeasure",
+  mx_prob5:"5 — almost certain: will occur if nothing is done",
+  mx_scale:"The two scales",
+  mx_show:"Show explanation",
+  mx_hide:"Hide explanation",
+  mx_val:"Risk value",
+  mx_cell:"{n} risk(s) · value {v} · {l}",
+  mx_none:"No risk in this cell",
+  mx_clear:"Clear selection",
   gs_none:"Nothing found for “{q}”.",
   gs_ph:"Search …",
   ics_h:"Open milestones and deadlines as a calendar file — all-day entries that Outlook can read.",
@@ -1544,7 +1644,8 @@ function renderTop() {
   const u = M();
   document.getElementById("userchip").innerHTML =
     `<span><b>${esc(u.name)}</b> · ${t("pr_" + pRole())}</span>
-     ${pIsAdmin() ? `<button class="sw" id="switchPerson">${t("ac_chg")}</button>` : ""}
+     ${pIsAdmin() ? `<button class="sw" id="switchPerson" title="${esc(t("ac_chg"))}">
+       <span class="lbl">${t("ac_chg")}</span><span class="ini2">${initials(u.name)}</span></button>` : ""}
      <button class="sw" id="switchUser">${t("switch")}</button>`;
   if (document.getElementById("switchPerson"))
     document.getElementById("switchPerson").onclick = () => { me = null; pProject = null; render(); };
@@ -1701,6 +1802,11 @@ const P_STATUS = ["not_started","started","on_track","at_risk","delayed","cancel
 const P_PRIO = ["Low","Medium","High","Critical"];
 let pv = "dash", pProject = null, pTab = "overview";
 let PF = { q:"", status:"", pm:"", health:"" };
+/* Die Erklärung der Risikomatrix steht beim ersten Mal offen. Wer sie kennt,
+   klappt sie zu — und das bleibt so, auch nach dem Neuladen. */
+let MXOPEN = true;
+/* Wurde der Hinweis zum gemeinsamen Arbeiten schon zur Kenntnis genommen? */
+let SOLO_SEEN = false;
 
 const pRole = () => ACCESS || "viewer";
 const pIsAdmin = () => pRole() === "team";
@@ -2166,6 +2272,7 @@ const FILES = (() => {
 
 function storeSnapshot() {
   return { rev:DATA_REV, at:new Date().toISOString(), clock:CLOCK, access:ACCESS, me,
+           mxopen:MXOPEN, solo:SOLO_SEEN,
            projects:PROJECTS, log:PLOG,
            /* Nur die selbst angelegten Personen: die Demoliste steht im Code. */
            people:USERS.filter(u => u.added) };
@@ -2189,6 +2296,8 @@ function storeLoad() {
     CLOCK = d.clock || 0;
     ACCESS = d.access || null;
     me = d.me || null;
+    if (typeof d.mxopen === "boolean") MXOPEN = d.mxopen;
+    if (typeof d.solo === "boolean") SOLO_SEEN = d.solo;
     DATA_REV = d.rev || 0;
     SAVED_AT = d.at ? new Date(d.at) : null;
     return true;
@@ -2544,7 +2653,14 @@ function pccDash() {
   const kpi = (n, lb, cls, title) => `<div class="pkpi ${cls || ""}"${
     title ? ` title="${esc(title)}"` : ""}><div class="n">${n}</div><div class="lb">${t(lb)}</div></div>`;
   const crit = risks.filter(x => rScore(x.r) >= 15).length;
-  return `<div class="pkpis">
+  /* Die teuerste Fehlannahme wäre, dieser Prototyp könne schon gemeinsames
+     Arbeiten. Er speichert auf dem Gerät, nicht in einer Datenbank — wer das
+     nicht weiß, wundert sich im Team über verschwundene Einträge. Der Hinweis
+     lässt sich wegklicken und bleibt weg. */
+  const teamhint = SOLO_SEEN ? "" : `<div class="notice warn" id="solohint">
+    <b>${t("solo_t")}</b> ${t("solo_s")}
+    <button class="mxtoggle" id="solook">${t("solo_ok")}</button></div>`;
+  return teamhint + `<div class="pkpis">
       ${kpi(ps.length, "k_total")}${kpi(active.length, "k_active")}
       ${kpi(health("green"), "k_hgreen", "ok", t("k_hgreen_h"))}
       ${kpi(health("amber"), "k_hamber", "warn", t("k_hamber_h"))}
@@ -2744,36 +2860,89 @@ function pccTasks() {
       <div style="margin-top:8px">${pBar(pTaskDone(x) ? 100 : (x.progress || 0))}</div>
     </article>`).join("")}</div>`;
 }
+/* Die Stufe eines Werts — dieselbe Einteilung wie die Farben der Matrix und
+   die Abzeichen in den Listen. */
+const rLevel = v => v >= 15 ? 4 : v >= 10 ? 3 : v >= 5 ? 2 : 1;
+const rLevelCls = v => ["", "l", "m", "h", "x"][rLevel(v)];
+
+/* Welche Zelle gerade ausgewählt ist — ein Klick filtert die Liste darunter. */
+let MX = null;
+
+function riskScale() {
+  /* Eine Skala ohne Worte ist Auslegungssache: jede und jeder versteht unter
+     einer 4 etwas anderes. Deshalb steht hier, was die Stufen bedeuten — und
+     was aus einem Wert folgt. Ohne das ist eine Risikomatrix Dekoration. */
+  const stufe = (n, von, bis) => `<tr>
+    <td><span class="mxkey ${["", "l", "m", "h", "x"][n]}">${von}–${bis}</span></td>
+    <td><b>${t("mx_lvl" + n)}</b></td>
+    <td>${t("mx_act" + n)}</td></tr>`;
+  return `<div class="mxexpl">
+    <div class="mxcol">
+      <h4>${t("mx_scale")}</h4>
+      <div class="mxsub">${t("col_prob")} ↑</div>
+      <ul>${[5,4,3,2,1].map(i => `<li>${t("mx_prob" + i)}</li>`).join("")}</ul>
+      <div class="mxsub">${t("col_imp")} →</div>
+      <ul>${[1,2,3,4,5].map(i => `<li>${t("mx_imp" + i)}</li>`).join("")}</ul>
+    </div>
+    <div class="mxcol">
+      <h4>${t("mx_act")}</h4>
+      <table class="mxlvl"><tbody>
+        ${stufe(1, 1, 4)}${stufe(2, 5, 9)}${stufe(3, 10, 14)}${stufe(4, 15, 25)}
+      </tbody></table>
+      <p class="co" style="margin-top:10px">${t("mx_cells")}</p>
+    </div>
+  </div>`;
+}
+
 function riskMatrix(rows) {
   const cell = (pb, im) => {
     const v = pb * im, hit = rows.filter(({r}) => r.prob === pb && r.imp === im);
-    const cls = v >= 15 ? "x" : v >= 10 ? "h" : v >= 5 ? "m" : "l";
-    return `<td class="${cls}" title="${t("col_prob")} ${pb} × ${t("col_imp")} ${im} = ${v}">${
-      hit.length ? `<b>${hit.length}</b>` : ""}</td>`;
+    const sel = MX && MX.pb === pb && MX.im === im;
+    const label = hit.length
+      ? t("mx_cell", { n:hit.length, v, l:t("mx_lvl" + rLevel(v)) })
+      : `${t("mx_none")} · ${t("mx_val")} ${v}`;
+    /* Jede Zelle ist ein Knopf: sie sagt, was sie bedeutet, und zeigt auf
+       Klick genau die Risiken, die darin liegen. */
+    return `<td class="${rLevelCls(v)}${sel ? " sel" : ""}">
+      <button type="button" data-mx="${pb}|${im}" title="${esc(
+        `${t("col_prob")} ${pb} × ${t("col_imp")} ${im} = ${v} · ${label}`)}"
+        aria-label="${esc(label)}">${hit.length ? `<b>${hit.length}</b>` : ""}</button></td>`;
   };
-  /* Die Erklärung steht über der Matrix, nicht darunter: auf dem Tablet lag sie
-     sonst hinter der Sandbox-Leiste. Die Achsen sind beschriftet, weil Ziffern
-     an den Rändern nicht sagen, welche Achse welche ist. */
-  return `<div class="co" style="margin-bottom:8px">${t("p_score_h")}</div>
+  return `<div class="co mxhead">${t("p_score_h")}
+      <button class="mxtoggle" id="mxtoggle">${MXOPEN ? t("mx_hide") : t("mx_show")}</button></div>
+    ${MXOPEN ? riskScale() : ""}
     <div class="mxwrap">
       <div class="mxy">${t("mx_prob")}</div>
       <table class="rmx"><thead><tr><th></th>${[1,2,3,4,5].map(i => `<th>${i}</th>`).join("")}</tr></thead>
       <tbody>${[5,4,3,2,1].map(pb => `<tr><th>${pb}</th>${[1,2,3,4,5].map(im => cell(pb, im)).join("")}</tr>`).join("")}</tbody>
       </table>
     </div>
-    <div class="mxx">${t("mx_imp")} →</div>`;
+    <div class="mxx">${t("mx_imp")} →</div>
+    ${MX ? `<div class="notice" style="margin:10px 0 0">
+      <b>${t("col_prob")} ${MX.pb} × ${t("col_imp")} ${MX.im} = ${MX.pb * MX.im}</b>
+      · ${t("mx_lvl" + rLevel(MX.pb * MX.im))} · ${t("mx_act" + rLevel(MX.pb * MX.im))}
+      <button class="mxtoggle" id="mxclear">${t("mx_clear")}</button></div>` : ""}`;
 }
+
 function pccRisks() {
   const rows = [];
   pFiltered().forEach(p => p.risks.forEach(r => rows.push({ p, r })));
   rows.sort((a,b) => rScore(b.r) - rScore(a.r));
   if (!rows.length) return pFilterBar(0) + pEmpty("p_nohits", "p_nohits_s");
-  return pFilterBar(rows.length) +
-    `<div class="pcard"><header><h2>${t("p_matrix")}</h2></header><div class="inner">${riskMatrix(rows)}</div></div>` +
+  /* Die Matrix zeigt immer alles; gefiltert wird nur die Liste darunter —
+     sonst verschwände beim Klick auf ein Feld die Übersicht, in der man
+     gerade steht. */
+  const liste = MX ? rows.filter(({r}) => r.prob === MX.pb && r.imp === MX.im) : rows;
+  const matrix = riskMatrix(rows);
+  if (!liste.length) return pFilterBar(rows.length) +
+    `<div class="pcard"><header><h2>${t("p_matrix")}</h2></header><div class="inner">${matrix}</div></div>` +
+    pEmpty("p_nohits", "p_nohits_s");
+  return pFilterBar(liste.length) +
+    `<div class="pcard"><header><h2>${t("p_matrix")}</h2></header><div class="inner">${matrix}</div></div>` +
     `<div class="tblwrap aslist"><table><thead><tr>
       <th>${t("col_score")}</th><th>${t("col_title")}</th><th>${t("col_project")}</th><th>${t("col_cat")}</th>
       <th>${t("col_prob")}</th><th>${t("col_imp")}</th><th>${t("col_owner")}</th><th>${t("col_status")}</th><th>${t("col_due")}</th>
-    </tr></thead><tbody>${rows.map(({p,r}) => `<tr data-pp="${p.id}">
+    </tr></thead><tbody>${liste.map(({p,r}) => `<tr data-pp="${p.id}">
       <td><span class="pill ${rScore(r) >= 15 ? "p-late" : rScore(r) >= 8 ? "p-work" : "p-open"}">${rScore(r)}</span></td>
       <td><b>${esc(r.title)}</b><div class="num">${r.ref}</div></td>
       <td class="num">${esc(p.key)}</td><td class="co">${esc(r.cat)}</td>
@@ -2781,7 +2950,7 @@ function pccRisks() {
       <td class="co">${pUser(r.owner)}</td>
       <td>${pill(r.status === "open" ? "p-late" : r.status === "monitoring" ? "p-work" : "p-done", t("rs_" + r.status))}</td>
       <td class="co">${fmtDate(r.due)}</td></tr>`).join("")}</tbody></table></div>
-    <div class="cards">${rows.map(({p,r}) => `<article class="card" data-pp="${p.id}">
+    <div class="cards">${liste.map(({p,r}) => `<article class="card" data-pp="${p.id}">
       <div class="top"><span class="pill ${rScore(r) >= 15 ? "p-late" : rScore(r) >= 8 ? "p-work" : "p-open"}">${t("col_score")} ${rScore(r)}</span>
         <span class="num">${r.ref} · ${esc(p.key)}</span>
         ${pill(r.status === "open" ? "p-late" : r.status === "monitoring" ? "p-work" : "p-done", t("rs_" + r.status))}</div>
@@ -3352,13 +3521,22 @@ function pDialogNewRisk(p) {
     title:t("pn_risks"), text:t("p_score_h"), okLabel:t("create"),
     values:{ title:"", cat:"", prob:"3", imp:"3", owner:me, due:addBusinessDays(today(), 20),
              description:"", mitigation:"", conting:"" },
-    build: () => [
+    build: v => [
       { name:"title", label:t("col_title"), type:"text", req:true },
       { name:"cat", label:t("col_cat"), type:"text", half:true, placeholder:"Lieferant, Behörde, Personal …" },
       { name:"owner", label:t("col_owner"), type:"select", half:true, options:
         p.team.map(m => ({ v:m.user, l:user(m.user).name })) },
-      { name:"prob", label:t("col_prob"), type:"select", half:true, options:[1,2,3,4,5].map(i => ({ v:String(i), l:String(i) })) },
-      { name:"imp", label:t("col_imp"), type:"select", half:true, options:[1,2,3,4,5].map(i => ({ v:String(i), l:String(i) })) },
+      /* Die Stufen tragen ihre Bedeutung mit. Wer ein Risiko einträgt, ist
+         genau hier — und nicht auf der Seite, wo die Skala erklärt wird. */
+      { name:"prob", label:t("col_prob"), type:"select", reactive:true,
+        options:[1,2,3,4,5].map(i => ({ v:String(i), l:t("mx_prob" + i) })) },
+      { name:"imp", label:t("col_imp"), type:"select", reactive:true,
+        options:[1,2,3,4,5].map(i => ({ v:String(i), l:t("mx_imp" + i) })) },
+      /* Und was dabei herauskommt, steht sofort daneben — statt erst in der
+         Liste, wenn das Risiko schon eingetragen ist. */
+      { type:"note", label:`${t("mx_val")}: ${(+v.prob) * (+v.imp)} · ${
+          t("mx_lvl" + rLevel((+v.prob) * (+v.imp)))} — ${
+          t("mx_act" + rLevel((+v.prob) * (+v.imp)))}` },
       { name:"due", label:t("col_due"), type:"date", half:true },
       { name:"description", label:t("f_desc"), type:"textarea" },
       { name:"mitigation", label:t("f_mit"), type:"textarea" },
@@ -3451,6 +3629,14 @@ function wirePcc() {
   if (document.querySelector("[data-gantt]")) requestAnimationFrame(drawGanttLinks);
   if (q("pnew")) q("pnew").onclick = pDialogNewProject;
   if (q("repdays")) q("repdays").onchange = e => { REP_DAYS = +e.target.value; renderMain(); };
+  if (q("mxtoggle")) q("mxtoggle").onclick = () => { MXOPEN = !MXOPEN; commit(); renderMain(); };
+  if (q("solook")) q("solook").onclick = () => { SOLO_SEEN = true; commit(); renderMain(); };
+  if (q("mxclear")) q("mxclear").onclick = () => { MX = null; renderMain(); };
+  document.querySelectorAll("[data-mx]").forEach(b => b.onclick = () => {
+    const [pb, im] = b.dataset.mx.split("|").map(Number);
+    MX = (MX && MX.pb === pb && MX.im === im) ? null : { pb, im };
+    renderMain();
+  });
   if (q("icsall")) q("icsall").onclick = () => downloadIcs(pFiltered(), "control-center.ics");
   if (q("picsproj")) q("picsproj").onclick = () =>
     downloadIcs([pById(pProject)], pById(pProject).key.toLowerCase() + ".ics");
@@ -3465,7 +3651,7 @@ function wirePcc() {
       const el = q("pq"); el.focus(); el.setSelectionRange(PF.q.length, PF.q.length); };
     q("pstatus").onchange = e => { PF.status = e.target.value; renderMain(); };
     q("ppm").onchange = e => { PF.pm = e.target.value; renderMain(); };
-    q("pclear").onclick = () => { PF = { q:"", status:"", pm:"", health:"" };
+    q("pclear").onclick = () => { PF = { q:"", status:"", pm:"", health:"" }; MX = null;
       TF = { who:"", state:"open", span:"" }; renderMain(); };
     ["tfwho","tfstate","tfspan"].forEach(id => { if (q(id)) q(id).onchange = e => {
       TF[id.slice(2)] = e.target.value; renderMain(); }; });

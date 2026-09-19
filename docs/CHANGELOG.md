@@ -3,6 +3,56 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.4.0 — 2026-09-19
+
+### Die Risikomatrix erklärt sich jetzt selbst
+
+Eine Skala ohne Worte ist Auslegungssache: Jede und jeder versteht unter einer
+„4" etwas anderes, und damit ist eine Risikomatrix Dekoration statt Werkzeug.
+
+- **Beide Skalen sind ausgeschrieben** — fünf Stufen für Eintritt und fünf für
+  Auswirkung, in der Sprache einer Trainingsorganisation: von „etwas
+  Mehraufwand, kein Termin in Gefahr" bis „Qualifikation, Zulassung oder
+  Betrieb sind betroffen".
+- **Was aus einem Wert folgt**, steht daneben: 1–4 hinnehmen, 5–9 Maßnahme
+  festlegen, 10–14 umsetzen und nachhalten, 15–25 sofort in die Leitungsrunde.
+- **Die Felder sind anklickbar.** Ein Klick zeigt genau die Risiken darin und
+  nennt Wert, Stufe und die nächste Handlung. Die Matrix bleibt dabei
+  vollständig stehen — sonst verschwände die Übersicht, in der man gerade ist.
+- **Die Erklärung lässt sich zuklappen** und bleibt zu, wer sie kennt.
+- **Im Risikodialog tragen die Stufen ihre Bedeutung mit**, und der Risikowert
+  samt Einstufung und Handlungsempfehlung steht sofort daneben — an der Stelle,
+  an der jemand ein Risiko einträgt, nicht auf einer anderen Seite.
+
+### Funktionsdurchlauf durch die ganze Anwendung
+
+Neu: `npm run check:app` — 171 Prüfungen, die die Anwendung durchklicken wie
+ein Mensch, der alles anfasst. Anmeldung und beide Zugänge, alle Bereiche, alle
+zehn Reiter, jeder Dialog samt Abbrechen und Pflichtfeldern, Datei anhängen und
+öffnen, Erledigt und Zurücknehmen, jede Ausgabe, Suche, Wochenbericht,
+Kalenderdatei, Zeitreise, Speicherung über einen Neustart hinweg, die Rechte
+des Lesezugangs, die englische Fassung und drei Bildschirmbreiten. Läuft in der
+CI mit.
+
+**Dabei gefunden und behoben:**
+
+| Befund | Ursache |
+|---|---|
+| Der Knopf „Rückgängig" im Toast war wirkungslos | Der Toast behielt `pointer-events: none`, auch wenn er sichtbar war. Er sah aus wie ein Knopf, war aber keiner |
+| Im Teamzugang lief die Kopfzeile auf dem Telefon 13 px über den Rand | Mit dem Personenwechsel kam ein zweiter Knopf dazu. Jetzt sind alle Elemente der Kopfzeile schrumpfbar, und der Personenwechsel zeigt auf schmalen Schirmen die Initialen |
+
+Die bisherige Prüfung `check:sandbox` hatte beides nicht gefunden: Sie fuhr auf
+dem Telefon den Lesezugang, in dem der zweite Knopf fehlt, und klickte keine
+Toasts an.
+
+### Ein Hinweis, der eine teure Fehlannahme verhindert
+
+Das Dashboard sagt beim ersten Start, was dieser Prototyp ist und was nicht:
+Er speichert **auf dem Gerät**, nicht in einer gemeinsamen Datenbank. Jede
+Person sieht ihren eigenen Stand. Für das gemeinsame Arbeiten im Team ist die
+Supabase-Instanz nötig — die Datenbank dafür ist fertig und geprüft. Der
+Hinweis lässt sich wegklicken und bleibt weg.
+
 ## 1.3.0 — 2026-09-19
 
 Vier Bausteine, vom Auftraggeber aus einer Auswahl bestimmt.
