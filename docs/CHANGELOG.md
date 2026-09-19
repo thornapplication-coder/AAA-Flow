@@ -3,6 +3,36 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.6.0 — 2026-09-19
+
+### Excel ist jetzt Excel
+
+Bisher lieferte der Excel-Knopf einen tabulatorgetrennten Text zum Einfügen.
+Jetzt lädt er eine echte `.xlsx`-Datei — ohne Bibliothek, aus dem Prototyp
+heraus: das Zip-Archiv und die Tabellenblätter entstehen in etwa 80 Zeilen.
+
+- **Ein Blatt je Abschnitt.** Der Projektbericht hat zehn Blätter, das
+  Dashboard fünf, der Wochenbericht fünf; Blattnamen ohne verbotene Zeichen und
+  eindeutig.
+- **Titel, Stand und Spaltenköpfe fett**, Spaltenbreiten nach Inhalt, Zahlen
+  als Zahlen.
+- **Text bleibt Text.** Zellen sind Inline-Zeichenketten; ein Titel wie
+  `=SUMME(A1)` kann nie als Formel laufen. Der Apostroph-Schutz bleibt nur für
+  die Zwischenablage nötig.
+- **Kopieren bleibt** als zweiter Knopf im Dialog — für Umgebungen, in denen
+  Downloads gesperrt sind. Der Dialog kann jetzt allgemein einen Nebenweg
+  neben Abbrechen und OK tragen.
+- **Geprüft:** der Logiktest liest das Archiv selbst, rechnet jede Prüfsumme
+  unabhängig nach und kontrolliert Blätter, Zahlen, Maskierung und Fettdruck;
+  der Funktionstest lädt die Datei wirklich herunter und prüft den Zip-Kopf.
+  Alle zwölf Ausgaben wurden zusätzlich mit Pythons `zipfile` gegengeprüft.
+
+### Einführungsseite für das Team
+
+Eine Seite: die vier Regeln („Ein Gerät führt", eigene Person wählen, freitags
+sichern, Zurücksetzen nur nach Sicherung), Anmelden, Projekt pflegen, Ausgeben,
+Sichern und Übergeben, die Sandbox-Leiste, was der Prototyp nicht kann.
+
 ## 1.5.0 — 2026-09-19
 
 ### Freigabeprüfung für den Teameinsatz

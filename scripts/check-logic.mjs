@@ -165,6 +165,45 @@ eq('HTML wird maskiert', await run(() => esc('<b onerror="x">&')), '&lt;b onerro
   ok('Einträge sind nach Datum sortiert', ics.indexOf('20261005') < ics.indexOf('20261007'))
 }
 
+// Excel-Datei: ein gültiges Zip mit stimmenden Prüfsummen, ein Blatt je
+// Abschnitt, Zahlen als Zahlen, Text als Text — auch wenn er wie eine Formel
+// aussieht. Die Prüfsumme rechnet der Test selbst, unabhängig von der App.
+{
+  const b64 = await run(async () => {
+    const blob = xlsxBlob({ title: 'Prüf <Titel>', meta: [['Anzahl', 2]], sections: [
+      { h: 'A/B: Eins', cols: ['Nr', 'Text'], rows: [[1, '=SUM(A1)'], [2.5, '<img src=x>']] },
+      { h: 'A/B: Eins', cols: ['x'], rows: [] }] })
+    const u = new Uint8Array(await blob.arrayBuffer()); let s = ''
+    for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s)
+  })
+  const buf = Buffer.from(b64, 'base64')
+  const tbl = new Uint32Array(256).map((_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c >>> 0 })
+  const crc = (b) => { let c = 0xFFFFFFFF; for (const x of b) c = tbl[(c ^ x) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0 }
+  ok('Die Excel-Datei beginnt wie ein Zip', buf.readUInt32LE(0) === 0x04034B50)
+  const entries = {}; let off = 0, badCrc = 0
+  while (buf.readUInt32LE(off) === 0x04034B50) {
+    const c = buf.readUInt32LE(off + 14), size = buf.readUInt32LE(off + 18), nl = buf.readUInt16LE(off + 26), xl = buf.readUInt16LE(off + 28)
+    const name = buf.toString('utf8', off + 30, off + 30 + nl)
+    const data = buf.subarray(off + 30 + nl + xl, off + 30 + nl + xl + size)
+    if (crc(data) !== c) badCrc++
+    entries[name] = data.toString('utf8'); off += 30 + nl + xl + size
+  }
+  const eocd = buf.lastIndexOf(Buffer.from([0x50, 0x4B, 5, 6]))
+  eq('Alle Prüfsummen stimmen', badCrc, 0)
+  eq('Das Inhaltsverzeichnis zählt alle Einträge', buf.readUInt16LE(eocd + 10), Object.keys(entries).length)
+  eq('Zentrales Verzeichnis beginnt nach den Daten', buf.readUInt32LE(eocd + 16), off)
+  eq('Ein Blatt je Abschnitt', Object.keys(entries).filter((n) => n.startsWith('xl/worksheets/')).length, 2)
+  ok('Blattnamen ohne verbotene Zeichen und eindeutig',
+    entries['xl/workbook.xml'].includes('name="A B Eins"') && entries['xl/workbook.xml'].includes('name="A B Eins 2"'), entries['xl/workbook.xml'])
+  const s1 = entries['xl/worksheets/sheet1.xml']
+  ok('Zahlen stehen als Zahlen', s1.includes('<c r="A6"><v>1</v></c>') && s1.includes('<v>2.5</v>'), s1.slice(0, 400))
+  ok('Formeln bleiben Text', s1.includes('<t xml:space="preserve">=SUM(A1)</t>') && !s1.includes('<f>'))
+  ok('HTML ist im XML maskiert', s1.includes('&lt;img src=x&gt;') && s1.includes('Prüf &lt;Titel&gt;'))
+  ok('Titel und Spalten sind fett', s1.includes('<c r="A1" t="inlineStr" s="1"') && s1.includes('<c r="A5" t="inlineStr" s="1"'))
+  ok('Der Stand steht in Zeile 2', s1.includes('<c r="A2" t="inlineStr"><is><t xml:space="preserve">Stand</t>'))
+  ok('Jede Datei nennt das Blatt im Inhaltstyp', entries['[Content_Types].xml'].includes('/xl/worksheets/sheet2.xml'))
+}
+
 // Speicherstand: die Zeitreise wird nie mitgespeichert, die Fassung schon
 {
   const snap = await run(() => { CLOCK = 12; const s = storeSnapshot(); CLOCK = 0; return Object.keys(s) })

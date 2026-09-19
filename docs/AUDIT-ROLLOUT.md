@@ -59,6 +59,11 @@ dafür fertig und geprüft.
 - Drei Bildschirmbreiten ohne Überlauf, englische Fassung ohne deutsche Reste.
 - Audit-Trail in der Datenbank unveränderlich; Versionen nur über Funktionen.
 
+### Nachgezogen in 1.6.0
+
+- Excel-Ausgabe war eine Textdatei zum Einfügen; jetzt eine echte `.xlsx` mit einem Blatt je Abschnitt (Prüfung im Logik- und im Funktionstest).
+- Einführungsseite für das Team mit den vier Betriebsregeln; Betriebsmodus entschieden: **ein Gerät führt**.
+
 ## Was das Team beim Einsatz wissen muss
 
 1. **Der Stand liegt auf dem Gerät.** Ein anderer Browser, ein anderes Gerät,

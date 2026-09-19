@@ -88,7 +88,8 @@ Anhängen in eine Datei; Einspielen ersetzt den Stand auf einem anderen Gerät.
 Das ist bis zur Supabase-Instanz der Weg, einen Stand im Team weiterzugeben.
 
 Exportiert wird über **PDF** (Druckansicht, in jeder Ansicht) und **Excel**
-(überall dort, wo die Ansicht eine Liste ist).
+(überall dort, wo die Ansicht eine Liste ist) — als echte `.xlsx`-Datei mit
+einem Blatt je Abschnitt, ohne Bibliothek erzeugt.
 
 Die Ansicht ist für Desktop ausgelegt und nach unten reduziert: auf dem Tablet
 wandert die Navigation in eine Leiste unter die Kopfzeile, auf dem Telefon

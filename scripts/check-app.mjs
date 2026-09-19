@@ -9,7 +9,7 @@
 import { chromium } from 'playwright'
 import { pathToFileURL } from 'node:url'
 import { resolve, join } from 'node:path'
-import { existsSync, readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 
 const file = pathToFileURL(resolve(process.argv[2] ?? 'sandbox/Control-Center-Sandbox.html')).href
 
@@ -292,11 +292,20 @@ if (await click('[data-exp^="pdf"]', 'PDF-Ansicht öffnen')) {
   ok('Druckansicht ist geschlossen', await page.evaluate(() =>
     !document.getElementById('print').classList.contains('on')))
 }
-// Excel-Auszug
+// Excel: Vorschau, Kopieren als Nebenweg, Herunterladen als echte .xlsx
 if (await click('[data-exp^="xls"]', 'Excel-Auszug öffnen')) {
   const tsv = await page.inputValue('[data-f="data"]').catch(() => '')
   ok('Der Excel-Auszug enthält Zeilen', tsv.split('\n').length > 3, `${tsv.split('\n').length} Zeilen`)
-  await click('#mCancel')
+  ok('Kopieren steht als zweiter Knopf bereit', !!(await $('#mExtra')))
+  const [dl] = await Promise.all([
+    page.waitForEvent('download', { timeout: 4000 }).catch(() => null),
+    click('#mOk', 'Excel-Datei herunterladen')])
+  ok('Es wird eine .xlsx-Datei geliefert', !!dl && dl.suggestedFilename().endsWith('.xlsx'), dl ? dl.suggestedFilename() : 'kein Download')
+  if (dl) {
+    const pfad = await dl.path().catch(() => null)
+    ok('Die Datei ist ein Zip-Archiv', !!pfad && readFileSync(pfad).readUInt32LE(0) === 0x04034B50)
+  }
+  ok('Nach dem Herunterladen ist der Dialog zu', await page.evaluate(() => !dlg))
 }
 
 // ------------------------------------------------------------------- Suche

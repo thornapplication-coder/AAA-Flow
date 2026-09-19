@@ -566,6 +566,7 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
     <div class="err" id="mErr"></div>
     <div class="btns">
       <button id="mCancel"></button>
+      <button id="mExtra" style="display:none"></button>
       <button class="go" id="mOk"></button>
     </div>
   </div>
@@ -886,7 +887,9 @@ de:{
   exp_when:"Zeitpunkt",
   exp_who:"Person",
   exp_xls:"Excel",
-  exp_xls_p:"Der Text unten ist tabulatorgetrennt und lässt sich direkt in Excel einfügen. In der fertigen Anwendung lädt dieser Knopf eine .xlsx-Datei; in der Sandbox-Vorschau sind Dateidownloads gesperrt.",
+  exp_xls_p:"Lädt eine echte Excel-Datei (.xlsx) mit einem Blatt je Abschnitt. Die Vorschau unten zeigt den Inhalt tabulatorgetrennt; sie lässt sich auch in die Zwischenablage kopieren.",
+  exp_xlsx_dl:"Als Excel-Datei herunterladen",
+  t_xlsx:"Excel-Datei erstellt.",
   exp_xls_t:"Nach Excel exportieren",
   f_clear:"Filter zurücksetzen",
   f_cont:"Rückfallebene",
@@ -1331,7 +1334,9 @@ en:{
   exp_when:"Time",
   exp_who:"Person",
   exp_xls:"Excel",
-  exp_xls_p:"The text below is tab separated and can be pasted straight into Excel. In the finished application this button downloads an .xlsx file; file downloads are blocked in the sandbox preview.",
+  exp_xls_p:"Downloads a real Excel file (.xlsx) with one sheet per section. The preview below shows the content tab separated; it can also be copied to the clipboard.",
+  exp_xlsx_dl:"Download as Excel file",
+  t_xlsx:"Excel file created.",
   exp_xls_t:"Export to Excel",
   f_clear:"Clear filters",
   f_cont:"Contingency",
@@ -1609,6 +1614,10 @@ function renderDialog(err) {
     : errs.length ? `<ul>${errs.map(x => `<li>${esc(x.m)}</li>`).join("")}</ul>` : "";
   document.getElementById("mCancel").textContent = t("cancel");
   document.getElementById("mOk").textContent = cfg.okLabel || t("ok");
+  /* Ein Nebenweg neben Abbrechen und OK — etwa Kopieren neben Herunterladen. */
+  const ex = document.getElementById("mExtra");
+  ex.style.display = cfg.extra ? "" : "none";
+  if (cfg.extra) { ex.textContent = cfg.extra.label; ex.onclick = () => cfg.extra.fn(dlg.values); }
   document.getElementById("mBody").innerHTML = fields.map(f => {
     if (f.type === "note") return `<div class="fld"><div class="notice" style="margin:0">${esc(f.label)}</div></div>`;
     const v = values[f.name] == null ? "" : values[f.name];
@@ -1774,20 +1783,105 @@ function exportTsv(kind) {
   });
   return lines.join("\n").trim();
 }
+/* ---------- Echte Excel-Datei ---------- */
+/* Eine .xlsx ist ein Zip-Archiv mit XML-Blättern. Beides entsteht hier ohne
+   Bibliothek: die Einträge liegen unkomprimiert im Archiv (dafür genügt eine
+   CRC32), die Zellen sind Inline-Text — Excel liest „=SUMME(…)" damit als
+   Text, nie als Formel. Zahlen bleiben Zahlen. */
+const CRC_TABLE = (() => {
+  const tb = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; tb[n] = c >>> 0; }
+  return tb;
+})();
+const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC_TABLE[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function zipStore(files) {
+  const enc = new TextEncoder(); const parts = []; const central = []; let offset = 0;
+  const u16 = n => [n & 255, (n >> 8) & 255];
+  const u32 = n => [n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >>> 24) & 255];
+  files.forEach(f => {
+    const name = enc.encode(f.name), data = enc.encode(f.text), crc = crc32(data);
+    const head = new Uint8Array([0x50, 0x4B, 3, 4, ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21),
+      ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0)]);
+    parts.push(head, name, data);
+    central.push(new Uint8Array([0x50, 0x4B, 1, 2, ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21),
+      ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+      ...u32(0), ...u32(offset)]), name);
+    offset += head.length + name.length + data.length;
+  });
+  const cdSize = central.reduce((a, x) => a + x.length, 0);
+  const end = new Uint8Array([0x50, 0x4B, 5, 6, ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length),
+    ...u32(cdSize), ...u32(offset), ...u16(0)]);
+  return new Blob(parts.concat(central, [end]),
+    { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+const xmlEsc = v => String(v == null ? "" : v)
+  .replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]))
+  .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
+const colName = i => { let n = i + 1, o = ""; while (n > 0) { const m = (n - 1) % 26; o = String.fromCharCode(65 + m) + o; n = Math.floor((n - 1) / 26); } return o; };
+function sheetXml(rows) {
+  const widths = [];
+  const body = rows.map((r, ri) => `<row r="${ri + 1}">` + r.cells.map((v, ci) => {
+    widths[ci] = Math.max(widths[ci] || 0, String(v == null ? "" : v).length);
+    const ref = colName(ci) + (ri + 1), st = r.bold ? ' s="1"' : "";
+    if (typeof v === "number" && isFinite(v)) return `<c r="${ref}"${st}><v>${v}</v></c>`;
+    if (v == null || v === "") return "";
+    return `<c r="${ref}" t="inlineStr"${st}><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+  }).join("") + "</row>").join("");
+  const cols = widths.length ? `<cols>${widths.map((w, i) =>
+    `<col min="${i + 1}" max="${i + 1}" width="${Math.min(60, Math.max(8, w + 2))}" customWidth="1"/>`).join("")}</cols>` : "";
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${cols}<sheetData>${body}</sheetData></worksheet>`;
+}
+function xlsxBlob(def) {
+  const used = new Set();
+  /* Blattnamen: höchstens 31 Zeichen, ohne \ / * ? : [ ], im Arbeitsbuch eindeutig. */
+  const sheetName = raw => {
+    const n = String(raw || "").replace(/[\\/*?:\[\]]/g, " ").replace(/\s+/g, " ").trim().slice(0, 31) || "Daten";
+    let b = n, i = 2;
+    while (used.has(b.toLowerCase())) b = n.slice(0, 28) + " " + i++;
+    used.add(b.toLowerCase()); return b;
+  };
+  const sheets = def.sections.map(sec => {
+    const rows = [{ cells:[def.title + (sec.h ? " · " + sec.h : "")], bold:true }, { cells:[t("exp_state"), expStamp()] }];
+    (def.meta || []).forEach(m => rows.push({ cells:m }));
+    rows.push({ cells:[] }, { cells:sec.cols, bold:true });
+    sec.rows.forEach(r => rows.push({ cells:r }));
+    return { name:sheetName(sec.h || def.title), xml:sheetXml(rows) };
+  });
+  const NS = "http://schemas.openxmlformats.org/";
+  const files = [
+    { name:"[Content_Types].xml", text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="${NS}package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${
+      sheets.map((x, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>` },
+    { name:"_rels/.rels", text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="${NS}package/2006/relationships"><Relationship Id="rId1" Type="${NS}officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+    { name:"xl/workbook.xml", text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="${NS}spreadsheetml/2006/main" xmlns:r="${NS}officeDocument/2006/relationships"><sheets>${
+      sheets.map((x, i) => `<sheet name="${xmlEsc(x.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets></workbook>` },
+    { name:"xl/_rels/workbook.xml.rels", text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="${NS}package/2006/relationships">${
+      sheets.map((x, i) => `<Relationship Id="rId${i + 1}" Type="${NS}officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")
+      }<Relationship Id="rId${sheets.length + 1}" Type="${NS}officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+    { name:"xl/styles.xml", text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="${NS}spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>` }
+  ].concat(sheets.map((x, i) => ({ name:`xl/worksheets/sheet${i + 1}.xml`, text:x.xml })));
+  return zipStore(files);
+}
+function exportXlsx(kind) {
+  const def = docDef(kind);
+  const slug = def.title.toLowerCase().replace(/[^a-z0-9äöüß]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || kind;
+  docSave(slug + "-" + today() + ".xlsx", xlsxBlob(def));
+  toast(t("t_xlsx"));
+}
 function exportTable(kind) {
   const def = docDef(kind);
   openDialog({
-    title:t("exp_xls_t"), text:t("exp_xls_p"), okLabel:t("exp_copy"),
+    title:t("exp_xls_t"), text:t("exp_xls_p"), okLabel:t("exp_xlsx_dl"),
     expKind:kind,
     values:{ data:exportTsv(kind) },
     build: () => [{ name:"data", label:def.title, type:"textarea" }],
     validate: () => null,
-    onSubmit: v => {
+    extra:{ label:t("exp_copy"), fn:v => {
       const done = () => toast(t("t_copied"));
       if (navigator.clipboard && navigator.clipboard.writeText)
         navigator.clipboard.writeText(v.data).then(done, () => toast(t("exp_manual"), true));
       else toast(t("exp_manual"), true);
-    }
+    } },
+    onSubmit: () => exportXlsx(kind)
   });
 }
 const expBtns = kind =>
@@ -2416,7 +2510,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.6.0";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert

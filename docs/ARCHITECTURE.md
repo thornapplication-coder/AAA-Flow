@@ -402,7 +402,7 @@ Implementierung nach Abschnitt 61.
 | Autosave | umgesetzt: jede Änderung wird im selben Augenblick abgelegt | in der Anwendung derselbe Ansatz — jeder Vorgang schreibt sofort, ohne „Speichern" |
 | Echtzeit | nicht vorhanden | offen — braucht die Supabase-Instanz |
 | Audit und Versionen | nachgebildet | **umgesetzt**: gemeinsamer Trail mit Modulspalte, unveränderliche Versionstabellen |
-| Export | PDF echt, Excel als Text | offen — Edge Function |
+| Export | PDF echt, Excel echt (.xlsx, ein Blatt je Abschnitt, im Client erzeugt) | Excel-Erzeugung liegt vor und ist getestet; Edge Function nur noch für serverseitige Zustellung nötig |
 
 ---
 
@@ -417,7 +417,7 @@ Implementierung nach Abschnitt 61.
 | 5 | Dashboard, Timeline, Suche, Filter | Sichten fertig (`…000500`), Oberfläche offen |
 | 6 | Kommentare, Benachrichtigungen, Dokumente mit Upload, Activity, Audit | **Datenbank fertig**; Storage-Bucket und Virenprüfung brauchen die Instanz |
 | 7 | Versionierung, Autosave, Echtzeit, Konfliktbehandlung | Versionierung fertig; Echtzeit braucht die Instanz |
-| 8 | Export Excel und PDF, Dashboard-Bericht | offen, 2 Tage |
+| 8 | Export Excel und PDF, Dashboard-Bericht | Excel- und PDF-Erzeugung im Prototyp fertig; Übernahme in die Zielanwendung 1 Tag |
 | 9 | PWA, Offline, Auto-Update | Gerüst steht, Ausbau offen, 1–2 Tage |
 | 10 | Oberfläche auf die Datenbank heben, Prototyp ablösen | offen, 8–10 Tage |
 | 11 | Tests nach Abschnitt 59, Sicherheitsdurchsicht, Bereitstellung | SQL-Tests (181), Logik- (58) und Funktionsdurchlauf (217) laufen in der CI; Freigabeprüfung in `AUDIT-ROLLOUT.md` |

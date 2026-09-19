@@ -107,5 +107,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'Risk matrix with written-out scales and recommended actions, full functional walkthrough of the application.'),
   ('1.5.0', date '2026-09-19',
    'Freigabeprüfung für den Teameinsatz: Bearbeiten, Abschließen, Verwerfen und Archivieren in allen Bereichen, Datensicherung, Prüfläufe vor jeder Fassung.',
-   'Rollout audit for team use: edit, close, discard and archive in every area, backup, automated checks before every release.')
+   'Rollout audit for team use: edit, close, discard and archive in every area, backup, automated checks before every release.'),
+  ('1.6.0', date '2026-09-19',
+   'Excel-Ausgabe als echte .xlsx-Datei mit einem Blatt je Abschnitt; Einführungsseite für das Team.',
+   'Excel export as a real .xlsx file with one sheet per section; onboarding page for the team.')
 on conflict (version) do nothing;
