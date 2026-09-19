@@ -4,6 +4,26 @@ Stand: 19.09.2026, Fassung 1.5.0. Geprüft wurde, ob das Team die Anwendung
 im Alltag benutzen kann: jeder Knopf, jeder Dialog, jeder Ablauf, die
 Speicherung, die Rechte, die Ausgaben und die Datenbankseite.
 
+## Stand zur Erstfreigabe (Revision 1.0)
+
+Geprüft am 19.09.2026 vor der Freigabe: Prüfläufe, statische Durchsicht des
+Codes, Abgleich zwischen Prototyp und Datenbank, Dokumentation.
+
+| Befund | Schwere | Behebung |
+|---|---|---|
+| **Die Datenbank kannte vier Funktionen des Prototyps nicht** — Entscheidungsbedarf, Ampel-Trend, Verschiebungshistorie, Superadmin | **hoch** — beim Umzug wäre die gesamte Berichtslinie verloren gegangen | Migration 7 mit Tabellen, Sichten, Triggern, Rechten und 35 SQL-Prüfungen |
+| `pcc.health()` hätte im Tageslauf nichts geliefert (Leseprüfung ohne angemeldeten Zugang) | mittel — die Zeitreihe wäre leer geblieben | Prüfung greift nur bei angemeldetem Zugang |
+| Initialen wurden ungeprüft in die Seite geschrieben | niedrig | gehen durch `esc()` |
+| Fünf Textschlüssel ohne Verwendung | niedrig | entfernt; neue Prüfung hält den Wortschatz frei von Ballast |
+| Dokumentation bildete den Funktionsumfang nicht mehr ab | mittel | README, Architektur und dieser Bericht nachgezogen |
+
+Ohne Befund blieben: ungenutzte Funktionen (keine), tote Datenattribute
+(keine), ungeschützte Ausgabe von Nutzertext (keine), Code-Reste wie TODO oder
+Debug-Ausgaben (keine), Versionsstand an allen vier Stellen (stimmig).
+
+**2.188 automatische Prüfungen** laufen grün: 101 Logik, 1.584 Darstellung,
+287 Funktion, 216 Datenbank.
+
 ## Kurzfassung
 
 | | Bereich | Stand |

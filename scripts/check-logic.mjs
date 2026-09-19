@@ -63,6 +63,19 @@ ok('Versionsnummer steht im Seed', readFileSync('supabase/seed.sql', 'utf8').inc
   eq('Kein Schlüssel doppelt (de)', Object.keys(de).filter((k) => de[k] > 1), [])
   eq('Kein Schlüssel doppelt (en)', Object.keys(en).filter((k) => en[k] > 1), [])
   ok('Der Wortschatz ist nicht geschrumpft', Object.keys(de).length >= 430, `${Object.keys(de).length}`)
+  /* Ein Schlüssel, den niemand mehr aufruft, ist Ballast: er wird gepflegt,
+     übersetzt und mitgeschleppt, ohne je zu erscheinen. Dynamisch
+     zusammengesetzte Schlüssel (mx_lvl + n) und solche, die irgendwo als
+     Zeichenkette stehen (Navigation, Reiter, Verlaufseinträge), zählen als
+     benutzt — nur wirklich niemand mehr. */
+  const iEnEnde = html.indexOf('\n}', iEn + 5) + 2
+  const code = html.slice(0, iDe) + html.slice(iEnEnde)
+  const dynamisch = [...code.matchAll(/\bt\("([a-z0-9_]+?)"\s*\+/g)].map((m) => m[1])
+  const ballast = Object.keys(de).filter((k) => {
+    if (dynamisch.some((pfx) => k.startsWith(pfx) && k !== pfx)) return false
+    return !new RegExp('["\'`]' + k + '["\'`]').test(code)
+  })
+  eq('Kein Textschlüssel ohne Verwendung', ballast, [])
 }
 
 // ------------------------------------------------------ Logik im Browser

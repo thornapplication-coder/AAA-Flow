@@ -89,6 +89,24 @@ Der Stand liegt auf dem Gerät. *Berichte → Datensicherung* schreibt ihn samt
 Anhängen in eine Datei; Einspielen ersetzt den Stand auf einem anderen Gerät.
 Das ist bis zur Supabase-Instanz der Weg, einen Stand im Team weiterzugeben.
 
+### Für die Berichtslinie zur Geschäftsführung
+
+- **Entscheidungsbedarf** je Projekt: Frage, Möglichkeiten, Empfehlung, Frist und
+  wer entscheidet. Offene Punkte stehen im Dashboard ganz oben; entschieden
+  wandern sie in die Entscheidungsliste.
+- **Ampel-Trend**: die Lage wird wochenweise festgehalten, der Bericht nennt die
+  Richtung statt nur den Zustand.
+- **Meilenstein-Trend**: der erste Termin wird zur Baseline, jede Verschiebung
+  mitgeschrieben — als Liniendiagramm und als Tabelle.
+- **Einseiter** je Projekt und **Bericht für die Leitungsrunde** über alle.
+
+### Verwaltung
+
+Personenverzeichnis (anlegen, bearbeiten, stilllegen), Superadmin-Rolle,
+Projektübersicht samt Archiv, Datensicherung und Zurücksetzen an einem Ort.
+Im Prototyp ist die Rolle eine Verabredung; in der Datenbank setzt sie ein
+Trigger durch — der letzte Superadmin bleibt bestehen.
+
 Exportiert wird über **PDF** (Druckansicht, in jeder Ansicht) und **Excel**
 (überall dort, wo die Ansicht eine Liste ist) — als echte `.xlsx`-Datei mit
 einem Blatt je Abschnitt, ohne Bibliothek erzeugt.
@@ -134,7 +152,7 @@ cp .env.example .env            # Supabase-URL und Anon-Key eintragen
 npm run dev                     # http://localhost:5173
 npm run typecheck
 npm run build
-npm run check:logic             # Rechenregeln, Ausgaben, Wortschatz, Versionsstand
+npm run check:logic             # Rechenregeln, Ausgaben, Wortschatz, Bestand, Versionsstand
 npm run check:sandbox           # drei Bildschirmbreiten, beide Sprachen
 npm run check:layout            # elf Geräteklassen: Überlagerung, Überlauf, Ränder
 npm run check:app               # jeder Knopf, Dialog und Export, beide Zugänge

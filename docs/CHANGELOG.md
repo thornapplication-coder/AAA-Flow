@@ -3,7 +3,65 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
-## 1.11.0 — 2026-09-19
+## 1.0.0 — 2026-09-19 · Erstfreigabe (Revision 1.0)
+
+Der erste freigegebene Stand für den Einsatz im Team. Alles davor waren
+Vorabstände (0.1 bis 0.11); sie stehen unten als Entwicklungsverlauf.
+
+### Was die Anwendung kann
+
+| Bereich | Umfang |
+|---|---|
+| **Projekte** | Zehn Projekte der Academy mit Teilprojekten; anlegen, bearbeiten, archivieren und wieder öffnen |
+| **Arbeit** | Aufgaben und Teilaufgaben mit Zuständigkeit, Terminen, Fortschritt, Vorgängern und Anhängen |
+| **Steuerung** | Gantt je Projekt, Abhängigkeiten, kritischer Pfad, Verzugsanzeige, Meilensteine |
+| **Risiken** | 5×5-Matrix mit ausgeschriebenen Skalen und Handlungsempfehlung, Probleme, Entscheidungen |
+| **Bericht an die Leitung** | Einseiter, Entscheidungsbedarf, Ampel-Trend, Meilenstein-Trend, Leitungsbericht, Wochenbericht |
+| **Ausgaben** | PDF über die Druckansicht, echte `.xlsx` mit einem Blatt je Abschnitt, Termine als Kalenderdatei |
+| **Verwaltung** | Personenverzeichnis, Superadmin, Projektübersicht, Datensicherung, Zurücksetzen |
+| **Grundlagen** | Zwei Zugänge, sofortiges Speichern, Verlauf, Versionen, globale Suche, Deutsch und Englisch |
+
+### Woran der Stand gemessen ist
+
+| Prüflauf | Umfang |
+|---|---|
+| `check:logic` | 101 Prüfungen: Rechenregeln, Ausgabeschutz, Wortschatz, Bestand, Versionsstand |
+| `check:layout` | 1.584 Prüfungen: elf Geräteklassen in zwei Sprachen |
+| `check:app` | 287 Prüfungen: jeder Knopf, jeder Dialog, jede Ausgabe, beide Zugänge |
+| `db:check` | 216 Prüfungen: Migrationen, Seed und SQL-Tests in frischer Datenbank |
+
+**2.188 automatische Prüfungen**, alle grün, bei jedem Push in der CI.
+
+### Bei der Freigabeprüfung gefunden und behoben
+
+- **Die Datenbank kannte vier Funktionen des Prototyps nicht**: Entscheidungsbedarf,
+  Ampel-Trend, Verschiebungshistorie der Meilensteine und Superadmin. Beim Umzug
+  auf Supabase wäre genau das verloren gegangen, was einen Bericht an die Leitung
+  ausmacht. Migration 7 schließt die Lücke — mit Rechten, Triggern und 35 eigenen
+  SQL-Prüfungen.
+- **`pcc.health()` hätte im Tageslauf nichts geliefert**: Die Funktion verweigert
+  die Auskunft ohne Leserecht, im Systemlauf ist aber niemand angemeldet. Jetzt
+  greift die Prüfung nur, wenn tatsächlich ein Zugang angemeldet ist.
+- **Initialen wurden ungeprüft in die Seite geschrieben.** Kein Skriptrisiko, aber
+  ein Name mit spitzer Klammer hätte das Markup zerlegt.
+- **Fünf Textschlüssel ohne Verwendung** entfernt; eine neue Prüfung hält den
+  Wortschatz künftig frei von Ballast.
+
+### Was der Stand nicht kann
+
+- **Kein gemeinsamer Datenstand**: Die Daten liegen im Browser des jeweiligen
+  Geräts. Übergabe läuft über die Datensicherung.
+- **Kein Passwort**: Wer den Link hat, wählt seinen Zugang selbst. Die
+  Superadmin-Rolle ist im Prototyp eine Verabredung — in der Datenbank ist sie
+  bereits durchsetzbar hinterlegt.
+- **Die Zielanwendung** (React auf Supabase) ist ein Gerüst; die Fachoberfläche
+  ist noch nicht auf die Datenbank gehoben.
+
+---
+
+# Entwicklungsverlauf bis zur Erstfreigabe
+
+## 0.11.0 — 2026-09-19
 
 ### Die Berichtslinie zur Geschäftsführung
 
@@ -53,7 +111,7 @@ Projekt, kritische Risiken und alles Überfällige.
   Textes der Text, ein „Feld, aus dem er läuft" gibt es nicht. Ob er im Bild
   steht, prüfen weiterhin die Regeln für Überlagerung und Rand.
 
-## 1.10.0 — 2026-09-19
+## 0.10.0 — 2026-09-19
 
 ### Verwaltung an einem Ort
 
@@ -99,7 +157,7 @@ bereits bekannten Person wäre beim nächsten Laden verfallen. Jetzt werden alle
 Personen gesichert und beim Laden zusammengeführt — das gilt auch für die
 Datensicherung.
 
-## 1.9.0 — 2026-09-19
+## 0.9.0 — 2026-09-19
 
 ### Zurück und Dashboard, auf jeder Seite an derselben Stelle
 
@@ -122,7 +180,7 @@ weicht: die Kopfzeile hatte für Zurück, Dashboard, Marke, Suche, Person und
 Sprache keinen Platz mehr. Genau das hat `check:layout` gemeldet, bevor es
 jemand zu sehen bekam — 126 Befunde auf den schmalen Geräten, alle behoben.
 
-## 1.8.1 — 2026-09-19
+## 0.8.1 — 2026-09-19
 
 ### SafetyManager 365 statt eigenständigem ATR Finding
 
@@ -134,7 +192,7 @@ Teilprojekte Platz, ohne dass die Projektliste wächst.
 
 Der Bestand umfasst damit weiterhin zehn Projekte.
 
-## 1.8.0 — 2026-09-19
+## 0.8.0 — 2026-09-19
 
 ### Der Projektbestand der Academy steht
 
@@ -183,7 +241,7 @@ Neu geprüft wird, dass jeder Reiter auch im **leeren** Projekt etwas sagt statt
 stumm zu bleiben, dass die Teilprojekte im Projektverlauf erscheinen, und dass
 ohne Vorführmodus kein einziges Beispielprojekt im Bestand steht.
 
-## 1.7.0 — 2026-09-19
+## 0.7.0 — 2026-09-19
 
 ### Teilaufgaben anlegen und verteilen
 
@@ -223,7 +281,7 @@ nach dem Neuladen, dass jede Kennung eindeutig ist und eine neu angelegte
 Aufgabe eine freie bekommt — gegengeprüft: ohne die Korrektur vergibt die
 Anwendung eine bereits benutzte Kennung.
 
-## 1.6.1 — 2026-09-19
+## 0.6.1 — 2026-09-19
 
 ### Überlagerte Beschriftungen behoben
 
@@ -261,7 +319,7 @@ meldet ein Bereich, der intern scrollt, Kollisionen, die niemand sieht. Die
 Prüfung wurde gegen beide Fehler gegengeprüft: mit zurückgedrehter Korrektur
 findet sie sie, mit Korrektur meldet sie nichts.
 
-## 1.6.0 — 2026-09-19
+## 0.6.0 — 2026-09-19
 
 ### Excel ist jetzt Excel
 
@@ -291,7 +349,7 @@ Eine Seite: die vier Regeln („Ein Gerät führt", eigene Person wählen, freit
 sichern, Zurücksetzen nur nach Sicherung), Anmelden, Projekt pflegen, Ausgeben,
 Sichern und Übergeben, die Sandbox-Leiste, was der Prototyp nicht kann.
 
-## 1.5.0 — 2026-09-19
+## 0.5.0 — 2026-09-19
 
 ### Freigabeprüfung für den Teameinsatz
 
@@ -338,7 +396,7 @@ Das ist jetzt geschlossen. Der vollständige Befund mit Ampel steht in
 Die Regeln dazu stehen in `CLAUDE.md` und gelten für jede Sitzung: nie mit
 rotem Prüflauf committen, jeder neue Knopf bekommt seine Prüfung im selben Commit.
 
-## 1.4.0 — 2026-09-19
+## 0.4.0 — 2026-09-19
 
 ### Die Risikomatrix erklärt sich jetzt selbst
 
@@ -388,7 +446,7 @@ Person sieht ihren eigenen Stand. Für das gemeinsame Arbeiten im Team ist die
 Supabase-Instanz nötig — die Datenbank dafür ist fertig und geprüft. Der
 Hinweis lässt sich wegklicken und bleibt weg.
 
-## 1.3.0 — 2026-09-19
+## 0.3.0 — 2026-09-19
 
 Vier Bausteine, vom Auftraggeber aus einer Auswahl bestimmt.
 
@@ -446,7 +504,7 @@ Vier Bausteine, vom Auftraggeber aus einer Auswahl bestimmt.
   Tabelle des Schemas, und ein Test wacht darüber. Aufgefallen ist es, weil eine
   Zusicherung für den Lesezugang nicht scheiterte, wo sie es sollte.
 
-## 1.2.0 — 2026-09-19
+## 0.2.0 — 2026-09-19
 
 ### Gantt je Projekt
 
@@ -477,7 +535,7 @@ Vier Bausteine, vom Auftraggeber aus einer Auswahl bestimmt.
   Ebene. Damit rechnet die Datenbank die Ableitungen, nicht jede Oberfläche
   für sich.
 
-## 1.1.0 — 2026-09-19
+## 0.1.0 — 2026-09-19
 
 Vier Festlegungen des Auftraggebers, die das Rechtemodell vereinfachen und die
 Arbeit mit Dateien und Ausgaben verbindlich machen.
@@ -537,7 +595,7 @@ Arbeit mit Dateien und Ausgaben verbindlich machen.
 - Aufgabenlisten und der Projektbericht führen die Anhänge mit, der
   Dokumentenabschnitt nennt zu jeder Datei den Gegenstand.
 
-## 1.0.0 — 2026-09-18
+## 0.0.0 — 2026-09-18
 
 Erste Fassung des Project Control Centers: Datenmodell, Rechte und
 Geschäftslogik in PostgreSQL, dazu ein klickbarer Prototyp der Oberfläche.

@@ -269,6 +269,26 @@ Feld `projects.restricted`.
 
 ---
 
+### Berichtslinie zur Geschäftsführung (19.09.2026)
+
+Vier Bausteine, im Prototyp und in der Datenbank (Migration 7):
+
+| Baustein | Datenbank | Wozu |
+|---|---|---|
+| Entscheidungsbedarf | `pcc.decision_requests` mit Referenznummer, Pflichtfrist und Zustand | Ein Bericht wirkt durch die Frage, nicht durch den Status. Entschieden verweist der Punkt auf die Entscheidung, die aus ihm wurde |
+| Ampel-Trend | `pcc.health_snapshots`, eine Zeile je Projekt und ISO-Woche; `pcc.health_trend()` | Die Richtung ist die Auskunft, nach der zuerst gefragt wird — verglichen mit der jüngsten früheren Woche |
+| Termintreue | `pcc.milestone_shifts` (Trigger auf `due_date`), Sicht `pcc.v_schedule_drift` | `baseline_date` allein beziffert den Verzug; erst die Spur zeigt, seit wann er entsteht |
+| Superadmin | `public.users.is_super`, Trigger `tg_users_last_super` | Wer die Verwaltung sieht. Der letzte bleibt — sonst sperrt sich das Team aus |
+
+Die Momentaufnahmen entstehen im Tageslauf (`pcc.take_health_snapshot()`),
+nicht in der Oberfläche: eine Zeitreihe, die davon abhängt, ob jemand die
+Anwendung geöffnet hat, wäre keine.
+
+Dabei fiel auf, dass `pcc.health()` ohne angemeldeten Zugang null liefert —
+im Systemlauf wäre jede Momentaufnahme leer geblieben. Die Leseprüfung greift
+jetzt nur, wenn tatsächlich jemand angemeldet ist; ausführen darf die Funktion
+ohnehin nur `authenticated` und `service_role`.
+
 ## 5. Autosave, Echtzeit, Konflikte (Abschnitte 34, 35)
 
 **Autosave.** Kein Speichern-Knopf. Jede Feldänderung löst nach 600 ms
@@ -402,7 +422,7 @@ Implementierung nach Abschnitt 61.
 | Autosave | umgesetzt: jede Änderung wird im selben Augenblick abgelegt | in der Anwendung derselbe Ansatz — jeder Vorgang schreibt sofort, ohne „Speichern" |
 | Echtzeit | nicht vorhanden | offen — braucht die Supabase-Instanz |
 | Audit und Versionen | nachgebildet | **umgesetzt**: gemeinsamer Trail mit Modulspalte, unveränderliche Versionstabellen |
-| Export | PDF echt, Excel echt (.xlsx, ein Blatt je Abschnitt, im Client erzeugt) | Excel-Erzeugung liegt vor und ist getestet; Edge Function nur noch für serverseitige Zustellung nötig |
+| Export | PDF echt, Excel echt (.xlsx, ein Blatt je Abschnitt, im Client erzeugt), Einseiter und Leitungsbericht | Excel-Erzeugung liegt vor und ist getestet; Edge Function nur noch für serverseitige Zustellung nötig |
 
 ---
 

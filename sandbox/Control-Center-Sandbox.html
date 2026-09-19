@@ -753,7 +753,6 @@ de:{
   bk_h:"Der Prototyp speichert nur auf diesem Gerät. Eine Datensicherung ist der einzige Weg, den Stand zu sichern, auf ein anderes Gerät zu bringen oder im Team weiterzugeben.",
   bk_import:"Datensicherung einspielen",
   bk_import_h:"Ersetzt den gesamten Stand auf diesem Gerät durch den Inhalt der Datei. Was hier nicht gesichert ist, geht dabei verloren.",
-  bk_files:"Dateien",
   bk_t:"Datensicherung",
   bk_toolarge:"Die Anhänge sind zusammen größer als 25 MB und bleiben außen vor. Die Angaben zu ihnen werden mitgesichert.",
   dec_h:"Was wurde entschieden, warum, und was folgt daraus? Eine Entscheidung ohne Begründung lässt sich später nicht mehr nachvollziehen.",
@@ -761,7 +760,6 @@ de:{
   disc_t:"Verwerfen",
   disc_task_x:"Die Teilaufgaben ({n}), Verbindungen und Anhänge werden mit verworfen.",
   disc_ws_x:"Die Aufgaben darin ({n}) bleiben erhalten und stehen danach ohne Teilprojekt.",
-  discard:"Verwerfen",
   e_cycle:"Diese Abhängigkeit schließt einen Kreis.",
   e_dec:"Bitte die Entscheidung im Wortlaut festhalten.",
   e_mail:"Das sieht nicht nach einer E-Mail-Adresse aus.",
@@ -826,7 +824,6 @@ de:{
   mx_act3:"Maßnahme umsetzen und nachhalten; gehört in den Wochenbericht.",
   mx_act4:"Sofort in die Leitungsrunde. Maßnahme und Rückfallebene festlegen.",
   mx_cells:"Die Zahl in einem Feld ist die Anzahl der Risiken darin. Ein Klick zeigt sie unten.",
-  mx_expl:"So lesen Sie die Matrix",
   mx_imp1:"1 — unwesentlich: etwas Mehraufwand, kein Termin in Gefahr",
   mx_imp2:"2 — gering: Verschiebung um Tage, niemand außerhalb merkt es",
   mx_imp3:"3 — spürbar: ein Meilenstein verschiebt sich oder es wird teurer",
@@ -903,7 +900,6 @@ de:{
   ac_team_s:"Darf alles: anlegen, ändern, freigeben, ausgeben.",
   ac_viewer:"Lesezugang",
   ac_viewer_s:"Sieht alles und gibt aus, ändert nichts.",
-  ac_who:"Angemeldet als",
   ac_back:"Anderer Zugang",
   ac_chg:"Person wechseln",
   e_pend:"Ein Zieltermin gehört dazu.",
@@ -924,7 +920,6 @@ de:{
   ev_tasknew:"Aufgabe angelegt: {x}",
   ev_undone:"Erledigt zurückgenommen: {x}",
   rl_crit_s:"kritisch",
-  tl_leg:"Zeichenerklärung",
   tl_leg_done:"abgeschlossen",
   tl_leg_late:"Meilenstein überfällig",
   tl_leg_ms:"Meilenstein",
@@ -1301,7 +1296,6 @@ en:{
   bk_h:"The prototype saves on this device only. A backup is the only way to secure the state, move it to another device or hand it on within the team.",
   bk_import:"Restore backup",
   bk_import_h:"Replaces the entire state on this device with the content of the file. Anything not backed up here is lost.",
-  bk_files:"files",
   bk_t:"Backup",
   bk_toolarge:"The attachments exceed 25 MB together and are left out. Their details are included.",
   dec_h:"What was decided, why, and what follows? A decision without a rationale cannot be traced later.",
@@ -1309,7 +1303,6 @@ en:{
   disc_t:"Discard",
   disc_task_x:"Its subtasks ({n}), links and attachments are discarded with it.",
   disc_ws_x:"The tasks in it ({n}) remain and will be without a workstream.",
-  discard:"Discard",
   e_cycle:"This dependency closes a cycle.",
   e_dec:"Please record the decision in words.",
   e_mail:"That does not look like an email address.",
@@ -1374,7 +1367,6 @@ en:{
   mx_act3:"Carry out the measure and follow it up; belongs in the weekly report.",
   mx_act4:"Straight to management. Define a measure and a fallback.",
   mx_cells:"The number in a cell is how many risks sit there. A click shows them below.",
-  mx_expl:"How to read the matrix",
   mx_imp1:"1 — negligible: some extra work, no date at risk",
   mx_imp2:"2 — minor: a shift of days, nobody outside notices",
   mx_imp3:"3 — noticeable: a milestone moves or it gets more expensive",
@@ -1451,7 +1443,6 @@ en:{
   ac_team_s:"May do everything: create, change, release, export.",
   ac_viewer:"Read-only account",
   ac_viewer_s:"Sees everything and exports, changes nothing.",
-  ac_who:"Working as",
   ac_back:"Other account",
   ac_chg:"Switch person",
   e_pend:"A target date is required.",
@@ -1472,7 +1463,6 @@ en:{
   ev_tasknew:"Task created: {x}",
   ev_undone:"Completion undone: {x}",
   rl_crit_s:"critical",
-  tl_leg:"Legend",
   tl_leg_done:"completed",
   tl_leg_late:"milestone overdue",
   tl_leg_ms:"milestone",
@@ -1777,7 +1767,9 @@ USERS.forEach(u => { u.email = mailFor(u.name); u.active = true; });
 /* Wer im Teamzugang zur Auswahl steht: alle aktiven Personen ohne Zugang. */
 const PEOPLE = () => USERS.filter(u => !u.access && u.active !== false);
 const user = id => USERS.find(u => u.id === id) || { name:"?" };
-const initials = n => n.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+/* Die Initialen landen in der Seite — auch sie gehen durch esc(). Ein Name,
+   der mit einem spitzen Klammeraffen beginnt, zerlegte sonst das Markup. */
+const initials = n => esc(String(n || "").split(" ").map(w => w[0] || "").join("").slice(0,2).toUpperCase());
 
 /* alphabetisch, wie für alle Listen und Dropdowns gefordert */
 const byName = (a,b) => a.name.localeCompare(b.name, L === "de" ? "de" : "en");
@@ -2912,7 +2904,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
-const APP_VERSION = "1.11.0";
+const APP_VERSION = "1.0.0";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert

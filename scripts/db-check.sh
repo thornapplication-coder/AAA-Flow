@@ -32,7 +32,7 @@ done
 # Jede bestandene Prüfung meldet sich mit „ok - …". Die Zahl wird gezählt und
 # gegen eine Untergrenze gehalten: ein Testlauf, der still weniger prüft als
 # zuvor, ist kein grüner Testlauf.
-MIN_OK="${PCC_MIN_OK:-175}"
+MIN_OK="${PCC_MIN_OK:-205}"
 OK_COUNT=0
 LOG="$(mktemp)"
 trap 'rm -f "$LOG"' EXIT
