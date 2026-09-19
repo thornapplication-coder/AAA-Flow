@@ -2179,7 +2179,10 @@ function ladeProjekte() {
   neu("RTG-26",  "Recurrent Trainings General");
   neu("OTG-26",  "Operator Training General");
   neu("WAG-26",  "WhatsApp Group Admin/ATO");
-  neu("ATRF-26", "ATR Finding");
+  /* Das ATR Finding ist kein eigenes Vorhaben, sondern ein Strang der
+     Sicherheitsarbeit — es gehört unter das Dach, unter dem es abgearbeitet
+     wird. */
+  neu("SM365-26", "SafetyManager 365", ["ATR Finding"]);
   neu("NGM-26",  "New Grading in Manuals");
   neu("UKC-26",  "UK CL350");
 }
@@ -2610,7 +2613,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
-const APP_VERSION = "1.8.0";
+const APP_VERSION = "1.8.1";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert

@@ -85,14 +85,16 @@ const run = (fn, arg) => page.evaluate(fn, arg)
     ['PH3-26', 'Phenom 300', 6], ['M2-26', 'M2', 6], ['GL65-26', 'Global 6000/6500', 6],
     ['GRT-26', 'Grading Tool', 0], ['RTG-26', 'Recurrent Trainings General', 0],
     ['OTG-26', 'Operator Training General', 0], ['WAG-26', 'WhatsApp Group Admin/ATO', 0],
-    ['ATRF-26', 'ATR Finding', 0], ['NGM-26', 'New Grading in Manuals', 0],
+    ['SM365-26', 'SafetyManager 365', 1], ['NGM-26', 'New Grading in Manuals', 0],
     ['UKC-26', 'UK CL350', 0]]
   eq('Zehn Projekte, in der vorgegebenen Reihenfolge',
     bestand.map((p) => [p.key, p.name, p.ws.length]), soll)
   const muster = ['TM Fertigstellung', 'All IH Fertigstellung', 'All SH Fertigstellung',
     'Difference Training all Variant', 'Recurrent Training', 'SME']
   eq('Die drei Muster tragen dieselben sechs Teilprojekte',
-    bestand.filter((p) => p.ws.length).map((p) => p.ws), [muster, muster, muster])
+    bestand.filter((p) => p.ws.length === 6).map((p) => p.ws), [muster, muster, muster])
+  eq('Das ATR Finding hängt unter SafetyManager 365',
+    bestand.find((p) => p.key === 'SM365-26').ws, ['ATR Finding'])
   ok('Kein Projekt bringt erfundene Aufgaben, Risiken oder Meilensteine mit',
     bestand.every((p) => !p.aufgaben && !p.risiken && !p.ms))
   ok('Jedes Projekt hat eine Projektleitung, die auch im Team steht',

@@ -3,6 +3,18 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.8.1 — 2026-09-19
+
+### SafetyManager 365 statt eigenständigem ATR Finding
+
+Das ATR Finding war als eigenes Projekt angelegt. Es ist aber kein eigenes
+Vorhaben, sondern ein Strang der Sicherheitsarbeit — deshalb steht es jetzt als
+Teilprojekt unter dem neuen Hauptprojekt **SafetyManager 365** (`SM365-26`).
+Weitere Findings und Themen der Sicherheitsarbeit finden dort als zusätzliche
+Teilprojekte Platz, ohne dass die Projektliste wächst.
+
+Der Bestand umfasst damit weiterhin zehn Projekte.
+
 ## 1.8.0 — 2026-09-19
 
 ### Der Projektbestand der Academy steht
@@ -18,7 +30,7 @@ Zehn Projekte, angelegt auf Anweisung der Trainingsleitung:
 | `RTG-26` | Recurrent Trainings General | — |
 | `OTG-26` | Operator Training General | — |
 | `WAG-26` | WhatsApp Group Admin/ATO | — |
-| `ATRF-26` | ATR Finding | — |
+| `SM365-26` | SafetyManager 365 | 1 (ATR Finding) |
 | `NGM-26` | New Grading in Manuals | — |
 | `UKC-26` | UK CL350 | — |
 

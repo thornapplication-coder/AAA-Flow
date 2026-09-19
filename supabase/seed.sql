@@ -119,5 +119,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'Subtasks can be created and assigned; a task''s progress is derived from its subtasks.'),
   ('1.8.0', date '2026-09-19',
    'Der Projektbestand der Academy ist angelegt; die Beispieldaten erscheinen nur noch im Vorführmodus.',
-   'The academy''s project inventory is in place; sample data only appears in demo mode.')
+   'The academy''s project inventory is in place; sample data only appears in demo mode.'),
+  ('1.8.1', date '2026-09-19',
+   'Das ATR Finding ist Teilprojekt von SafetyManager 365.',
+   'The ATR finding is now a workstream of SafetyManager 365.')
 on conflict (version) do nothing;
