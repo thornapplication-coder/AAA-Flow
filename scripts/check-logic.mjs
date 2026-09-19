@@ -159,7 +159,7 @@ eq('HTML wird maskiert', await run(() => esc('<b onerror="x">&')), '&lt;b onerro
   const lines = ics.split('\r\n')
   ok('Kalender beginnt und endet korrekt', lines[0] === 'BEGIN:VCALENDAR' && lines[lines.length - 1] === 'END:VCALENDAR')
   eq('Erledigte Aufgaben stehen nicht im Kalender', lines.filter((l) => l === 'BEGIN:VEVENT').length, 2)
-  ok('Sonderzeichen sind maskiert', lines.includes('SUMMARY:PRF · M-1 A\\, B\; C'), lines.find((l) => l.startsWith('SUMMARY:')))
+  ok('Sonderzeichen sind maskiert', lines.includes('SUMMARY:PRF · M-1 A\\, B\\; C'), lines.find((l) => l.startsWith('SUMMARY:')))
   ok('Kein Zeilenumbruch zerreißt einen Eintrag', !/\n(?!$)/.test(ics.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n').replace(/\r\n/g, '')))
   ok('Ganztägig: Ende ist der Folgetag', lines.includes('DTSTART;VALUE=DATE:20261005') && lines.includes('DTEND;VALUE=DATE:20261006'))
   ok('Einträge sind nach Datum sortiert', ics.indexOf('20261005') < ics.indexOf('20261007'))

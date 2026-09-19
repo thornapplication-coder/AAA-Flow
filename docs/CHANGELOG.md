@@ -44,7 +44,7 @@ Das ist jetzt geschlossen. Der vollständige Befund mit Ampel steht in
 | `typecheck` | React-Gerüst und Typen gegen das Schema | — |
 | `check:logic` | Rechenregeln (Risikostufen, Terminnetz, Ampel, Fortschritt), Ausgabeschutz, Kalenderdatei, Speicherstand, Wortschatz in beiden Sprachen, Versionsnummer an allen Stellen | 58 Prüfungen |
 | `check:sandbox` | Laufzeitfehler und Überlauf bei 1440, 1024 und 390 px, beide Zugänge, englische Fassung | 3 Breiten |
-| `check:app` | Jeder Knopf, jeder Dialog samt Pflichtfeldern, jede Ausgabe, Suche, Kalender, Zeitreise, Speicherung über einen Neustart, Rechte des Lesezugangs, Bearbeiten/Verwerfen/Archiv/Sicherung, HTML in Eingaben | 215 Prüfungen |
+| `check:app` | Jeder Knopf, jeder Dialog samt Pflichtfeldern, jede Ausgabe, Suche, Kalender, Zeitreise, Speicherung über einen Neustart, Rechte des Lesezugangs, Bearbeiten/Verwerfen/Archiv/Sicherung, HTML in Eingaben | 217 Prüfungen |
 | `db:check` | Migrationen, Seed und SQL-Tests in einer frischen Datenbank; bricht ab, wenn stillschweigend weniger als 175 Prüfungen laufen | 181 Prüfungen |
 
 Die Regeln dazu stehen in `CLAUDE.md` und gelten für jede Sitzung: nie mit

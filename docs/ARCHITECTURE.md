@@ -420,7 +420,7 @@ Implementierung nach Abschnitt 61.
 | 8 | Export Excel und PDF, Dashboard-Bericht | offen, 2 Tage |
 | 9 | PWA, Offline, Auto-Update | Gerüst steht, Ausbau offen, 1–2 Tage |
 | 10 | Oberfläche auf die Datenbank heben, Prototyp ablösen | offen, 8–10 Tage |
-| 11 | Tests nach Abschnitt 59, Sicherheitsdurchsicht, Bereitstellung | SQL-Tests (181), Logik- (58) und Funktionsdurchlauf (215) laufen in der CI; Freigabeprüfung in `AUDIT-ROLLOUT.md` |
+| 11 | Tests nach Abschnitt 59, Sicherheitsdurchsicht, Bereitstellung | SQL-Tests (181), Logik- (58) und Funktionsdurchlauf (217) laufen in der CI; Freigabeprüfung in `AUDIT-ROLLOUT.md` |
 
 Zusammen rund **drei bis vier Wochen** bis zu der in Abschnitt 60 aufgeführten
 Definition of Done.

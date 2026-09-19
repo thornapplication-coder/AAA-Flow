@@ -8,7 +8,7 @@ Speicherung, die Rechte, die Ausgaben und die Datenbankseite.
 
 | | Bereich | Stand |
 |---|---|---|
-| 🟢 | Prototyp: Bedienung, Dialoge, Ausgaben, Rechte, Speicherung auf dem Gerät | einsatzfähig, 215 automatische Prüfungen |
+| 🟢 | Prototyp: Bedienung, Dialoge, Ausgaben, Rechte, Speicherung auf dem Gerät | einsatzfähig, 217 automatische Prüfungen |
 | 🟢 | Datenbank: Schema, Rechte (RLS auf jeder Tabelle), Logik, Sichten, Auswertungen | einsatzfähig, 181 SQL-Prüfungen |
 | 🟢 | Prüfläufe: laufen vor jedem Commit und bei jedem Push in der CI | eingerichtet |
 | 🟡 | Gemeinsamer Datenstand im Team | **nur über Datensicherung** — jedes Gerät hält seinen eigenen Stand, bis die Supabase-Instanz steht |
@@ -36,7 +36,8 @@ dafür fertig und geprüft.
 | Die verschobene Sandbox-Uhr wurde mitgespeichert; Fristen stimmten am nächsten Tag nicht | mittel | Uhr wird nicht mehr gespeichert |
 | Zwei Fenster überschrieben sich gegenseitig | mittel | Abgleich über das Speicherereignis, nie mitten in einer Eingabe |
 | Excel-Ausgabe: Zellen mit `=`, `+`, `-`, `@` am Anfang wurden als Formel gelesen | mittel — Sicherheitsrisiko | entschärft |
-| Kalenderdatei: Zeilenumbruch im Titel zerriss den Eintrag | niedrig | entfernt |
+| Kalenderdatei: Zeilenumbruch im Titel zerriss den Eintrag; Semikolon blieb unmaskiert (`"\;"` ist in JavaScript nur `;`) — der Logiktest hatte denselben Fehler in der Erwartung und war deshalb grün | niedrig | beides korrigiert, Erwartung im Test ebenfalls |
+| Sicherungsdatei mit richtigem Kopf, aber kaputtem Projektinhalt hätte beim Einspielen die Anzeige zerlegt | mittel | Projektstruktur wird vor dem Übernehmen geprüft |
 | Namen in Ausgaben und Tooltips teils unmaskiert | niedrig | konsequent über `esc()` |
 | Referenznummern zählten über die Listenlänge; nach Verwerfen doppelt | mittel | Zählung über die höchste vergebene Nummer |
 | Toast-Rückgängig nicht klickbar (`pointer-events`) | niedrig | behoben |

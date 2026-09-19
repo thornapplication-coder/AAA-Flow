@@ -2512,6 +2512,11 @@ function backupImport(file) {
     let d;
     try { d = JSON.parse(r.result); } catch (e) { return toast(t("e_bkbad"), true); }
     if (!d || d.kind !== "pcc-backup" || !Array.isArray(d.projects)) return toast(t("e_bkbad"), true);
+    /* Ein richtiger Kopf reicht nicht: ein Projekt ohne Listen zerlegt sonst
+       jede Ansicht, und der Stand auf dem Gerät wäre schon überschrieben. */
+    const shaped = x => x && typeof x === "object" && typeof x.id === "string" && typeof x.key === "string"
+      && ["tasks","risks","issues","ms","decisions","team","ws"].every(k => Array.isArray(x[k]));
+    if (!d.projects.every(shaped)) return toast(t("e_bkbad"), true);
     PROJECTS.length = 0; d.projects.forEach(x => PROJECTS.push(x));
     PLOG.length = 0; (d.log || []).forEach(x => PLOG.push(x));
     (d.people || []).forEach(u => { if (!USERS.some(x => x.id === u.id)) USERS.push(u); });
@@ -4468,7 +4473,7 @@ function closeSearch() {
    ganztägig, Ende am Folgetag — sonst zeigt Outlook den letzten Tag nicht. */
 function icsText(ps) {
   const pad = d => d.replace(/-/g, "");
-  const esc2 = v => String(v || "").replace(/[\r\n]+/g, " ").replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\;");
+  const esc2 = v => String(v || "").replace(/[\r\n]+/g, " ").replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;");
   const next = d => addDays(d, 1).replace(/-/g, "");
   const ev = [];
   ps.forEach(p => {
