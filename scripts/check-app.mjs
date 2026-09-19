@@ -395,6 +395,112 @@ const frischeKennung = await page.evaluate(() => {
 ok('Eine neu angelegte Aufgabe bekommt eine freie Kennung', frischeKennung.frei,
   `vergeben: ${frischeKennung.id}`)
 
+// ------------------------------------------------- Entscheidungsbedarf
+// Der Weg, auf dem ein Bericht wirksam wird: anfordern, entscheiden, im Log.
+await frei()
+await page.evaluate(() => { pProject = null; pv = 'projects'; render() })
+await wait(250)
+await click('[data-pp]', 'Projekt für den Entscheidungsbedarf')
+await click('[data-ptab="decisions"]', 'Reiter Entscheidungen')
+const vorAsk = await page.evaluate(() => pById(pProject).asks.length)
+if (await click('[data-pasknew]', 'Entscheidung anfordern öffnen')) {
+  await click('#mOk')
+  ok('Ohne Frage wird nicht angefordert', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="topic"]', 'Zweiter Simulator-Slot')
+  await page.fill('[data-f="question"]', 'Sollen wir den Slot im Q1 fest buchen?')
+  await page.fill('[data-f="due"]', '')
+  await click('#mOk')
+  ok('Ohne Frist wird nicht angefordert', await page.evaluate(() => !!dlg))
+  await page.fill('[data-f="due"]', '2026-10-10')
+  await page.fill('[data-f="recommendation"]', 'Buchen — der Ersatztermin kostet mehr.')
+  await page.fill('[data-f="who"]', 'Geschäftsführung')
+  await click('#mOk', 'Entscheidung anfordern')
+  ok('Der Entscheidungsbedarf ist angelegt',
+    (await page.evaluate(() => pById(pProject).asks.length)) === vorAsk + 1)
+  ok('Er steht offen im Reiter', await page.evaluate(() =>
+    document.getElementById('main').innerText.includes('Zweiter Simulator-Slot')))
+}
+const askId = await page.evaluate(() => {
+  const a = pById(pProject).asks.find((x) => x.status === 'open')
+  return a ? a.id : null
+})
+ok('Er erscheint im Dashboard, wo die Leitung hinsieht', await page.evaluate(() => {
+  const vorher = pProject
+  pProject = null; pv = 'dash'; render()
+  const drin = document.getElementById('main').innerText.includes('Entscheidungsbedarf')
+  pProject = vorher; pv = 'projects'; render()
+  return drin
+}))
+await wait(250)
+if (askId) {
+  await click('[data-ptab="decisions"]')
+  const vorDec = await page.evaluate(() => pById(pProject).decisions.length)
+  await click(`[data-paskdec="${askId}"]`, 'Entscheiden öffnen')
+  ok('Die Empfehlung ist als Entscheidung vorbelegt',
+    (await page.inputValue('[data-f="decision"]')).length > 5)
+  await page.fill('[data-f="decision"]', 'Slot wird fest gebucht.')
+  await click('#mOk', 'Entscheidung eintragen')
+  ok('Aus dem Bedarf wurde eine Entscheidung',
+    (await page.evaluate(() => pById(pProject).decisions.length)) === vorDec + 1)
+  ok('Der Punkt ist nicht mehr offen',
+    await page.evaluate((id) => pById(pProject).asks.find((a) => a.id === id).status === 'decided', askId))
+  ok('Die Entscheidung verweist auf die Anfrage', await page.evaluate(() =>
+    pById(pProject).decisions.some((d) => !!d.fromAsk)))
+}
+
+// Die beiden neuen Berichte lassen sich erzeugen
+for (const art of ['pcc_exec', 'pcc_board']) {
+  const okDoc = await page.evaluate((k) => {
+    try { const d = docDef(k); return !!(d && d.title && d.sections.length) }
+    catch (e) { return 'FEHLER: ' + e.message }
+  }, art)
+  ok(`Ausgabe ${art} lässt sich erzeugen`, okDoc === true, String(okDoc))
+}
+await frei()
+await click('[data-ptab="overview"]')
+if (await click('[data-prep^="exec"]', 'Einseiter öffnen')) {
+  await wait(400)
+  const seite = await page.evaluate(() => document.getElementById('print').innerText)
+  // Die erwarteten Begriffe kommen aus der Anwendung selbst — ein fest
+  // verdrahtetes Wort prüft die Sprachdatei, nicht den Bericht.
+  const begriff = await page.evaluate(() => ({
+    richtung: t('tr_col'), lage: t('h_' + pHealth(pById(pProject))), bedarf: t('ask_open') }))
+  ok('Der Einseiter nennt die Richtung', seite.includes(begriff.richtung),
+    `${begriff.richtung} — ${seite.replace(/\n/g, ' | ').slice(0, 200)}`)
+  ok('Der Einseiter nennt die Lage', seite.includes(begriff.lage), begriff.lage)
+  ok('Der Einseiter führt den Entscheidungsbedarf', seite.includes(begriff.bedarf), begriff.bedarf)
+  ok('Der Einseiter hat Unterschriftszeilen',
+    await page.evaluate(() => !!document.querySelector('#print .sign')))
+  await click('#pClose')
+}
+
+// Meilenstein-Trend: eine Verschiebung wird mitgeschrieben
+await click('[data-ptab="timeline"]', 'Reiter Projektverlauf')
+ok('Die Trendanalyse ist da', await page.evaluate(() =>
+  document.getElementById('main').innerText.includes('Meilenstein-Trend')))
+const msId = await page.evaluate(() => {
+  const m = pById(pProject).ms[0]
+  return m ? m.id : null
+})
+if (msId) {
+  const vorher = await page.evaluate((id) => {
+    const m = pById(pProject).ms.find((x) => x.id === id)
+    return { date: m.date, hist: (m.hist || []).length, base: m.baseline || null }
+  }, msId)
+  await click(`[data-pmsedit="${msId}"]`, 'Meilenstein verschieben')
+  await page.fill('[data-f="date"]', '2027-03-01')
+  await click('#mOk', 'Verschiebung speichern')
+  const nachher = await page.evaluate((id) => {
+    const m = pById(pProject).ms.find((x) => x.id === id)
+    return { hist: (m.hist || []).length, base: m.baseline, drift: msDrift(m), moves: msMoves(m) }
+  }, msId)
+  ok('Die Verschiebung steht in der Historie', nachher.hist > vorher.hist, JSON.stringify(nachher))
+  ok('Der ursprüngliche Termin bleibt als Plan erhalten', !!nachher.base)
+  ok('Die Abweichung wird gerechnet', nachher.drift !== 0, `${nachher.drift}`)
+  ok('Die Trendlinie wird gezeichnet', await page.evaluate(() =>
+    !!document.querySelector('.mta polyline')))
+}
+
 // ------------------------------------------------------- Verwaltung
 // Sichtbar nur für Superadmins, und die Regeln müssen halten: der letzte
 // Superadmin bleibt, niemand legt sich selbst still.

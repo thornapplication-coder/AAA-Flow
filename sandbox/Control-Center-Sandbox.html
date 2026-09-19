@@ -279,14 +279,26 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .pcard>header h2{font-size:14px;font-weight:600;flex:1 1 auto;min-width:min-content}
 .pcard>header .co{font-size:12px;flex:1 1 240px;min-width:min-content}
 .pcard .inner{padding:14px 15px}
+.mtawrap{overflow-x:auto}
+.mta{width:100%;min-width:620px;height:auto;display:block}
+.mtagrid{stroke:var(--line);stroke-width:1;stroke-dasharray:3 3}
+.mtaaxis{stroke:var(--line-strong);stroke-width:1}
+.mtalab{font-size:11px;fill:var(--ink-soft)}
+.mtaax{font-size:10.5px;fill:var(--ink-soft);letter-spacing:.03em}
+.mtaname{font-size:11.5px;font-weight:600}
+.sech{font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--ink-soft);margin:18px 0 8px}
+.sech:first-child{margin-top:0}
 .plist{list-style:none}
-.plist li{display:flex;gap:12px;align-items:flex-start;padding:10px 15px;border-bottom:1px solid #F0F4F8}
+.plist li{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;padding:10px 15px;border-bottom:1px solid #F0F4F8}
 .plist li:last-child{border-bottom:none}
 .plist li.clickable{cursor:pointer}
 .plist li.clickable:hover{background:#F7FAFD}
 .plist .when{flex:0 0 54px;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);line-height:1.3}
 .plist .when b{display:block;color:var(--ink);font-size:14px;font-weight:600}
-.plist .m{flex:1;min-width:0}
+/* Der Name darf kürzen, nicht überlaufen — und braucht Platz für mindestens
+   ein Wort, bevor die Knöpfe in die nächste Zeile rutschen. */
+.plist .m{flex:1 1 180px;min-width:0;overflow:hidden}
+.plist .m b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .plist .m b{font-size:13.5px;font-weight:600;display:block}
 .plist .m .sub{font-size:12px;color:var(--ink-soft);margin-top:2px}
 .plist .rt{flex:0 0 auto;text-align:right}
@@ -665,6 +677,64 @@ de:{
   t_react:"{n} ist wieder aufgenommen.",
   t_super_off:"{n} ist kein Superadmin mehr.",
   t_super_on:"{n} ist jetzt Superadmin.",
+  act_ask:"Entscheidung anfordern",
+  ask_by:"Angefragt von",
+  ask_dec_h:"Was gilt ab jetzt? Dieser Satz steht später in der Entscheidungsliste.",
+  ask_decide:"Entscheiden",
+  ask_due:"Entscheidung bis",
+  ask_due_h:"Bis wann muss die Antwort vorliegen, damit der Plan hält?",
+  ask_h:"Was die Leitung entscheiden muss — mit Frist, Möglichkeiten und Ihrer Empfehlung. Ein Bericht wirkt durch die Frage, nicht durch den Status.",
+  ask_none:"Nichts offen",
+  ask_none_s:"Es liegt derzeit keine Entscheidung zur Vorlage.",
+  ask_open:"Offener Entscheidungsbedarf",
+  ask_opts:"Möglichkeiten",
+  ask_opts_h:"Welche Wege gibt es, je mit Folge? Eine Zeile je Möglichkeit.",
+  ask_over:"überfällig",
+  ask_q:"Worum wird entschieden?",
+  ask_q_h:"Eine Frage, die sich mit Ja, Nein oder einer der Möglichkeiten beantworten lässt.",
+  ask_rec:"Empfehlung",
+  ask_rec_h:"Wozu rät die Projektleitung — und warum?",
+  ask_taken:"Getroffene Entscheidungen",
+  ask_topic_h:"Kurz und aus Sicht der Leitung, nicht aus Sicht des Projekts.",
+  ask_who:"Wer entscheidet",
+  ask_withdraw:"Zurückziehen",
+  ask_withdraw_q:"{x} zurückziehen? Der Punkt verschwindet aus dem Bericht; die Entscheidung wird nicht mehr benötigt.",
+  c_asks:"Entscheidungsbedarf",
+  c_asks_h:"Was die Leitung entscheiden muss — nach Frist.",
+  e_askdue:"Ohne Frist bleibt eine Anfrage liegen. Bitte ein Datum angeben.",
+  e_askq:"Bitte die Frage ausformulieren, die beantwortet werden soll.",
+  ev_askdecided:"Entscheidung getroffen: {x}",
+  ev_askedit:"Entscheidungsbedarf geändert: {x}",
+  ev_asknew:"Entscheidung angefordert: {x}",
+  ev_askwithdrawn:"Entscheidungsbedarf zurückgezogen: {x}",
+  exec_ms:"Nächste Meilensteine",
+  exec_next:"Was als Nächstes ansteht",
+  exec_risks:"Größte Risiken",
+  exp_board:"Bericht für die Leitungsrunde",
+  exp_board_h:"Alle Projekte auf einem Stand: Gesamtlage, Richtung, Termintreue, kritische Risiken und der gesammelte Entscheidungsbedarf.",
+  exp_board_s:"Stand {d}",
+  exp_exec:"Einseiter",
+  exp_exec_btn:"Einseiter",
+  mta_base:"Ursprünglich",
+  mta_drift:"Abweichung",
+  mta_h:"Wann stand der Termin auf welchem Datum? Eine steigende Linie heißt: der Meilenstein wandert nach hinten.",
+  mta_moves:"Verschiebungen",
+  mta_none:"Noch keine Terminhistorie",
+  mta_none_s:"Sobald ein Meilenstein angelegt und ein Termin verschoben wird, entsteht hier die Verlaufslinie.",
+  mta_stable:"Alle Termine halten",
+  mta_sum:"{n} von {g} verschoben · größter Verzug {d} Tage",
+  mta_t:"Meilenstein-Trend",
+  mta_x:"Berichtszeitpunkt →",
+  t_ask:"Entscheidungsbedarf {r} angelegt.",
+  t_askdone:"{r} ist entschieden und steht in den Entscheidungen.",
+  t_askwd:"{r} wurde zurückgezogen.",
+  tr_col:"Richtung",
+  tr_down:"schlechter",
+  tr_flat:"unverändert",
+  tr_h:"Vorher {a}, jetzt {b}.",
+  tr_new:"neu",
+  tr_new_h:"Noch kein Vergleichswert aus einer früheren Woche.",
+  tr_up:"besser",
   act_dec:"Entscheidung festhalten",
   col_sub:"Teilaufgabe",
   act_sub:"Teilaufgabe anlegen",
@@ -1155,6 +1225,64 @@ en:{
   t_react:"{n} is active again.",
   t_super_off:"{n} is no longer a superadmin.",
   t_super_on:"{n} is now a superadmin.",
+  act_ask:"Request a decision",
+  ask_by:"Raised by",
+  ask_dec_h:"What applies from now on? This sentence will appear in the decision log.",
+  ask_decide:"Decide",
+  ask_due:"Decision by",
+  ask_due_h:"By when must the answer be in for the plan to hold?",
+  ask_h:"What management has to decide — with a deadline, the options and your recommendation. A report works through the question, not the status.",
+  ask_none:"Nothing open",
+  ask_none_s:"There is currently no decision awaiting management.",
+  ask_open:"Open decisions required",
+  ask_opts:"Options",
+  ask_opts_h:"Which ways are there, each with its consequence? One line per option.",
+  ask_over:"overdue",
+  ask_q:"What is to be decided?",
+  ask_q_h:"A question that can be answered with yes, no or one of the options.",
+  ask_rec:"Recommendation",
+  ask_rec_h:"What does the project lead advise — and why?",
+  ask_taken:"Decisions taken",
+  ask_topic_h:"Short, and from management's angle, not the project's.",
+  ask_who:"Who decides",
+  ask_withdraw:"Withdraw",
+  ask_withdraw_q:"Withdraw {x}? The item disappears from the report; the decision is no longer needed.",
+  c_asks:"Decisions required",
+  c_asks_h:"What management has to decide — by deadline.",
+  e_askdue:"Without a deadline a request is left lying. Please give a date.",
+  e_askq:"Please spell out the question to be answered.",
+  ev_askdecided:"Decision taken: {x}",
+  ev_askedit:"Decision request changed: {x}",
+  ev_asknew:"Decision requested: {x}",
+  ev_askwithdrawn:"Decision request withdrawn: {x}",
+  exec_ms:"Next milestones",
+  exec_next:"What comes next",
+  exec_risks:"Biggest risks",
+  exp_board:"Board report",
+  exp_board_h:"All projects as of one date: overall health, direction, schedule adherence, critical risks and the collected decisions required.",
+  exp_board_s:"As of {d}",
+  exp_exec:"One-pager",
+  exp_exec_btn:"One-pager",
+  mta_base:"Originally",
+  mta_drift:"Deviation",
+  mta_h:"Which date did the milestone stand on, and when? A rising line means it keeps moving back.",
+  mta_moves:"Shifts",
+  mta_none:"No date history yet",
+  mta_none_s:"As soon as a milestone is created and a date is moved, the trend line appears here.",
+  mta_stable:"All dates holding",
+  mta_sum:"{n} of {g} moved · largest slip {d} days",
+  mta_t:"Milestone trend",
+  mta_x:"Reporting date →",
+  t_ask:"Decision request {r} created.",
+  t_askdone:"{r} has been decided and is in the decision log.",
+  t_askwd:"{r} has been withdrawn.",
+  tr_col:"Direction",
+  tr_down:"worse",
+  tr_flat:"unchanged",
+  tr_h:"Previously {a}, now {b}.",
+  tr_new:"new",
+  tr_new_h:"No comparison value from an earlier week yet.",
+  tr_up:"better",
   act_dec:"Record a decision",
   col_sub:"Subtask",
   act_sub:"Add subtask",
@@ -1671,6 +1799,14 @@ function addBusinessDays(dateStr, days) {
   return iso(d);
 }
 const daysTo = s => Math.round((new Date(s) - new Date(today())) / 864e5);
+/* Kalenderwoche nach ISO 8601: Woche 1 ist die mit dem ersten Donnerstag. */
+function isoWeek(d) {
+  const x = new Date(d); x.setHours(0,0,0,0);
+  x.setDate(x.getDate() + 3 - ((x.getDay() + 6) % 7));
+  const erste = new Date(x.getFullYear(), 0, 4);
+  const n = 1 + Math.round(((x - erste) / 864e5 - 3 + ((erste.getDay() + 6) % 7)) / 7);
+  return x.getFullYear() + "-" + String(n).padStart(2, "0");
+}
 const fmtDate = s => s ? new Date(s).toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { day:"2-digit", month:"short" }) : t("none");
 
 /* ---------- Audit-Trail ---------- */
@@ -1825,7 +1961,8 @@ document.getElementById("modal").onclick = e => { if (e.target.id === "modal") c
    wo die Ansicht eine Liste ist.
    ========================================================================== */
 const XLS_KINDS = ["pcc_dash","pcc_projects","pcc_risks","pcc_tasks","pcc_ms",
-  "pcc_report","pcc_ptasks","pcc_prisks","pcc_pact","pcc_pdec","pcc_pgantt","pcc_weekly"];
+  "pcc_report","pcc_ptasks","pcc_prisks","pcc_pact","pcc_pdec","pcc_pgantt","pcc_weekly",
+  "pcc_exec","pcc_board"];
 const fmtLong = d => d ? new Date(d).toLocaleDateString(L === "de" ? "de-AT" : "en-GB",
   { day:"2-digit", month:"2-digit", year:"numeric" }) : t("none");
 
@@ -2242,7 +2379,10 @@ const PROJECTS = [];
 
 function mkProject(o) {
   const p = Object.assign({ id:pid(), ws:[], tasks:[], ms:[], risks:[], issues:[],
-    decisions:[], docs:[], team:[], versions:[], links:[], archived:false }, o);
+    decisions:[], docs:[], team:[], versions:[], links:[], archived:false,
+    /* asks: was die Leitung entscheiden muss. trend: die Lage je Woche —
+       ein Bericht, der nur den Zustand zeigt, verschweigt die Richtung. */
+    asks:[], trend:[] }, o);
   PROJECTS.push(p);
   return p;
 }
@@ -2625,6 +2765,17 @@ const pOpenRisks = p => p.risks.filter(r => ["open","monitoring"].includes(r.sta
 const rScore = r => r.prob * r.imp;
 const pCritRisks = p => pOpenRisks(p).filter(r => rScore(r) >= 15);
 const pMsOverdue = m => m.status !== "completed" && daysTo(m.date) < 0;
+/* Um wie viele Tage ist ein Meilenstein gegenüber dem ursprünglichen Plan
+   gewandert? Positiv heißt: später als geplant. */
+const msDrift = m => (m.baseline && m.date) ? dayDiff(m.date, m.baseline) : 0;
+const msMoves = m => Math.max(0, ((m.hist || []).length - 1));
+/* Die Termintreue eines Projekts in einem Satz: wie viele Meilensteine
+   wanderten, und der größte Verzug darunter. */
+function pDrift(p) {
+  const bewegt = p.ms.filter(m => msDrift(m) > 0);
+  const max = p.ms.reduce((a, m) => Math.max(a, msDrift(m)), 0);
+  return { bewegt:bewegt.length, gesamt:p.ms.length, max };
+}
 function pNextMs(p) {
   return p.ms.filter(m => m.status !== "completed").sort((a,b) => a.date < b.date ? -1 : 1)[0] || null;
 }
@@ -2637,6 +2788,38 @@ function pHealth(p) {
   return "green";
 }
 const healthCls = h => h === "red" ? "bad" : h === "amber" ? "warn" : "ok";
+const H_RANG = { green:0, amber:1, red:2 };
+/* Einmal je Woche festhalten, wie ein Projekt steht. Überschrieben wird
+   innerhalb derselben Woche: es zählt der Stand, mit dem die Woche endet. */
+function trendTick() {
+  const w = isoWeek(today());
+  PROJECTS.forEach(p => {
+    if (!p.trend) p.trend = [];
+    const h = pHealth(p), letzter = p.trend[p.trend.length - 1];
+    if (letzter && letzter.w === w) letzter.h = h;
+    else p.trend.push({ w, h });
+    if (p.trend.length > 104) p.trend.shift();   // zwei Jahre reichen
+  });
+}
+/* Besser, gleich oder schlechter als beim letzten Mal? Verglichen wird mit
+   dem jüngsten Eintrag aus einer früheren Woche — nicht mit dem von heute. */
+function trendOf(p) {
+  const tr = p.trend || [];
+  if (tr.length < 2) return { dir:0, from:null };
+  const jetzt = tr[tr.length - 1];
+  const vorher = [...tr].reverse().find(x => x.w !== jetzt.w);
+  if (!vorher) return { dir:0, from:null };
+  const d = H_RANG[vorher.h] - H_RANG[jetzt.h];
+  return { dir:d > 0 ? 1 : d < 0 ? -1 : 0, from:vorher.h, to:jetzt.h, w:vorher.w };
+}
+const trendIcon = d => d > 0 ? "▲" : d < 0 ? "▼" : "→";
+function trendPill(p) {
+  const tr = trendOf(p);
+  if (!tr.from) return `<span class="pill p-open" title="${esc(t("tr_new_h"))}">${t("tr_new")}</span>`;
+  const cls = tr.dir > 0 ? "p-done" : tr.dir < 0 ? "p-late" : "p-open";
+  return `<span class="pill ${cls}" title="${esc(t("tr_h", { a:t("h_" + tr.from), b:t("h_" + tr.to) }))}">${
+    trendIcon(tr.dir)} ${t(tr.dir > 0 ? "tr_up" : tr.dir < 0 ? "tr_down" : "tr_flat")}</span>`;
+}
 /* Die Gesamtlage als Ampel, immer beschriftet: eine Farbe allein sagt nicht,
    wofür sie steht. */
 /* Warum die Ampel so steht, wie sie steht. Eine Farbe ohne Begründung führt zu
@@ -2729,7 +2912,7 @@ const pActivity = p => PLOG.filter(e => !p || e.project === p.id);
    Prototyp weiter und sagt es in der Sandbox-Leiste.
    ========================================================================== */
 const STORE_KEY = "pcc.sandbox.v1";
-const APP_VERSION = "1.10.0";
+const APP_VERSION = "1.11.0";
 let DATA_REV = 0;        // zählt jede Änderung; steht in jedem Export
 let SAVED_AT = null;     // wann zuletzt gespeichert wurde
 let STORE_OK = true;     // ob das Gerät überhaupt speichert
@@ -2893,6 +3076,7 @@ function pDialogRestore() {
    Ausgabe nachgezogen. */
 function commit() {
   DATA_REV++;
+  trendTick();
   storeSave();
   if (document.getElementById("sandbar") && ACCESS) renderSandbar();
   refreshOpenExport();
@@ -3257,17 +3441,38 @@ function pccDash() {
       </header>
       <div class="inner">${timelineHTML(tlHead, true)}</div></div>
 
+    ${(() => {
+      const asks = pAllOpenAsks();
+      if (!asks.length) return "";
+      /* Ganz oben, vor allen Zahlen: Was von der Leitung entschieden werden
+         muss, ist das Einzige im Dashboard, das jemand anderes tun muss. */
+      return `<div class="pcard"><header><h2>${t("c_asks")}</h2>
+        <span class="co">${t("c_asks_h")}</span>
+        ${asks.some(x => askOverdue(x.a)) ? pill("p-late", t("ask_over")) : ""}</header>
+        <div class="tblwrap aslist"><table><thead><tr>
+          <th>${t("ask_due")}</th><th>${t("col_title")}</th><th>${t("col_project")}</th>
+          <th>${t("ask_rec")}</th><th>${t("ask_who")}</th>
+        </tr></thead><tbody>${asks.map(({ p, a }) => `<tr data-pp="${p.id}">
+          <td${askOverdue(a) ? ' style="color:var(--late);font-weight:600"' : ' class="co"'}>${
+            fmtDate(a.due)}</td>
+          <td><b>${esc(a.topic)}</b><div class="num">${esc(a.ref)}</div></td>
+          <td class="num">${esc(p.key)}</td>
+          <td class="co">${esc((a.recommendation || t("none")).slice(0, 70))}</td>
+          <td class="co">${esc(a.who || t("none"))}</td>
+        </tr>`).join("")}</tbody></table></div></div>`;
+    })()}
     <div class="pcard"><header><h2>${t("c_health")}</h2>
       <span class="co">${active.length} ${t("k_active").toLowerCase()}</span></header>
       <div class="tblwrap aslist"><table><thead><tr>
-        <th>${t("col_project")}</th><th>${t("col_health")}</th><th>${t("col_status")}</th>
-        <th>${t("col_progress")}</th>
+        <th>${t("col_project")}</th><th>${t("col_health")}</th><th>${t("tr_col")}</th>
+        <th>${t("col_status")}</th><th>${t("col_progress")}</th>
         <th>${t("col_pm")}</th><th>${t("col_next")}</th><th>${t("col_risks")}</th>
       </tr></thead><tbody>${ps.map(p => {
         const n = pNextMs(p), cr = pCritRisks(p).length;
         return `<tr data-pp="${p.id}">
           <td><b>${esc(p.name)}</b><div class="num">${esc(p.key)}</div></td>
           <td>${healthPill(p)}</td>
+          <td>${trendPill(p)}</td>
           <td>${pStatusPill(p.status)}</td>
           <td style="min-width:130px">${pBar(pProgress(p), healthCls(pHealth(p)))}</td>
           <td class="co">${pUser(p.pm)}</td>
@@ -3275,7 +3480,7 @@ function pccDash() {
           <td>${pOpenRisks(p).length}${cr ? ` <span class="pill p-late">${cr} ${t("rl_crit_s")}</span>` : ""}</td>
         </tr>`; }).join("")}</tbody></table></div>
       <div class="cards" style="padding:12px">${ps.map(p => `<article class="card" data-pp="${p.id}">
-        <div class="top"><span class="num">${esc(p.key)}</span>${healthPill(p)}</div>
+        <div class="top"><span class="num">${esc(p.key)}</span>${healthPill(p)}${trendPill(p)}</div>
         <h4>${esc(p.name)}</h4>
         <div class="sub"><span>${pUser(p.pm)}</span></div>
         <div style="margin-top:8px">${pBar(pProgress(p), healthCls(pHealth(p)))}</div>
@@ -3585,6 +3790,99 @@ function pccMilestones() {
           : m.status === "in_progress" ? "p-work" : "p-open", t("ms_" + m.status))}</div>
       <h4>${esc(m.name)}</h4><div class="sub"><span>${pUser(m.owner)}</span></div></article>`).join("")}</div>`;
 }
+/* ---------- Entscheidungsbedarf ----------
+   Ein Bericht an die Geschäftsführung wirkt nicht durch Statuszahlen, sondern
+   durch die Frage, die beantwortet werden muss. Deshalb eine eigene Liste:
+   worum es geht, bis wann, welche Möglichkeiten es gibt, was die
+   Projektleitung empfiehlt. Wird entschieden, wandert der Punkt in die
+   Entscheidungen — dort steht am Ende, was beschlossen wurde und warum. */
+const pOpenAsks = p => (p.asks || []).filter(a => a.status === "open");
+const pAllOpenAsks = () => pFiltered().flatMap(p => pOpenAsks(p).map(a => ({ p, a })))
+  .sort((x, y) => (x.a.due || "9") < (y.a.due || "9") ? -1 : 1);
+/* Immer ein Ja oder Nein — ein „undefined" in einer Bedingung ist der Anfang
+   schwer auffindbarer Fehler. */
+const askOverdue = a => !!a.due && daysTo(a.due) < 0;
+
+function pDialogAsk(p, a) {
+  const neu = !a;
+  openDialog({
+    title:neu ? t("act_ask") : a.ref + " · " + a.topic, text:t("ask_h"),
+    okLabel:neu ? t("create") : t("save"),
+    values:neu ? { topic:"", question:"", options:"", recommendation:"", due:addBusinessDays(today(), 10), who:"" }
+               : { topic:a.topic, question:a.question || "", options:a.options || "",
+                   recommendation:a.recommendation || "", due:a.due || "", who:a.who || "" },
+    build: () => [
+      { name:"topic", label:t("col_title"), type:"text", req:true, hint:t("ask_topic_h") },
+      { name:"question", label:t("ask_q"), type:"textarea", req:true, hint:t("ask_q_h") },
+      { name:"options", label:t("ask_opts"), type:"textarea", hint:t("ask_opts_h") },
+      { name:"recommendation", label:t("ask_rec"), type:"textarea", hint:t("ask_rec_h") },
+      { name:"due", label:t("ask_due"), type:"date", half:true, req:true, hint:t("ask_due_h") },
+      { name:"who", label:t("ask_who"), type:"text", half:true, placeholder:"Geschäftsführung, Accountable Manager …" }
+    ],
+    validate: v => {
+      const e = [];
+      if ((v.topic || "").trim().length < 3) e.push({ f:"topic", m:t("e_pname") });
+      if ((v.question || "").trim().length < 5) e.push({ f:"question", m:t("e_askq") });
+      if (!v.due) e.push({ f:"due", m:t("e_askdue") });
+      return e;
+    },
+    onSubmit: v => {
+      const feld = { topic:v.topic.trim(), question:v.question.trim(), options:v.options,
+                     recommendation:v.recommendation, due:v.due, who:(v.who || "").trim() };
+      if (neu) {
+        const ask = Object.assign({ id:pid(), ref:nextRef(p.asks, "A"), status:"open",
+                                    asked:today(), by:me }, feld);
+        p.asks.push(ask);
+        plg(p, me, { k:"ev_asknew", x:ask.ref + " " + ask.topic });
+        toast(t("t_ask", { r:ask.ref }));
+      } else {
+        Object.assign(a, feld);
+        plg(p, me, { k:"ev_askedit", x:a.ref + " " + a.topic });
+        toast(t("t_psaved"));
+      }
+      commit(); render();
+    }
+  });
+}
+
+/* Entschieden heißt: Der Punkt verlässt die offene Liste und steht ab sofort
+   als Entscheidung im Projekt — mit Begründung und Wirkung. */
+function pDialogAskDecide(p, a) {
+  openDialog({
+    title:t("ask_decide") + ": " + a.ref, text:a.question, okLabel:t("ask_decide"),
+    values:{ decision:a.recommendation || "", rationale:"", impact:"", maker:p.pm, date:today() },
+    build: () => [
+      { name:"decision", label:t("tab_dec"), type:"textarea", req:true, hint:t("ask_dec_h") },
+      { name:"rationale", label:t("f_rat"), type:"textarea" },
+      { name:"impact", label:t("f_imp2"), type:"textarea" },
+      { name:"maker", label:t("f_maker"), type:"select", half:true, options:teamOpts(p) },
+      { name:"date", label:t("col_date"), type:"date", half:true, req:true }
+    ],
+    validate: v => {
+      const e = [];
+      if ((v.decision || "").trim().length < 3) e.push({ f:"decision", m:t("e_dec") });
+      if (!v.date) e.push({ f:"date", m:t("e_msdate") });
+      return e;
+    },
+    onSubmit: v => {
+      a.status = "decided"; a.decidedOn = v.date;
+      p.decisions.push({ id:pid(), ref:nextRef(p.decisions, "D"), date:v.date, topic:a.topic,
+        decision:v.decision.trim(), maker:v.maker, participants:[],
+        rationale:v.rationale, impact:v.impact, fromAsk:a.ref });
+      plg(p, me, { k:"ev_askdecided", x:a.ref + " " + a.topic });
+      toast(t("t_askdone", { r:a.ref })); commit(); render();
+    }
+  });
+}
+
+function pAskWithdraw(p, a) {
+  confirmDialog(t("ask_withdraw"), t("ask_withdraw_q", { x:a.ref + " " + a.topic }), t("ask_withdraw"), () => {
+    a.status = "withdrawn";
+    plg(p, me, { k:"ev_askwithdrawn", x:a.ref + " " + a.topic });
+    toast(t("t_askwd", { r:a.ref })); commit(); render();
+  });
+}
+
 /* ---------- Verwaltung ----------
    Personen, Projekte und der Bestand an einem Ort. Vorher lagen diese Wege
    verstreut: Personen nur in einer Projektakte, die Sicherung unter Berichte,
@@ -3715,8 +4013,12 @@ function pccReports() {
       <ul class="plist">${ps.map(p => `<li>
         <span class="m"><b>${esc(p.name)}</b><span class="sub">${esc(p.key)} · ${pUser(p.pm)}</span></span>
         <span class="rt hdacts">
+          <button class="btn-ghost" data-prep="exec|${p.id}">${t("exp_exec_btn")}</button>
           <button class="btn-ghost" data-prep="pdf|${p.id}">${t("exp_pdf")}</button>
           <button class="btn-ghost" data-prep="xls|${p.id}">${t("exp_xls")}</button></span></li>`).join("")}</ul></div>
+    <div class="pcard"><header><h2>${t("exp_board")}</h2></header><div class="inner">
+      <p class="muted" style="margin-bottom:10px">${t("exp_board_h")}</p>
+      <span class="hdacts">${expBtns("pcc_board")}</span></div></div>
     <div class="pcard"><header><h2>${t("rep_weekly")}</h2></header><div class="inner">
       <p class="muted" style="margin-bottom:10px">${t("rep_weekly_s")}</p>
       <div class="hdacts">
@@ -3761,6 +4063,7 @@ function pHeader(p) {
         ${canEdit ? `<button class="btn-ghost" id="pedit">${t("edit")}</button>
           <button class="btn-ghost" id="parchive">${t("arch_t")}</button>` : ""}
         ${p.archived && pIsAdmin() ? `<button class="btn-ghost" id="punarchive">${t("arch_undo")}</button>` : ""}
+        <button class="btn-primary" data-prep="exec|${p.id}">${t("exp_exec_btn")}</button>
         <button class="btn-ghost" data-prep="pdf|${p.id}">${t("exp_pdf")}</button>
         <button class="btn-ghost" data-prep="xls|${p.id}">${t("exp_xls")}</button>
       </span>
@@ -3900,8 +4203,28 @@ function pTabIssues(p) {
     || `<p class="muted">${t("p_none")}</p>`}`;
 }
 function pTabDecisions(p) {
+  const offen = pOpenAsks(p);
+  const askKarte = a => `<div class="pcard"><header>
+      <h2>${esc(a.ref)} · ${esc(a.topic)}</h2>
+      <span class="co">${t("ask_due")}: ${fmtLong(a.due)}</span>
+      ${askOverdue(a) ? pill("p-late", t("ask_over")) : ""}
+      ${a.who ? `<span class="co">· ${esc(a.who)}</span>` : ""}
+    </header><div class="inner kv2">
+      <div><div class="k">${t("ask_q")}</div><div class="v"><b>${esc(a.question)}</b></div></div>
+      ${a.options ? `<div><div class="k">${t("ask_opts")}</div><div class="v">${esc(a.options)}</div></div>` : ""}
+      ${a.recommendation ? `<div><div class="k">${t("ask_rec")}</div><div class="v">${esc(a.recommendation)}</div></div>` : ""}
+      <div><div class="k">${t("ask_by")}</div><div class="v">${pUser(a.by)} · ${fmtLong(a.asked)}</div></div>
+    </div>${pCanEdit(p) ? `<div class="inner hdacts" style="padding-top:0">
+      <button class="btn-primary" data-paskdec="${a.id}">${t("ask_decide")}</button>
+      <button class="btn-ghost" data-paskedit="${a.id}">${t("edit")}</button>
+      <button class="btn-ghost" data-paskwd="${a.id}">${t("ask_withdraw")}</button></div>` : ""}</div>`;
   return `<div class="hdacts" style="margin-bottom:12px">${pCanEdit(p)
-      ? `<button class="btn-primary" data-pdecnew="1">${t("act_dec")}</button>` : ""}${expBtns("pcc_pdec")}</div>` +
+      ? `<button class="btn-primary" data-pasknew="1">${t("act_ask")}</button>
+         <button class="btn-ghost" data-pdecnew="1">${t("act_dec")}</button>` : ""}${expBtns("pcc_pdec")}</div>` +
+    `<h3 class="sech">${t("ask_open")} ${offen.length ? `<span class="co">(${offen.length})</span>` : ""}</h3>` +
+    (offen.length ? offen.map(askKarte).join("")
+      : `<div class="tblwrap"><div class="empty"><b>${t("ask_none")}</b>${t("ask_none_s")}</div></div>`) +
+    `<h3 class="sech">${t("ask_taken")}</h3>` +
     p.decisions.map(d => `<div class="pcard"><header>
       <h2>${esc(d.ref)} · ${esc(d.topic)}</h2><span class="co">${fmtLong(d.date)}</span>
     </header><div class="inner kv2">
@@ -3995,6 +4318,71 @@ function pTabVersions(p) {
         <td class="co">${esc(evText(c.o))}</td><td><b>${esc(evText(c.n))}</b></td></tr>`).join("")}</tbody></table>` : ""}
     </div></div>`).join("") || `<p class="muted">${t("p_none")}</p>`;
 }
+/* ---------- Meilenstein-Trendanalyse ----------
+   Waagerecht: wann berichtet wurde. Senkrecht: auf welchen Termin der
+   Meilenstein zu diesem Zeitpunkt stand. Eine waagerechte Linie heißt: der
+   Termin hält. Eine steigende heißt: er wandert nach hinten — und zwar seit
+   wann und wie oft. Das ist das Bild, das in einer Leitungsrunde die
+   Diskussion beendet.
+   Gezeichnet wird ohne Bibliothek: sechs Linien, jede direkt beschriftet.
+   Die Farben unterscheiden nur die Linien; Ampelfarben bleiben dem Status
+   vorbehalten, sonst läse man Rot als Warnung statt als dritte Linie. */
+const MTA_FARBEN = ["#26507A", "#2E7D8F", "#6A4C93", "#B5486B", "#46698C", "#7D5BA6"];
+function mtaDaten(p) {
+  return p.ms.map(m => {
+    const hist = (m.hist && m.hist.length ? m.hist : [{ at:m.baseline || m.date, date:m.baseline || m.date }])
+      .slice().sort((a,b) => a.at < b.at ? -1 : 1);
+    /* Bis heute gilt der letzte bekannte Termin — sonst endete die Linie dort,
+       wo zuletzt jemand etwas geändert hat, und sähe abgebrochen aus. */
+    const punkte = hist.concat([{ at:today(), date:m.date }]);
+    return { m, punkte:punkte.filter((x, i, a) => i === 0 || x.at !== a[i-1].at || x.date !== a[i-1].date) };
+  }).filter(x => x.punkte.length);
+}
+function mtaHTML(p) {
+  const daten = mtaDaten(p).slice(0, 6);
+  if (!daten.length) return `<div class="empty"><b>${t("mta_none")}</b>${t("mta_none_s")}</div>`;
+  const alleX = daten.flatMap(d => d.punkte.map(x => x.at));
+  const alleY = daten.flatMap(d => d.punkte.map(x => x.date));
+  const x0 = alleX.reduce((a,b) => a < b ? a : b), x1 = alleX.reduce((a,b) => a > b ? a : b);
+  const y0 = alleY.reduce((a,b) => a < b ? a : b), y1 = alleY.reduce((a,b) => a > b ? a : b);
+  const W = 820, H = 300, L = 92, R = 168, T = 18, B = 42;
+  const spanX = Math.max(1, dayDiff(x1, x0)), spanY = Math.max(1, dayDiff(y1, y0));
+  const px = d => L + (dayDiff(d, x0) / spanX) * (W - L - R);
+  const py = d => T + (1 - dayDiff(d, y0) / spanY) * (H - T - B);
+  const ticksY = [y0, y1].filter((v, i, a) => a.indexOf(v) === i);
+  const ticksX = [x0, x1].filter((v, i, a) => a.indexOf(v) === i);
+  return `<div class="mtawrap"><svg viewBox="0 0 ${W} ${H}" class="mta" role="img"
+      aria-label="${esc(t("mta_t"))}">
+    ${ticksY.map(v => `<line x1="${L}" y1="${py(v)}" x2="${W - R}" y2="${py(v)}" class="mtagrid"/>
+      <text x="${L - 8}" y="${py(v) + 4}" class="mtalab" text-anchor="end">${esc(fmtLong(v))}</text>`).join("")}
+    ${ticksX.map(v => `<text x="${px(v)}" y="${H - 14}" class="mtalab" text-anchor="middle">${esc(fmtLong(v))}</text>`).join("")}
+    <line x1="${L}" y1="${T}" x2="${L}" y2="${H - B}" class="mtaaxis"/>
+    <line x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}" class="mtaaxis"/>
+    <text x="${L}" y="${H - 2}" class="mtaax">${esc(t("mta_x"))}</text>
+    ${daten.map((d, i) => {
+      const f = MTA_FARBEN[i % MTA_FARBEN.length];
+      const pts = d.punkte.map(x => `${px(x.at)},${py(x.date)}`).join(" ");
+      const letzter = d.punkte[d.punkte.length - 1];
+      const drift = msDrift(d.m);
+      return `<polyline points="${pts}" fill="none" stroke="${f}" stroke-width="2"
+          stroke-linejoin="round" stroke-linecap="round"/>
+        ${d.punkte.map(x => `<circle cx="${px(x.at)}" cy="${py(x.date)}" r="3.5" fill="${f}"/>`).join("")}
+        <text x="${px(letzter.at) + 10}" y="${py(letzter.date) + 4}" class="mtaname" fill="${f}">${
+          esc(d.m.ref)} ${esc(d.m.name.slice(0, 16))}${drift > 0 ? ` (+${drift})` : ""}</text>`;
+    }).join("")}
+  </svg></div>
+  <div class="tblwrap" style="margin-top:10px"><table><thead><tr>
+    <th>${t("f_ref")}</th><th>${t("col_title")}</th><th>${t("mta_base")}</th>
+    <th>${t("col_date")}</th><th>${t("mta_drift")}</th><th>${t("mta_moves")}</th>
+  </tr></thead><tbody>${p.ms.map(m => `<tr>
+    <td class="num">${esc(m.ref)}</td><td>${esc(m.name)}</td>
+    <td class="co">${fmtLong(m.baseline || m.date)}</td><td>${fmtLong(m.date)}</td>
+    <td${msDrift(m) > 0 ? ' style="color:var(--late);font-weight:600"' : ' class="co"'}>${
+      msDrift(m) > 0 ? "+" + msDrift(m) + " " + t("days") : "±0"}</td>
+    <td class="co">${msMoves(m)}</td></tr>`).join("")
+    || `<tr><td colspan="6" class="muted">${t("p_none")}</td></tr>`}</tbody></table></div>`;
+}
+
 function pTabTimeline(p) {
   const ms = p.ms.slice().sort((a,b) => a.date < b.date ? -1 : 1);
   /* Das Gantt ist hier der Hauptinhalt: ein einzelnes Projekt als ein Balken
@@ -4006,6 +4394,12 @@ function pTabTimeline(p) {
       <span class="hdacts">${pCanEdit(p) ? `<button class="btn-primary" data-pwsnew="1">${t("act_ws")}</button>` : ""}
         <button class="btn-ghost" id="picsproj">${t("ics_one")}</button>${expBtns("pcc_pgantt")}</span></header>
     <div class="inner">${ganttHTML(p)}</div></div>
+    <div class="pcard"><header><h2>${t("mta_t")}</h2>
+      <span class="co">${t("mta_h")}</span>
+      ${(() => { const d = pDrift(p); return d.bewegt
+        ? pill(d.max > 14 ? "p-late" : "p-work", t("mta_sum", { n:d.bewegt, g:d.gesamt, d:d.max }))
+        : pill("p-done", t("mta_stable")); })()}</header>
+      <div class="inner">${mtaHTML(p)}</div></div>
     <div class="pcard"><header><h2>${t("pn_milestones")}</h2>
       <span class="co">${ms.length} ${t("results")}</span>
       ${pCanEdit(p) ? `<span class="hdacts"><button class="btn-primary" data-pmsnew="1">${t("act_ms")}</button></span>` : ""}</header>
@@ -4334,14 +4728,20 @@ function pDialogMilestone(p, m) {
     },
     onSubmit: v => {
       if (neu) {
+        /* Der erste Termin ist der Plan. Er bleibt stehen, auch wenn der
+           Termin später wandert — sonst ließe sich Verzug nicht belegen. */
         const ms = { id:pid(), ref:nextRef(p.ms, "M"), name:v.name.trim(), date:v.date, owner:v.owner,
-                     status:v.status, ws:v.ws || null };
+                     status:v.status, ws:v.ws || null, baseline:v.date,
+                     hist:[{ at:today(), date:v.date }] };
         p.ms.push(ms);
         plg(p, me, { k:"ev_msnew", x:ms.ref + " " + ms.name });
       } else {
         const oldDate = m.date, oldStatus = m.status;
         Object.assign(m, { name:v.name.trim(), date:v.date, owner:v.owner, status:v.status, ws:v.ws || null });
         if (oldDate !== m.date) {
+          /* Jede Verschiebung mit Datum: daraus entsteht die Trendanalyse. */
+          if (!m.baseline) m.baseline = oldDate;
+          m.hist = (m.hist || [{ at:today(), date:oldDate }]).concat([{ at:today(), date:m.date }]);
           plg(p, me, { k:"ev_msmoved", x:m.ref + " " + m.name + ": " + fmtLong(oldDate) + " → " + fmtLong(m.date) });
           pver(p, { k:"ev_msmoved", x:m.name },
             [{ e:m.name, f:{ k:"col_date" }, o:fmtLong(oldDate), n:fmtLong(m.date) }]);
@@ -4861,6 +5261,10 @@ function wirePcc() {
   on("[data-pwsnew]", () => pDialogWorkstream(P(), null));
   on("[data-pwsedit]", b => pDialogWorkstream(P(), P().ws.find(x => x.id === b.dataset.pwsedit)));
   on("[data-pdecnew]", () => pDialogDecision(P(), null));
+  on("[data-pasknew]", () => pDialogAsk(P(), null));
+  on("[data-paskedit]", b => pDialogAsk(P(), P().asks.find(a => a.id === b.dataset.paskedit)));
+  on("[data-paskdec]", b => pDialogAskDecide(P(), P().asks.find(a => a.id === b.dataset.paskdec)));
+  on("[data-paskwd]", b => pAskWithdraw(P(), P().asks.find(a => a.id === b.dataset.paskwd)));
   on("[data-pdecedit]", b => pDialogDecision(P(), P().decisions.find(x => x.id === b.dataset.pdecedit)));
   on("[data-ptmadd]", () => pDialogTeam(P(), null));
   on("[data-ptmedit]", b => pDialogTeam(P(), P().team[+b.dataset.ptmedit]));
@@ -4898,7 +5302,9 @@ function wirePcc() {
     e.stopPropagation();
     const [how, id] = b.dataset.prep.split("|");
     pRepProject = id;
-    how === "pdf" ? openPrint("pcc_report") : exportTable("pcc_report");
+    if (how === "exec") openPrint("pcc_exec");
+    else if (how === "pdf") openPrint("pcc_report");
+    else exportTable("pcc_report");
   });
 }
 let pRepProject = null;
@@ -5167,6 +5573,64 @@ function pccDoc(kind) {
   if (kind === "pcc_pact") return { title:t("tab_act") + " — " + cur.key, meta:projMeta(cur),
     sections:[{ cols:[t("exp_when"), t("exp_who"), t("exp_what")],
       rows:pActivity(cur).map(e => [fmtLong(e.ts.slice(0,10)), pName(e.who), evText(e.txt)]) }] };
+  /* Der Einseiter für die Leitungsrunde: Lage, Richtung, was ansteht, was
+     schiefgehen kann — und was entschieden werden muss. Alles, was die
+     Projektleitung ohnehin weiß, aber selten in einem Blatt beisammen hat. */
+  if (kind === "pcc_exec") {
+    const p = pById(pRepProject) || cur;
+    const tr = trendOf(p), dr = pDrift(p);
+    const offen = pOpenAsks(p);
+    const risiken = pOpenRisks(p).slice().sort((a,b) => rScore(b) - rScore(a)).slice(0, 3);
+    const nMs = p.ms.filter(m => m.status !== "completed")
+      .sort((a,b) => a.date < b.date ? -1 : 1).slice(0, 3);
+    return { title:t("exp_exec") + " — " + p.name, subtitle:p.key, sign:true,
+      meta:[[t("f_health"), t("h_" + pHealth(p)) + " · " + healthWhy(p)],
+        [t("tr_col"), tr.from ? t("tr_" + (tr.dir > 0 ? "up" : tr.dir < 0 ? "down" : "flat"))
+          + " (" + t("h_" + tr.from) + " → " + t("h_" + tr.to) + ")" : t("tr_new")],
+        [t("col_progress"), pProgress(p) + "%"],
+        [t("f_start"), fmtLong(p.start) + " – " + fmtLong(p.end)],
+        [t("mta_t"), dr.bewegt ? t("mta_sum", { n:dr.bewegt, g:dr.gesamt, d:dr.max }) : t("mta_stable")],
+        [t("col_pm"), pName(p.pm)]],
+      sections:[
+      { h:t("ask_open"), cols:[t("ask_due"), t("col_title"), t("ask_q"), t("ask_rec"), t("ask_who")],
+        rows:offen.map(a => [fmtLong(a.due), a.topic, a.question, a.recommendation || "", a.who || ""]) },
+      { h:t("exec_ms"), cols:[t("col_date"), t("col_title"), t("mta_base"), t("mta_drift"), t("col_status")],
+        rows:nMs.map(m => [fmtLong(m.date), m.name, fmtLong(m.baseline || m.date),
+          msDrift(m) > 0 ? "+" + msDrift(m) + " " + t("days") : "±0", t("ms_" + m.status)]) },
+      { h:t("exec_risks"), cols:[t("f_ref"), t("col_title"), t("col_score"), t("col_owner"), t("f_mit")],
+        rows:risiken.map(r => [r.ref, r.title, String(rScore(r)), pName(r.owner), r.mitigation || ""]) },
+      { h:t("exec_next"), cols:[t("col_date"), t("col_task"), t("col_assignee")],
+        rows:p.tasks.filter(x => !pTaskDone(x) && x.due)
+          .sort((a,b) => a.due < b.due ? -1 : 1).slice(0, 5)
+          .map(x => [fmtLong(x.due), x.title, pName(x.assignee)]) }
+    ] };
+  }
+  /* Das Paket für die Leitungsrunde: alle Projekte auf einem Stand, mit der
+     Gesamtlage vorn und dem Entscheidungsbedarf gesammelt. */
+  if (kind === "pcc_board") {
+    const asks = pAllOpenAsks();
+    return { title:t("exp_board"), subtitle:t("exp_board_s", { d:fmtLong(today()) }), sign:true,
+      meta:listMeta().concat([[t("k_active"), String(ps.filter(p => !["completed","cancelled"].includes(p.status)).length)],
+        [t("c_asks"), String(asks.length)]]),
+      sections:[
+      { h:t("c_asks"), cols:[t("ask_due"), t("col_project"), t("col_title"), t("ask_rec"), t("ask_who")],
+        rows:asks.map(({ p, a }) => [fmtLong(a.due), p.key, a.topic, a.recommendation || "", a.who || ""]) },
+      { h:t("c_health"), cols:[t("f_key"), t("col_project"), t("col_health"), t("tr_col"),
+          t("col_progress"), t("col_next"), t("f_health")],
+        rows:ps.map(p => { const tr = trendOf(p), n = pNextMs(p);
+          return [p.key, p.name, t("h_" + pHealth(p)),
+            tr.from ? t("tr_" + (tr.dir > 0 ? "up" : tr.dir < 0 ? "down" : "flat")) : t("tr_new"),
+            pProgress(p) + "%", n ? fmtLong(n.date) + " " + n.name : t("none"), healthWhy(p)]; }) },
+      { h:t("mta_t"), cols:[t("f_key"), t("col_project"), t("mta_moves"), t("mta_drift")],
+        rows:ps.map(p => { const d = pDrift(p);
+          return [p.key, p.name, d.bewegt + " / " + d.gesamt, d.max ? "+" + d.max + " " + t("days") : "±0"]; }) },
+      { h:t("c_crit"), cols:[t("f_ref"), t("col_project"), t("col_title"), t("col_score"), t("col_owner")],
+        rows:ps.flatMap(p => pCritRisks(p).map(r => [r.ref, p.key, r.title, String(rScore(r)), pName(r.owner)])) },
+      { h:t("c_overdue"), cols:[t("col_due"), t("col_project"), t("col_task"), t("col_assignee")],
+        rows:ps.flatMap(p => pOverdueTasks(p).map(x => [fmtLong(x.due), p.key, x.title, pName(x.assignee)]))
+          .sort((a,b) => a[0] < b[0] ? -1 : 1) }
+    ] };
+  }
   if (kind === "pcc_report") {
     const p = pById(pRepProject) || cur;
     const tk = p.tasks.map(x => ({ p, x })), rk = p.risks.map(r => ({ p, r }));

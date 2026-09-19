@@ -128,5 +128,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'Back and dashboard buttons in the header on every page.'),
   ('1.10.0', date '2026-09-19',
    'Verwaltungsbereich für Personen, Projekte und Datenbestand; Rolle Superadmin.',
-   'Administration area for people, projects and data; superadmin role.')
+   'Administration area for people, projects and data; superadmin role.'),
+  ('1.11.0', date '2026-09-19',
+   'Berichtslinie zur Geschäftsführung: Einseiter, Entscheidungsbedarf, Ampel-Trend, Leitungsbericht, Meilenstein-Trend.',
+   'Reporting line to management: one-pager, decisions required, health trend, board report, milestone trend.')
 on conflict (version) do nothing;

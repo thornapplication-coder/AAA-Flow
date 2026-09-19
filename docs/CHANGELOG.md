@@ -3,6 +3,56 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.11.0 — 2026-09-19
+
+### Die Berichtslinie zur Geschäftsführung
+
+Fünf Werkzeuge für die Projektleitung, die an die Geschäftsführung berichtet.
+Der Gedanke dahinter: Ein Bericht wirkt nicht durch Statuszahlen, sondern durch
+die Frage, die beantwortet werden muss, und durch die Richtung, in die sich
+etwas bewegt.
+
+**Entscheidungsbedarf.** Eine eigene Liste je Projekt: worum entschieden wird,
+bis wann, welche Möglichkeiten es gibt, was die Projektleitung empfiehlt und wer
+entscheidet. Offene Punkte stehen **im Dashboard ganz oben** — sie sind das
+Einzige, was jemand anderes tun muss. Wird entschieden, wandert der Punkt in die
+Entscheidungsliste des Projekts und trägt dort, worauf er zurückgeht. Ohne Frist
+lässt sich nichts anfordern: eine Anfrage ohne Termin bleibt liegen.
+
+**Ampel-Trend.** Die Lage jedes Projekts wird wochenweise festgehalten
+(überschrieben innerhalb der Woche — es zählt, womit die Woche endet). Im
+Dashboard und in jedem Bericht steht danach nicht nur die Farbe, sondern die
+Richtung: besser, unverändert, schlechter — verglichen mit der letzten Woche,
+in der etwas erfasst wurde, nicht mit heute Morgen.
+
+**Meilenstein-Trend.** Der erste Termin eines Meilensteins wird zur Baseline und
+bleibt stehen. Jede Verschiebung wird mit Datum mitgeschrieben. Daraus entsteht
+im Projektverlauf ein Liniendiagramm: waagerecht der Berichtszeitpunkt,
+senkrecht der Termin, auf dem der Meilenstein damals stand. Eine waagerechte
+Linie heißt, der Termin hält; eine steigende zeigt, seit wann und wie oft er
+wandert. Darunter dieselbe Auskunft als Tabelle — Plan, aktuell, Abweichung,
+Anzahl der Verschiebungen.
+
+**Einseiter.** Eine Seite je Projekt für die Leitungsrunde: Lage mit Begründung,
+Richtung, Fortschritt, Termintreue, offener Entscheidungsbedarf, die nächsten
+drei Meilensteine mit Abweichung, die drei größten Risiken, was als Nächstes
+ansteht. Mit Unterschriftszeilen.
+
+**Bericht für die Leitungsrunde.** Alle Projekte auf einem Stand: gesammelter
+Entscheidungsbedarf, Gesamtlage mit Richtung und Begründung, Termintreue je
+Projekt, kritische Risiken und alles Überfällige.
+
+### Kleinigkeiten
+
+- `askOverdue` lieferte `undefined` statt `false`, wenn keine Frist gesetzt war
+  — ein stiller Anfang schwer auffindbarer Fehler, jetzt ein strenges Nein.
+- Mit dem dritten Ausgabeknopf wurde die Projektzeile in den Berichten auf
+  kleinen Telefonen zu eng; sie bricht jetzt um, der Name kürzt mit
+  Auslassungspunkten. `check:layout` hat es gemeldet, bevor es jemand sah.
+- Die Darstellungsprüfung behandelt SVG richtig: dort ist die Bounding-Box des
+  Textes der Text, ein „Feld, aus dem er läuft" gibt es nicht. Ob er im Bild
+  steht, prüfen weiterhin die Regeln für Überlagerung und Rand.
+
 ## 1.10.0 — 2026-09-19
 
 ### Verwaltung an einem Ort

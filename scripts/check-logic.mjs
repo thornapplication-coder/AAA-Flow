@@ -166,6 +166,63 @@ const netz = {
   }, netz), true)
 }
 
+// Kalenderwoche nach ISO: Grundlage des Ampel-Trends
+eq('Kalenderwochen nach ISO 8601', await run(() =>
+  ['2026-01-01', '2026-01-04', '2026-01-05', '2026-09-19', '2026-12-31'].map(isoWeek)),
+  ['2026-01', '2026-01', '2026-02', '2026-38', '2026-53'])
+
+// Ampel-Trend: Richtung seit der letzten Woche, nicht seit heute Morgen
+{
+  const mk = (tr) => ({ tasks: [], risks: [], ms: [], status: 'on_track', trend: tr })
+  eq('Ohne Vergleichswoche gibt es keine Richtung',
+    await run((p) => trendOf(p).dir, mk([{ w: '2026-38', h: 'amber' }])), 0)
+  eq('Von gelb auf grün ist besser',
+    await run((p) => trendOf(p).dir, mk([{ w: '2026-37', h: 'amber' }, { w: '2026-38', h: 'green' }])), 1)
+  eq('Von grün auf rot ist schlechter',
+    await run((p) => trendOf(p).dir, mk([{ w: '2026-37', h: 'green' }, { w: '2026-38', h: 'red' }])), -1)
+  eq('Gleiche Lage heißt unverändert',
+    await run((p) => trendOf(p).dir, mk([{ w: '2026-37', h: 'red' }, { w: '2026-38', h: 'red' }])), 0)
+  eq('Verglichen wird mit der letzten früheren Woche, nicht mit dem letzten Eintrag',
+    await run((p) => trendOf(p).w, mk([{ w: '2026-36', h: 'red' }, { w: '2026-38', h: 'green' }])), '2026-36')
+  // Innerhalb derselben Woche wird überschrieben: es zählt der Stand am Wochenende.
+  eq('Zweimal in derselben Woche ergibt einen Eintrag', await run(() => {
+    const p = { id: 'tp', tasks: [], risks: [], ms: [], status: 'on_track', trend: [] }
+    PROJECTS.push(p); trendTick(); trendTick()
+    const n = p.trend.length; PROJECTS.pop(); return n
+  }), 1)
+}
+
+// Termintreue: Abweichung vom ursprünglichen Plan
+{
+  const m = { baseline: '2026-09-01', date: '2026-09-15', hist: [{ at: 'x', date: 'a' }, { at: 'y', date: 'b' }, { at: 'z', date: 'c' }] }
+  eq('Die Abweichung zählt Tage gegen die Baseline', await run((x) => msDrift(x), m), 14)
+  eq('Ohne Verschiebung ist die Abweichung null',
+    await run(() => msDrift({ baseline: '2026-09-01', date: '2026-09-01' })), 0)
+  eq('Verschiebungen sind die Einträge der Historie ohne den ersten',
+    await run((x) => msMoves(x), m), 2)
+  eq('Ein Meilenstein ohne Historie gilt als nie verschoben',
+    await run(() => msMoves({ date: '2026-09-01' })), 0)
+  eq('Die Termintreue eines Projekts nennt Anzahl und größten Verzug',
+    await run(() => pDrift({ ms: [
+      { baseline: '2026-09-01', date: '2026-09-15' },
+      { baseline: '2026-09-01', date: '2026-09-02' },
+      { baseline: '2026-10-01', date: '2026-10-01' }] })), { bewegt: 2, gesamt: 3, max: 14 })
+}
+
+// Entscheidungsbedarf: offen heißt offen, und die Frist sortiert
+{
+  const proj = { asks: [
+    { id: 'a1', status: 'open', due: '2026-10-05' },
+    { id: 'a2', status: 'decided', due: '2026-09-01' },
+    { id: 'a3', status: 'open', due: '2026-09-20' },
+    { id: 'a4', status: 'withdrawn', due: '2026-09-02' }] }
+  eq('Nur offene Punkte stehen im Bericht',
+    await run((p) => pOpenAsks(p).map((a) => a.id), proj), ['a1', 'a3'])
+  eq('Eine Frist in der Vergangenheit ist überfällig',
+    await run(() => [askOverdue({ due: addDays(today(), -1) }), askOverdue({ due: addDays(today(), 1) }),
+      askOverdue({})]), [true, false, false])
+}
+
 // Ampel: rot ist Leitungsebene, gelb ist Aufmerksamkeit
 {
   const heute = await run(() => today())

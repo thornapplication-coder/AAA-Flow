@@ -105,7 +105,8 @@ const MESSUNG = () => {
 
   const pfad = (el) => {
     const t = el.tagName.toLowerCase()
-    const c = (el.className || '').toString().trim().split(/\s+/).filter(Boolean).slice(0, 2).join('.')
+    const roh = typeof el.className === 'string' ? el.className : (el.className?.baseVal || '')
+    const c = roh.trim().split(/\s+/).filter(Boolean).slice(0, 2).join('.')
     return c ? `${t}.${c}` : t
   }
   const kurz = (el) => el.textContent.replace(/\s+/g, ' ').trim().slice(0, 28)
@@ -114,6 +115,10 @@ const MESSUNG = () => {
   //    gescrollt wird, ist das gewollt — dort wird nicht gemeldet.
   const raus = []
   alle.forEach(({ el, roh, st }) => {
+    /* In SVG ist die Bounding-Box des Textes der Text: es gibt dort kein
+       Feld, aus dem er laufen könnte. Ob er im Bild steht, prüfen die
+       beiden folgenden Regeln. */
+    if (el.ownerSVGElement || el.tagName === 'svg') return
     if (st.overflowX !== 'visible' || st.textOverflow === 'ellipsis') return
     const zuViel = el.scrollWidth - Math.ceil(roh.width)
     if (zuViel > 2) raus.push({ sel: pfad(el), text: kurz(el), px: zuViel, breite: Math.round(roh.width) })

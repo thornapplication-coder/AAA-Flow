@@ -67,7 +67,7 @@ grant execute on all functions in schema test to authenticated;
 -- -----------------------------------------------------------------------------
 select test.ok((select count(*) from pcc.version_triggers where active) = 8, 'Acht Versionsauslöser konfiguriert');
 select test.ok((select count(*) from pcc.settings) >= 5, 'Einstellungen vorhanden');
-select test.ok((select count(*) from pcc.changelog) = 13, 'Der Changelog führt alle Fassungen');
+select test.ok((select count(*) from pcc.changelog) = 14, 'Der Changelog führt alle Fassungen');
 select test.ok((select value ->> 'mode' from pcc.settings where key = 'retention') = 'unlimited',
                'Aufbewahrung steht auf unbegrenzt (Entscheidung vom 18.09.2026)');
 select test.ok((select count(*) from pcc.templates where active) = 1, 'Eine Projektvorlage im Seed');
