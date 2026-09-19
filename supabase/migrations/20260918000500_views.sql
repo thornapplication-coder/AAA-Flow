@@ -155,6 +155,62 @@ left join public.users u on u.id = a.user_id
 left join pcc.projects p on p.id = a.project_id;
 
 -- -----------------------------------------------------------------------------
+-- Gantt je Projekt (Auftrag vom 19.09.2026)
+-- Eine Zeile je Balken: Teilprojekte als Klammer über ihre Aufgaben, darunter
+-- die Aufgaben mit ihren Terminen, dazu die Meilensteine als Punkt. Ein
+-- Teilprojekt trägt keine eigenen Termine — sie ergeben sich aus dem, was
+-- darin zu tun ist; deshalb rechnet die Sicht sie hier und nicht die
+-- Oberfläche, die sonst je Anwendung anders rechnete.
+-- -----------------------------------------------------------------------------
+create view pcc.v_gantt with (security_invoker = true) as
+-- 1. Teilprojekte
+select
+  w.project_id,
+  'workstream'::text                       as kind,
+  w.id                                     as id,
+  null::uuid                               as parent_id,
+  w.id                                     as workstream_id,
+  w.name                                   as label,
+  null::text                               as ref,
+  w.owner_user_id                          as person_id,
+  min(t.start_date)                        as start_date,
+  max(t.due_date)                          as due_date,
+  null::pcc.task_status                    as task_status,
+  null::pcc.milestone_status               as milestone_status,
+  -- Der Fortschritt eines Teilprojekts ist der Mittelwert seiner obersten
+  -- Aufgaben; Teilaufgaben zählen über ihr Elternteil mit.
+  coalesce(round(avg(case when t.status in ('completed', 'cancelled') then 100
+                          else t.progress end) filter (where t.parent_task_id is null)), 0)::smallint as progress,
+  count(*) filter (where t.status not in ('completed', 'cancelled'))::integer as open_count,
+  w.sort_order                             as sort_order,
+  0                                        as depth
+from pcc.workstreams w
+left join pcc.tasks t on t.workstream_id = w.id
+group by w.project_id, w.id, w.name, w.owner_user_id, w.sort_order
+
+union all
+-- 2. Aufgaben und Teilaufgaben
+select
+  t.project_id, 'task', t.id, t.parent_task_id, t.workstream_id, t.title, t.ref,
+  t.assignee_user_id, t.start_date, t.due_date, t.status, null,
+  case when t.status in ('completed', 'cancelled') then 100 else t.progress end::smallint,
+  case when t.status in ('completed', 'cancelled') then 0 else 1 end,
+  t.sort_order,
+  case when t.parent_task_id is null then 1 else 2 end
+from pcc.tasks t
+
+union all
+-- 3. Meilensteine: ein Punkt, kein Balken
+select
+  m.project_id, 'milestone', m.id, null, m.workstream_id, m.name, m.ref,
+  m.owner_user_id, null, m.due_date, null, m.status,
+  case when m.status = 'completed' then 100 else 0 end::smallint,
+  case when m.status = 'completed' then 0 else 1 end,
+  32767, 1
+from pcc.milestones m;
+comment on view pcc.v_gantt is 'Zeilen für die Gantt-Darstellung eines Projekts: Teilprojekte mit abgeleiteten Terminen, Aufgaben, Teilaufgaben und Meilensteine.';
+
+-- -----------------------------------------------------------------------------
 -- Versionsverlauf eines Projekts (Abschnitt 22)
 -- Sortiert wird nach Haupt- und Nebennummer, nicht nach Text: sonst käme 1.10
 -- vor 1.9 zu liegen. Die Anzahl der erfassten Änderungen hängt gleich mit dran.
@@ -197,8 +253,8 @@ order by name;
 grant select on all tables in schema pcc to authenticated;
 revoke all on pcc.v_projects, pcc.v_tasks, pcc.v_milestones, pcc.v_risks,
   pcc.v_issues, pcc.v_dashboard, pcc.v_overdue_tasks, pcc.v_upcoming_milestones,
-  pcc.v_risk_matrix, pcc.v_activity, pcc.v_versions, pcc.v_notifications,
-  pcc.v_people from anon;
+  pcc.v_risk_matrix, pcc.v_activity, pcc.v_versions, pcc.v_gantt,
+  pcc.v_notifications, pcc.v_people from anon;
 
 -- -----------------------------------------------------------------------------
 -- Tageslauf einplanen. Auf Supabase steht pg_cron zur Verfügung, lokal in der

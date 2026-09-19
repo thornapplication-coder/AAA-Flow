@@ -95,5 +95,8 @@ insert into pcc.changelog (version, released_on, notes_de, notes_en) values
    'Project Control Center: data model, permissions, versioning, documents and daily jobs in the database.'),
   ('1.1.0', date '2026-09-19',
    'Zwei Zugänge statt fünf Rollen, Dateien an Aufgaben, sofortiges Speichern, Exporte mit Stand.',
-   'Two accounts instead of five roles, files on tasks, instant saving, exports stamped with their state.')
+   'Two accounts instead of five roles, files on tasks, instant saving, exports stamped with their state.'),
+  ('1.2.0', date '2026-09-19',
+   'Gantt je Projekt: Teilprojekte, Aufgaben, Teilaufgaben und Meilensteine auf einer Zeitachse.',
+   'Gantt per project: workstreams, tasks, subtasks and milestones on one timeline.')
 on conflict (version) do nothing;

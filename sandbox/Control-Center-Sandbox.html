@@ -168,6 +168,9 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .pdoc .kv td{border:none;padding:2px 0;vertical-align:top}
 .pdoc .kv td:first-child{width:190px;color:#5A6B7F}
 .pdoc .foot{margin-top:26px;padding-top:8px;border-top:1px solid #C3CFDD;color:#5A6B7F;font-size:10px}
+.pdoc .pgantt{margin-bottom:10px}
+.pdoc .pgantt .tl{overflow:visible}
+.pdoc .pgantt .gbar b{color:#fff}
 .pdoc .sign{margin-top:26px;display:flex;gap:40px}
 .pdoc .sign div{flex:1;border-top:1px solid #111;padding-top:4px;color:#5A6B7F;font-size:10px}
 .pdoc .none{color:#5A6B7F;font-style:italic}
@@ -305,6 +308,59 @@ tbody tr[data-id]:hover{background:#F7FAFD}
 .tlleg i.dotlate{width:10px;height:10px;border-radius:50%;background:var(--late);border:2px solid var(--late)}
 .tlleg i.now{width:2px;height:12px;border-radius:0;background:var(--late)}
 
+/* Gantt je Projekt */
+.ggrid{min-width:760px;--gnm:264px}
+.ghead{display:flex;position:relative;border-bottom:1px solid var(--line);padding-left:var(--gnm);padding-top:14px}
+.ghead .tlnowhd b{top:0}
+.ghead span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;
+  color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;padding:6px 0 6px 6px;border-left:1px solid var(--line)}
+.grow{display:flex;align-items:center;border-bottom:1px solid #F4F7FA;min-height:34px}
+.grow:last-child{border-bottom:none}
+.grow.group{background:var(--surface-2);border-bottom:1px solid var(--line);min-height:38px}
+.grow .gnm{flex:0 0 var(--gnm);padding:6px 12px 6px 0;min-width:0;font-size:13px}
+.grow .gnm b{font-weight:600}
+.grow .gnm .gt{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grow .gnm .co{display:block;font-size:11px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grow.sub .gnm{padding-left:16px}
+.grow.sub .gnm .gt{font-weight:400;color:var(--ink-soft)}
+.grow.ms .gnm .gt{font-weight:600}
+.grow .gtrack{flex:1;position:relative;height:34px;min-width:0}
+.grow.group .gtrack{height:38px}
+.grow .gtrack .grid{position:absolute;inset:0;display:flex}
+.grow .gtrack .grid span{flex:1;border-left:1px solid #EDF1F6}
+/* Der Balken: heller Grund in der Zustandsfarbe, darin der Fortschritt voll.
+   4 px runde Enden, damit Anfang und Ende ablesbar bleiben. */
+.gbar{position:absolute;top:9px;height:16px;border-radius:4px;overflow:hidden;
+  background:#E6ECF3;border:1px solid var(--line-strong);display:flex;align-items:center}
+.gbar i{display:flex;align-items:center;height:100%;background:var(--navy-500);border-radius:3px 0 0 3px;overflow:hidden}
+.gbar b{font-size:10px;font-weight:700;color:#fff;padding-left:5px;white-space:nowrap}
+.gbar.ok{border-color:var(--done);background:var(--done-bg)}      .gbar.ok i{background:var(--done)}
+.gbar.warn{border-color:var(--work);background:var(--work-bg)}    .gbar.warn i{background:var(--work)}
+.gbar.bad{border-color:var(--late);background:var(--late-bg)}     .gbar.bad i{background:var(--late)}
+.gbar.open{border-color:var(--line-strong);background:#EEF2F7}    .gbar.open i{background:var(--open)}
+.gbar.off{border-style:dashed;background:#F4F6F9;opacity:.7}      .gbar.off i{background:var(--ink-faint)}
+/* Das Teilprojekt ist eine Klammer, kein Balken: es ist keine eigene Arbeit. */
+.gbracket{position:absolute;top:15px;height:8px;background:var(--navy-700);border-radius:2px}
+.gbracket::before,.gbracket::after{content:"";position:absolute;top:8px;border-top:6px solid var(--navy-700)}
+.gbracket::before{left:0;border-right:5px solid transparent}
+.gbracket::after{right:0;border-left:5px solid transparent}
+.gms{position:absolute;top:10px;left:0;width:14px;height:14px;margin-left:-7px;background:#fff;
+  border:2px solid var(--navy-800);transform:rotate(45deg);border-radius:2px}
+.gms.done{background:var(--done);border-color:var(--done)}
+.gms.late{background:var(--late);border-color:var(--late)}
+.gnone{position:absolute;left:6px;top:9px;font-size:11px;color:var(--ink-faint)}
+.tlleg i.gl{width:16px;height:9px;border-radius:3px;border:1px solid var(--line-strong);background:#EEF2F7}
+.tlleg i.gl.ok{border-color:var(--done);background:var(--done)}
+.tlleg i.gl.warn{border-color:var(--work);background:var(--work)}
+.tlleg i.gl.bad{border-color:var(--late);background:var(--late)}
+.tlleg i.gl.open{border-color:var(--line-strong);background:var(--open)}
+.tlleg i.gl.bracket{background:var(--navy-700);border-color:var(--navy-700);height:6px}
+/* Im Ausdruck zählt Vollständigkeit mehr als eine ruhige Zeilenhöhe: der
+   Titel wird umgebrochen statt abgeschnitten. */
+.ggrid.forprint{--gnm:260px;min-width:0}
+.ggrid.forprint .gnm .gt{white-space:normal;overflow:visible}
+.ggrid.forprint .grow{page-break-inside:avoid;break-inside:avoid}
+
 /* Risk-Matrix */
 .rmx{border-collapse:collapse;width:auto}
 .rmx td,.rmx th{border:1px solid var(--line);padding:0;text-align:center}
@@ -398,6 +454,8 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
   .back{min-height:36px;display:inline-flex;align-items:center}
   /* Der Zeitstrahl braucht die Breite für die Monate, nicht für die Namen. */
   .tlgrid{--tlnm:108px}
+  .ggrid{--gnm:132px}
+  .grow .gnm{font-size:12px}
   .tlrow .nm{font-size:12px}
   .tblwrap.aslist{display:none}
   .cards{display:flex}
@@ -457,6 +515,12 @@ td.acts button:hover{border-color:var(--navy-500);background:var(--surface-2)}
 /* ---------- i18n ---------- */
 const I = {
 de:{
+  g_groups:"Teilprojekte",
+  g_leg_group:"Teilprojekt",
+  g_leg_late:"überfällig oder blockiert",
+  g_nodate:"ohne Termin",
+  g_nogroup:"Ohne Teilprojekt",
+  g_t:"Gantt",
   doc_at:"Gehört zu",
   doc_add:"Anhängen",
   doc_att:"Anhänge",
@@ -767,6 +831,12 @@ de:{
   ver_t:"Versionsverlauf"
 },
 en:{
+  g_groups:"workstreams",
+  g_leg_group:"workstream",
+  g_leg_late:"overdue or blocked",
+  g_nodate:"no date",
+  g_nogroup:"Without workstream",
+  g_t:"Gantt",
   doc_at:"Belongs to",
   doc_add:"Attach",
   doc_att:"Attachments",
@@ -1289,7 +1359,7 @@ document.getElementById("modal").onclick = e => { if (e.target.id === "modal") c
    wo die Ansicht eine Liste ist.
    ========================================================================== */
 const XLS_KINDS = ["pcc_dash","pcc_projects","pcc_risks","pcc_tasks","pcc_ms",
-  "pcc_report","pcc_ptasks","pcc_prisks","pcc_pact","pcc_pdec"];
+  "pcc_report","pcc_ptasks","pcc_prisks","pcc_pact","pcc_pdec","pcc_pgantt"];
 const fmtLong = d => d ? new Date(d).toLocaleDateString(L === "de" ? "de-AT" : "en-GB",
   { day:"2-digit", month:"2-digit", year:"numeric" }) : t("none");
 
@@ -1311,6 +1381,7 @@ function renderPrint(def) {
     ${(() => { const meta = [[t("exp_state"), expStamp()]].concat(def.meta || []);
       return `<table class="kv">${meta.map(([k,v]) =>
         `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")}</table>`; })()}
+    ${def.gantt ? `<h2>${t("g_t")}</h2><div class="pgantt">${def.gantt}</div>` : ""}
     ${def.sections.map(sec => `${sec.h ? `<h2>${esc(sec.h)}</h2>` : ""}${tbl(sec)}`).join("")}
     ${def.sign ? `<div class="sign"><div>${t("exp_sign1")}</div><div>${t("exp_sign2")}</div></div>` : ""}
     <div class="foot">${t("exp_printed", { d:fmtLong(today()) + ", " +
@@ -1566,8 +1637,10 @@ function mkTask(p, o) {
   p.tasks.push(tk); return tk;
 }
 function mkSub(p, parent, title, status, assignee) {
+  /* Start und Frist kommen vom Elternteil: eine Teilaufgabe läuft in dessen
+     Zeitraum. Ohne das stünde sie im Gantt als Punkt ohne Dauer. */
   return mkTask(p, { title, parent:parent.id, status, assignee, ws:parent.ws,
-    due:parent.due, prio:parent.prio });
+    start:parent.start, due:parent.due, prio:parent.prio });
 }
 const pUser = id => user(id).name;
 
@@ -2073,6 +2146,139 @@ function timelineHTML(ps, clickable, legend) {
         </div></div>`;
     }).join("")}
   </div>${legend ? tlLegend() : ""}</div>`;
+}
+
+/* ============================================================================
+   Gantt je Projekt (Auftrag vom 19.09.2026)
+   Der Zeitstrahl auf dem Dashboard zeigt Projekte. Hier geht es eine Ebene
+   tiefer: Teilprojekte als Klammer, darunter ihre Aufgaben und Teilaufgaben,
+   dazu die Meilensteine des Teilprojekts. Die Farbe sagt den Zustand
+   (erledigt, in Arbeit, überfällig, offen) — sie steht nie allein, jede Zeile
+   trägt ihren Titel und der Balken seinen Fortschritt.
+   ========================================================================== */
+function gWindow(p) {
+  const ds = [today()];
+  if (p.start) ds.push(p.start);
+  if (p.end) ds.push(p.end);
+  p.tasks.forEach(x => { if (x.start) ds.push(x.start); if (x.due) ds.push(x.due); });
+  p.ms.forEach(m => ds.push(m.date));
+  const from = new Date(ds.reduce((a,b) => a < b ? a : b));
+  const to = new Date(ds.reduce((a,b) => a > b ? a : b));
+  from.setDate(1);
+  to.setMonth(to.getMonth() + 1, 1);
+  const months = [];
+  const d = new Date(from);
+  while (d < to) { months.push(new Date(d)); d.setMonth(d.getMonth() + 1); }
+  return { from, to, months };
+}
+
+/* Von wann bis wann läuft eine Menge von Aufgaben? Teilprojekte tragen keine
+   eigenen Termine — sie ergeben sich aus dem, was darin zu tun ist. */
+function gSpan(tasks) {
+  const a = tasks.map(x => x.start).filter(Boolean);
+  const b = tasks.map(x => x.due).filter(Boolean);
+  if (!a.length && !b.length) return null;
+  const from = a.length ? a.reduce((x,y) => x < y ? x : y) : b.reduce((x,y) => x < y ? x : y);
+  const to   = b.length ? b.reduce((x,y) => x > y ? x : y) : from;
+  return { from, to };
+}
+
+/* Der Zustand einer Aufgabe als Klasse — dieselben vier Farben wie überall. */
+const gCls = x => pTaskOverdue(x) ? "bad"
+  : x.status === "completed" ? "ok"
+  : x.status === "cancelled" ? "off"
+  : x.status === "blocked" ? "bad"
+  : x.status === "in_progress" ? "warn" : "open";
+
+function ganttHTML(p, forPrint) {
+  const w = gWindow(p);
+  const mName = d => d.toLocaleDateString(L === "de" ? "de-AT" : "en-GB", { month:"short" }).toUpperCase();
+  const nowPct = tlPct(today(), w);
+  const pct = d => tlPct(d, w);
+
+  /* Ein Balken. Ohne Startdatum wird der Fälligkeitstag als Punkt gezeigt —
+     eine erfundene Dauer wäre schlimmer als eine ehrliche Marke. */
+  const bar = (x, cls, prog) => {
+    if (!x.due && !x.start) return `<span class="gnone">${t("g_nodate")}</span>`;
+    const a = pct(x.start || x.due), b = pct(x.due || x.start);
+    const width = Math.max(1.4, b - a);
+    const done = Math.max(0, Math.min(100, prog == null ? 0 : prog));
+    /* Die Zahl steht im gefüllten Teil — dort trägt sie Weiß auf voller Farbe.
+       Gezeigt wird sie nur, wenn der gefüllte Teil sie auch fasst: ein
+       abgeschnittenes „3…" liest sich wie ein Fehler. */
+    const room = width * done / 100 >= 3.2;
+    return `<div class="gbar ${cls}" style="left:${a}%;width:${width}%"
+      title="${esc(gTip(x))}">${done > 0
+        ? `<i style="width:${done}%">${room && done < 100 ? `<b>${done}%</b>` : ""}</i>` : ""}</div>`;
+  };
+  const gTip = x => [x.ref ? x.ref + " " + x.title : x.title,
+    (x.start ? fmtLong(x.start) : "?") + " – " + (x.due ? fmtLong(x.due) : "?"),
+    x.assignee ? pUser(x.assignee) : null,
+    x.status ? t("ts_" + x.status) : null].filter(Boolean).join(" · ");
+
+  const track = inner => `<div class="gtrack">
+      <div class="grid">${w.months.map(() => "<span></span>").join("")}</div>
+      <div class="tlnow" style="left:${nowPct}%"></div>${inner}</div>`;
+
+  const rows = [];
+  const groups = p.ws.slice();
+  /* Aufgaben ohne Teilprojekt bekommen eine eigene Gruppe, damit keine Zeile
+     unter den Tisch fällt. */
+  const loose = p.tasks.filter(x => !x.ws || !p.ws.some(g => g.id === x.ws));
+  if (loose.length) groups.push({ id:null, name:t("g_nogroup"), owner:null });
+
+  groups.forEach(g => {
+    const all = p.tasks.filter(x => g.id ? x.ws === g.id : (!x.ws || !p.ws.some(y => y.id === x.ws)));
+    const span = gSpan(all);
+    const openN = all.filter(x => !pTaskDone(x)).length;
+    rows.push(`<div class="grow group">
+      <div class="gnm"><b>${esc(g.name)}</b>
+        <span class="co">${all.length} ${t("pn_tasks")}${
+          openN ? " · " + openN + " " + t("open").toLowerCase() : ""}${
+          g.owner ? " · " + pUser(g.owner) : ""}</span></div>
+      ${track(span ? `<div class="gbracket" style="left:${pct(span.from)}%;width:${
+        Math.max(1.4, pct(span.to) - pct(span.from))}%"
+        title="${esc(g.name + ": " + fmtLong(span.from) + " – " + fmtLong(span.to))}"></div>` : "")}
+    </div>`);
+
+    all.filter(x => !x.parent).forEach(x => {
+      const kids = p.tasks.filter(k => k.parent === x.id);
+      rows.push(`<div class="grow">
+        <div class="gnm"><span class="gt" title="${esc(x.title)}">${esc(x.title)}</span>
+          <span class="co">${x.ref}${x.assignee ? " · " + pUser(x.assignee) : ""}</span></div>
+        ${track(bar(x, gCls(x), pTaskDone(x) ? 100 : x.progress || 0))}</div>`);
+      kids.forEach(k => rows.push(`<div class="grow sub">
+        <div class="gnm"><span class="gt" title="${esc(k.title)}">↳ ${esc(k.title)}</span>
+          <span class="co">${k.ref}${k.assignee ? " · " + pUser(k.assignee) : ""}</span></div>
+        ${track(bar(k, gCls(k), pTaskDone(k) ? 100 : k.progress || 0))}</div>`));
+    });
+
+    p.ms.filter(m => g.id ? m.ws === g.id : !m.ws).forEach(m => {
+      const cls = m.status === "completed" ? "done" : pMsOverdue(m) ? "late" : "";
+      rows.push(`<div class="grow ms">
+        <div class="gnm"><span class="gt">◆ ${esc(m.name)}</span>
+          <span class="co">${m.ref} · ${fmtDate(m.date)} · ${t("ms_" + m.status)}</span></div>
+        ${track(`<div class="gms ${cls}" style="left:${pct(m.date)}%"
+          title="${esc(m.ref + " " + m.name + " · " + fmtLong(m.date) + " · " + t("ms_" + m.status))}"></div>`)}
+      </div>`);
+    });
+  });
+
+  if (!rows.length) return `<p class="muted">${t("p_none")}</p>`;
+  return `<div class="tl"><div class="ggrid${forPrint ? " forprint" : ""}">
+    <div class="ghead">${w.months.map(m =>
+      `<span>${mName(m)}${m.getMonth() === 0 ? " " + m.getFullYear() : ""}</span>`).join("")}
+      <div class="tlnowhd" style="left:calc(var(--gnm) + (100% - var(--gnm)) * ${nowPct / 100})"><b>${t("tl_now")}</b></div></div>
+    ${rows.join("")}
+  </div>${gLegend()}</div>`;
+}
+
+function gLegend() {
+  const it = (cls, key) => `<span><i class="${cls}"></i>${t(key)}</span>`;
+  return `<div class="tlleg">
+    ${it("gl ok", "ts_completed")}${it("gl warn", "ts_in_progress")}${it("gl bad", "g_leg_late")}
+    ${it("gl open", "ts_not_started")}${it("gl bracket", "g_leg_group")}
+    ${it("dot", "tl_leg_ms")}${it("now", "tl_leg_now")}</div>`;
 }
 
 /* ---------- Dashboard ---------- */
@@ -2647,7 +2853,14 @@ function pTabVersions(p) {
 }
 function pTabTimeline(p) {
   const ms = p.ms.slice().sort((a,b) => a.date < b.date ? -1 : 1);
-  return `<div class="pcard"><div class="inner">${timelineHTML([p], false, true)}</div></div>
+  /* Das Gantt ist hier der Hauptinhalt: ein einzelnes Projekt als ein Balken
+     wäre nichtssagend — die Frage lautet, was innerhalb des Projekts wann
+     läuft. Die Terminliste darunter bleibt, weil sie sich lesen und ausgeben
+     lässt, ohne den Balken zu deuten. */
+  return `<div class="pcard"><header><h2>${t("g_t")}</h2>
+      <span class="co">${p.ws.length} ${t("g_groups")} · ${p.tasks.length} ${t("pn_tasks")}</span>
+      <span class="hdacts">${expBtns("pcc_pgantt")}</span></header>
+    <div class="inner">${ganttHTML(p)}</div></div>
     <div class="pcard"><header><h2>${t("pn_milestones")}</h2>
       <span class="co">${ms.length} ${t("results")}</span></header>
     ${ms.length ? `<div class="tblwrap aslist"><table><thead><tr>
@@ -3123,6 +3336,35 @@ function pccDoc(kind) {
       sections:[{ cols:[t("col_date"), t("pn_milestones"), t("col_project"), t("col_owner"), t("col_status")],
         rows:rows.map(({p,m}) => [fmtLong(m.date), m.name, p.key, pUser(m.owner), t("ms_" + m.status)]) }] };
   }
+  if (kind === "pcc_pgantt") {
+    /* Im Ausdruck steht das Gantt als Bild und als Tabelle: das Bild zeigt die
+       Lage zueinander, die Tabelle lässt sich weiterverarbeiten. */
+    const rows = [];
+    const groups = cur.ws.concat(
+      cur.tasks.some(x => !x.ws || !cur.ws.some(g => g.id === x.ws))
+        ? [{ id:null, name:t("g_nogroup") }] : []);
+    groups.forEach(g => {
+      const all = cur.tasks.filter(x => g.id ? x.ws === g.id
+                                            : (!x.ws || !cur.ws.some(y => y.id === x.ws)));
+      const span = gSpan(all);
+      rows.push([g.name, t("col_ws"), g.owner ? pUser(g.owner) : "",
+                 span ? fmtLong(span.from) : "—", span ? fmtLong(span.to) : "—", "", ""]);
+      all.filter(x => !x.parent).forEach(x => {
+        const add = (y, sub) => rows.push([(sub ? "↳ " : "") + y.title, y.ref,
+          y.assignee ? pUser(y.assignee) : "", y.start ? fmtLong(y.start) : "—",
+          y.due ? fmtLong(y.due) : "—", t("ts_" + y.status),
+          (pTaskDone(y) ? 100 : y.progress || 0) + "%"]);
+        add(x, false);
+        cur.tasks.filter(k => k.parent === x.id).forEach(k => add(k, true));
+      });
+      cur.ms.filter(m => g.id ? m.ws === g.id : !m.ws).forEach(m =>
+        rows.push(["◆ " + m.name, m.ref, m.owner ? pUser(m.owner) : "",
+                   "—", fmtLong(m.date), t("ms_" + m.status), ""]));
+    });
+    return { title:t("g_t") + " — " + cur.key, meta:projMeta(cur), gantt:ganttHTML(cur, true),
+      sections:[{ cols:[t("col_title"), t("f_ref"), t("col_assignee"), t("f_start"),
+        t("col_due"), t("col_status"), t("col_progress")], rows }] };
+  }
   if (kind === "pcc_pdec") return { title:t("tab_dec") + " — " + cur.key, meta:projMeta(cur),
     sections:[{ cols:[t("f_ref"), t("col_date"), t("col_title"), t("tab_dec"), t("f_rat"),
       t("f_imp2"), t("f_maker"), t("f_part")],
@@ -3134,7 +3376,8 @@ function pccDoc(kind) {
   if (kind === "pcc_report") {
     const p = pById(pRepProject) || cur;
     const tk = p.tasks.map(x => ({ p, x })), rk = p.risks.map(r => ({ p, r }));
-    return { title:t("exp_pcc_proj") + " — " + p.name, meta:projMeta(p), sign:true, sections:[
+    return { title:t("exp_pcc_proj") + " — " + p.name, meta:projMeta(p), sign:true,
+      gantt:ganttHTML(p, true), sections:[
       { h:t("tab_over"), cols:[t("col_title"), t("f_desc")],
         rows:[[t("f_desc"), p.description], [t("f_obj"), p.objectives], [t("f_scope"), p.scope]] },
       { h:t("pn_milestones"), cols:[t("col_date"), t("col_title"), t("col_owner"), t("col_status")],

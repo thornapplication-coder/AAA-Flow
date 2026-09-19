@@ -3,6 +3,37 @@
 Versionierung nach Schema `MAJOR.MINOR.PATCH`. Der Versionsstand wird zusätzlich
 in der Tabelle `pcc.changelog` geführt und im Bereich des Super Admins angezeigt.
 
+## 1.2.0 — 2026-09-19
+
+### Gantt je Projekt
+
+- **Neuer Reiter-Inhalt „Projektverlauf" im Projekt:** ein Gantt über die
+  Teilprojekte, ihre Aufgaben, deren Teilaufgaben und die Meilensteine. Ein
+  einzelnes Projekt als ein Balken war nichtssagend — die Frage lautet, was
+  *innerhalb* des Projekts wann läuft.
+- **Teilprojekte sind eine Klammer, kein Balken:** sie tragen keine eigenen
+  Termine, sondern spannen sich über die früheste und späteste Aufgabe darin.
+  Die Zeile nennt Anzahl, offene Aufgaben und die verantwortliche Person.
+- **Farbe sagt den Zustand** (erledigt, in Arbeit, überfällig oder blockiert,
+  nicht begonnen) und steht nie allein: jede Zeile trägt Titel, Referenz und
+  Zuständigkeit, der Balken seinen Fortschritt, der Tooltip den Zeitraum. Die
+  Prozentzahl erscheint nur, wenn der gefüllte Teil sie auch fasst.
+- **Meilensteine als Raute** mit Termin und Status im Text; die Heute-Linie ist
+  beschriftet; eine Zeichenerklärung steht unter dem Diagramm.
+- **Ohne Termin keine erfundene Dauer:** eine Aufgabe ohne Datum wird als
+  solche ausgewiesen, statt einen Balken zu erfinden. Teilaufgaben übernehmen
+  Beginn und Frist ihres Elternteils — so steht es im Datenmodell.
+- **In die Ausgaben aufgenommen:** das Gantt steht im Projektbericht und hat
+  eine eigene Ausgabe (PDF mit Bild und Tabelle, Excel mit den Zeilen).
+
+### Datenbank
+
+- Neue Sicht **`pcc.v_gantt`**: eine Zeile je Balken — Teilprojekte mit
+  abgeleiteten Terminen, abgeleitetem Fortschritt und der Zahl offener
+  Aufgaben, dazu Aufgaben, Teilaufgaben und Meilensteine, jeweils mit ihrer
+  Ebene. Damit rechnet die Datenbank die Ableitungen, nicht jede Oberfläche
+  für sich.
+
 ## 1.1.0 — 2026-09-19
 
 Vier Festlegungen des Auftraggebers, die das Rechtemodell vereinfachen und die
@@ -102,10 +133,10 @@ Geschäftslogik in PostgreSQL, dazu ein klickbarer Prototyp der Oberfläche.
   benannte Feld und wird selbst protokolliert.
 - **Löschweg nach Artikel 17 DSGVO:** `pcc.anonymise_user()` pseudonymisiert
   das Konto; die fachliche Zuordnung bleibt über die ID bestehen.
-- **Dreizehn Sichten**: Projekte mit gerechneten Kennzahlen (`v_projects`, die
+- **Vierzehn Sichten**: Projekte mit gerechneten Kennzahlen (`v_projects`, die
   Grundlage der Oberfläche), Dashboard, Aufgaben, Meilensteine, Risiken, Risk
   Matrix, Issues, überfällige Aufgaben, anstehende Meilensteine, Aktivität,
-  Versionsverlauf, Benachrichtigungen und offene Freigaben — alle mit
+  Versionsverlauf, Gantt, Benachrichtigungen und Personenverzeichnis — alle mit
   `security_invoker`.
 - **Tageslauf** `pcc.run_daily_jobs()`: verzögerte Meilensteine,
   Vorlaufhinweise und Überfälligkeitsmeldungen; als `pg_cron`-Job eingeplant,

@@ -67,7 +67,7 @@ grant execute on all functions in schema test to authenticated;
 -- -----------------------------------------------------------------------------
 select test.ok((select count(*) from pcc.version_triggers where active) = 8, 'Acht Versionsauslöser konfiguriert');
 select test.ok((select count(*) from pcc.settings) >= 5, 'Einstellungen vorhanden');
-select test.ok((select count(*) from pcc.changelog) = 2, 'Der Changelog führt beide Fassungen');
+select test.ok((select count(*) from pcc.changelog) = 3, 'Der Changelog führt alle Fassungen');
 select test.ok((select value ->> 'mode' from pcc.settings where key = 'retention') = 'unlimited',
                'Aufbewahrung steht auf unbegrenzt (Entscheidung vom 18.09.2026)');
 select test.ok((select count(*) from pcc.templates where active) = 1, 'Eine Projektvorlage im Seed');
@@ -671,6 +671,76 @@ select test.fails('update public.audit_log set reason = ''nachtraeglich'' where 
                   'PCC_IMMUTABLE', 'Der Trigger hält den Trail auch ohne Rechteschutz fest');
 select test.fails('delete from public.audit_log where id = (select min(id) from public.audit_log)',
                   'PCC_IMMUTABLE', 'Kein Eintrag verschwindet aus dem Trail');
+
+-- -----------------------------------------------------------------------------
+-- 15. Gantt je Projekt (Auftrag vom 19.09.2026)
+-- -----------------------------------------------------------------------------
+select test.login('team');
+with ins as (
+  insert into pcc.workstreams (project_id, name, owner_user_id, sort_order)
+  values (test.pid('p1'), 'Abnahme', test.uid('ppm2'), 5)
+  returning id)
+insert into test_ids (key, id) select 'ws2', id from ins;
+
+with ins as (
+  insert into pcc.tasks (project_id, workstream_id, title, start_date, due_date,
+                         progress, status, assignee_user_id)
+  values (test.pid('p1'), test.pid('ws2'), 'Abnahmeprotokoll zeichnen',
+          current_date - 10, current_date + 20, 40, 'in_progress', test.uid('ppm'))
+  returning id)
+insert into test_ids (key, id) select 'gt1', id from ins;
+insert into pcc.tasks (project_id, workstream_id, parent_task_id, title,
+                       start_date, due_date, progress, status)
+values (test.pid('p1'), test.pid('ws2'), test.pid('gt1'), 'Maengel nachverfolgen',
+        current_date - 10, current_date + 20, 0, 'not_started');
+insert into pcc.tasks (project_id, workstream_id, title, start_date, due_date, status)
+values (test.pid('p1'), test.pid('ws2'), 'Uebergabe an den Betrieb',
+        current_date + 20, current_date + 45, 'not_started');
+
+-- Das Teilprojekt traegt keine eigenen Termine: sie kommen aus seinen Aufgaben.
+select test.ok((select start_date from pcc.v_gantt
+                where kind = 'workstream' and id = test.pid('ws2')) = current_date - 10,
+               'Ein Teilprojekt beginnt mit seiner frühesten Aufgabe');
+select test.ok((select due_date from pcc.v_gantt
+                where kind = 'workstream' and id = test.pid('ws2')) = current_date + 45,
+               'Und endet mit der spätesten');
+select test.ok((select open_count from pcc.v_gantt
+                where kind = 'workstream' and id = test.pid('ws2')) = 3,
+               'Es zählt seine offenen Aufgaben');
+-- Der Fortschritt mittelt die obersten Aufgaben, nicht die Teilaufgaben
+select test.ok((select progress from pcc.v_gantt
+                where kind = 'workstream' and id = test.pid('ws2')) = 20,
+               'Der Fortschritt eines Teilprojekts mittelt seine obersten Aufgaben');
+select test.ok((select depth from pcc.v_gantt where kind = 'task' and id = test.pid('gt1')) = 1,
+               'Eine oberste Aufgabe steht auf Ebene 1');
+select test.ok((select count(*) from pcc.v_gantt
+                where kind = 'task' and parent_id = test.pid('gt1') and depth = 2) = 1,
+               'Eine Teilaufgabe steht darunter auf Ebene 2');
+-- Erledigtes zählt als 100 Prozent, unabhängig vom gepflegten Wert. Die
+-- Aufgabe wird erst hier angelegt, damit sie den Mittelwert oben nicht stört.
+with ins as (
+  insert into pcc.tasks (project_id, workstream_id, title, start_date, due_date,
+                         progress, status)
+  values (test.pid('p1'), test.pid('ws2'), 'Restpunkte abgehakt',
+          current_date - 5, current_date, 0, 'completed')
+  returning id)
+insert into test_ids (key, id) select 'gt2', id from ins;
+select test.ok((select progress from pcc.v_gantt
+                where kind = 'task' and id = test.pid('gt2')) = 100,
+               'Eine erledigte Aufgabe steht auf 100 Prozent, auch ohne gepflegten Wert');
+select test.ok((select start_date is null and due_date is not null
+                from pcc.v_gantt where kind = 'milestone' and id = test.pid('m1')),
+               'Ein Meilenstein hat einen Termin, aber keinen Beginn');
+select test.ok((select count(*) from pcc.v_gantt where project_id = test.pid('p1')
+                  and kind = 'workstream') = (select count(*) from pcc.workstreams
+                                               where project_id = test.pid('p1')),
+               'Jedes Teilprojekt bekommt genau eine Zeile');
+select test.logout();
+
+select test.login('viewer');
+select test.ok((select count(*) from pcc.v_gantt where project_id = test.pid('p1')) > 0,
+               'Der Lesezugang sieht das Gantt');
+select test.logout();
 
 select test.ok(true, 'Alle Prüfungen des Control Centers bestanden');
 rollback;

@@ -39,6 +39,9 @@ Rest. Was die Oberfläche nicht anbietet, gibt auch die API nicht heraus.
   Mensch gehandelt hat, kann ein gemeinsamer Zugang nicht erbringen.
 - **Dateien an Aufgaben:** PDF, Word, Excel, PowerPoint, CSV, Text und Bilder
   hängen wahlweise am Projekt oder an einer einzelnen Aufgabe.
+- **Gantt je Projekt:** Teilprojekte als Klammer über ihre Aufgaben,
+  Teilaufgaben eingerückt, Meilensteine als Raute — die Sicht `pcc.v_gantt`
+  liefert die Zeilen samt abgeleiteter Termine und Fortschritte.
 - **Gerechnet statt gepflegt:** Fortschritt, Gesamtlage und Risk Score kommen
   aus der Datenbank. Der Score ist eine generierte Spalte und von Hand nicht
   setzbar.

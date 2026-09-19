@@ -43,6 +43,17 @@ export type User = {
   created_at: string; updated_at: string
 }
 
+// Eine Zeile der Gantt-Darstellung (pcc.v_gantt): Teilprojekt, Aufgabe,
+// Teilaufgabe oder Meilenstein — in dieser Reihenfolge zu zeichnen.
+export type GanttRow = {
+  project_id: string; kind: 'workstream' | 'task' | 'milestone'
+  id: string; parent_id: string | null; workstream_id: string | null
+  label: string; ref: string | null; person_id: string | null
+  start_date: string | null; due_date: string | null
+  task_status: TaskStatus | null; milestone_status: MilestoneStatus | null
+  progress: number; open_count: number; sort_order: number; depth: number
+}
+
 export type Project = {
   id: string; key: string; name: string; description: string | null
   objectives: string | null; scope: string | null
@@ -193,6 +204,7 @@ export type Database = {
     Views: {
       v_projects: View<ProjectOverview>
       v_dashboard: View<DashboardTotals>
+      v_gantt: View<GanttRow>
     }
     Functions: Record<string, never>
     Enums: Record<string, never>

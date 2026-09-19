@@ -194,6 +194,35 @@ archiviertes. Ein Management-Dashboard mit Löchern wäre wertlos, und eine
 Abstufung nach Projektmitgliedschaft beschriebe Rechte, die es mit zwei
 gemeinsam benutzten Zugängen nicht gibt.
 
+### Gantt je Projekt (Auftrag vom 19.09.2026)
+
+Die Zeitachse eines Projekts beantwortet zwei verschiedene Fragen, und sie
+brauchen zwei verschiedene Bilder:
+
+| Ebene | Bild | Wo |
+|---|---|---|
+| über alle Projekte | ein Balken je Projekt, Meilensteine als Punkte | Dashboard, Reiter „Projektverlauf" |
+| innerhalb eines Projekts | **Gantt**: Teilprojekte als Klammer, darunter Aufgaben und Teilaufgaben, dazu die Meilensteine | Projektakte, Reiter „Projektverlauf" |
+
+Die Zeilen liefert die Sicht `pcc.v_gantt` — eine Zeile je Balken, mit `kind`
+(`workstream`, `task`, `milestone`), `depth` (0 Teilprojekt, 1 Aufgabe oder
+Meilenstein, 2 Teilaufgabe) und `parent_id`. Zwei Ableitungen macht die
+Datenbank, damit sie nicht je Oberfläche anders ausfallen:
+
+- **Ein Teilprojekt trägt keine eigenen Termine.** Beginn und Ende ergeben sich
+  aus der frühesten und spätesten Aufgabe darin; `open_count` zählt, was davon
+  offen ist.
+- **Der Fortschritt eines Teilprojekts** ist der Mittelwert seiner *obersten*
+  Aufgaben — Teilaufgaben zählen über ihr Elternteil mit, sonst hätte eine
+  Aufgabe mit fünf Teilaufgaben das fünffache Gewicht. Erledigtes und
+  Abgebrochenes zählt als 100 Prozent, unabhängig vom gepflegten Wert.
+
+Was die Darstellung **nicht** tut: eine Dauer erfinden. Eine Aufgabe ohne
+Termin wird als solche ausgewiesen statt mit einem Balken versehen.
+Abhängigkeiten zwischen Aufgaben zeichnet das Gantt nicht — das Datenmodell
+kennt sie nur zwischen Meilensteinen (`depends_on_milestone_id`), und eine
+gezeichnete Linie, hinter der keine Angabe steht, wäre eine Behauptung.
+
 Technisch heißt das: die SELECT-Policy ruft `pcc.can_read()` — angemeldet
 genügt. Die schreibenden Policies prüfen `pcc.can_edit()`: Teamzugang und
 Projekt nicht archiviert. Die Projektmitgliedschaft steuert seitdem keine
